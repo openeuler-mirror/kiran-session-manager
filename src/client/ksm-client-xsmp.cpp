@@ -171,7 +171,7 @@ std::string KSMClientXsmp::get_program_name()
 
 int32_t KSMClientXsmp::get_property_index(const std::string &property_name)
 {
-    for (int32_t i = 0; i < this->props_->len; i++)
+    for (int32_t i = 0; i < (int32_t)this->props_->len; i++)
     {
         auto prop = (SmProp *)(this->props_->pdata[i]);
 
