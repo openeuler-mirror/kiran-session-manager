@@ -129,7 +129,7 @@ void KSMXsmpServer::listen_socket()
     KSMUtils::setenv("SESSION_MANAGER", network_ids);
     free(network_ids);
 
-    for (uint32_t i = 0; i < this->num_local_listen_sockets_; i++)
+    for (int32_t i = 0; i < this->num_local_listen_sockets_; i++)
     {
         auto channel = g_io_channel_unix_new(IceGetListenConnectionNumber(this->listen_sockets_[i]));
         g_io_add_watch(channel,

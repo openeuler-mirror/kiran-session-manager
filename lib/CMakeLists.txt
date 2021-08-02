@@ -7,7 +7,7 @@ file(GLOB_RECURSE BASE_CPP_FILES ./*.cpp)
 
 set (ALL_FILES ${BASE_H_FILES} ${BASE_CPP_FILES})
 
-add_library(${TARGET_NAME} ${ALL_FILES})
+add_library(${TARGET_NAME} STATIC ${ALL_FILES})
 
 
 target_include_directories(${TARGET_NAME} PUBLIC 

@@ -31,6 +31,8 @@ message("gdbus-codegen: ${GDBUS_CODEGEN}")
 
 configure_file(config.h.in ${PROJECT_BINARY_DIR}/config.h)
 
+SET_COMMON_COMPILER_FLAGS()
+
 add_subdirectory(po)
 add_subdirectory(data)
 add_subdirectory(lib)

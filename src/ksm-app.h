@@ -14,7 +14,6 @@
 
 #pragma once
 
-#include <app_dbus_stub.h>
 #include "lib/base.h"
 
 namespace Kiran
@@ -68,6 +67,7 @@ private:
     std::string object_path_;
     std::string app_id_;
     KSMPhase phase_;
+    Glib::RefPtr<Gio::DesktopAppInfo> app_info_;
     std::string startup_id_;
     // 延时运行时间
     int32_t delay_;
@@ -76,8 +76,6 @@ private:
     uint32_t child_watch_id_;
     // TODO: delete
     sigc::signal<void, KSMAppEvent> app_event_;
-
-    Glib::RefPtr<Gio::DesktopAppInfo> app_info_;
 };
 
 using KSMAppVec = std::vector<std::shared_ptr<KSMApp>>;

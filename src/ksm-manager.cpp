@@ -598,7 +598,7 @@ void KSMManager::on_quit_dialog_response(int32_t response_id)
 {
     KLOG_PROFILE("response id: %d.", response_id);
 
-    auto action = this->quit_dialog_->get_power_action();
+    // auto action = this->quit_dialog_->get_power_action();
     this->quit_dialog_ = nullptr;
 
     switch (response_id)
