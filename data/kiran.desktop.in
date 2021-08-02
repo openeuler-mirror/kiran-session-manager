@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=KIRAN
+Comment=This session logs you into KIRAN
+Comment[zh_CN]=此会话将您登录到 KIRAN
+Exec=@KSM_INSTALL_BINDIR@/kiran-session-manager
+TryExec=@KSM_INSTALL_BINDIR@/kiran-session-manager
+Type=Application
+DesktopNames=KIRAN
+Keywords=KIRAN;session;
+
