@@ -117,6 +117,8 @@ private:
     bool on_waiting_session_timeout(std::function<void(void)> phase_complete_callback);
     // 退出会话确认对话框响应
     void on_quit_dialog_response(int32_t response_id);
+
+    void on_app_exited_cb(std::shared_ptr<KSMApp> app);
     void on_client_added_cb(std::shared_ptr<KSMClient> client);
     void on_client_deleted_cb(std::shared_ptr<KSMClient> client);
     // xsmp客户端请求取消结束会话响应

@@ -24,7 +24,7 @@ class KSMClientDBus : public KSMClient, public gnome::SessionManager::ClientPriv
 {
 public:
     KSMClientDBus(const std::string &startup_id, const std::string &dbus_name);
-    virtual ~KSMClientDBus(){};
+    virtual ~KSMClientDBus();
 
     KSMClientType get_type() { return KSMClientType::KSM_CLIENT_TYPE_DBUS; };
     Glib::DBusObjectPathString get_object_path() { return this->object_path_; };

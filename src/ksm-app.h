@@ -20,28 +20,20 @@ namespace Kiran
 {
 #define KSM_AUTOSTART_APP_ENABLED_KEY "X-KIRAN-Autostart-enabled"
 #define KSM_AUTOSTART_APP_PHASE_KEY "X-KIRAN-Autostart-Phase"
-//#define KSM_AUTOSTART_APP_AUTORESTART_KEY "X-KIRAN-AutoRestart"
+#define KSM_AUTOSTART_APP_AUTORESTART_KEY "X-KIRAN-AutoRestart"
 #define KSM_AUTOSTART_APP_DELAY_KEY "X-KIRAN-Autostart-Delay"
 
 // 暂时兼容MATE应用
 #define GSM_AUTOSTART_APP_ENABLED_KEY "X-MATE-Autostart-enabled"
+#define GSM_AUTOSTART_APP_AUTORESTART_KEY "X-MATE-AutoRestart"
 #define GSM_AUTOSTART_APP_PHASE_KEY "X-MATE-Autostart-Phase"
-
-enum KSMAppEvent
-{
-    // 应用已退出
-    KSM_APP_EVENT_EXITED,
-    // 应用启动后已经向会话管理注册成功，表示可以进行下一个阶段的操作
-    KSM_APP_EVENT_REGISTERED,
-    KSM_APP_EVENT_LAST,
-};
 
 class KSMApp : public std::enable_shared_from_this<KSMApp>
 {
 public:
     KSMApp(const std::string &desktop_file);
     KSMApp(Glib::RefPtr<Gio::DesktopAppInfo> app_info);
-    virtual ~KSMApp(){};
+    virtual ~KSMApp();
 
     bool start();
     bool restart();
@@ -53,9 +45,10 @@ public:
     std::string get_app_id() { return this->app_id_; };
     KSMPhase get_phase() { return this->phase_; };
     std::string get_startup_id() { return this->startup_id_; };
+    bool get_auto_restart() { return this->auto_restart_; };
     int32_t get_delay() { return this->delay_; };
 
-    sigc::signal<void, KSMAppEvent> signal_app_event() { return this->app_event_; };
+    sigc::signal<void> signal_app_exited() { return this->app_exited_; };
 
 private:
     void load_app_info();
@@ -69,13 +62,14 @@ private:
     KSMPhase phase_;
     Glib::RefPtr<Gio::DesktopAppInfo> app_info_;
     std::string startup_id_;
+    // 正常退出后是否自动重启
+    bool auto_restart_;
     // 延时运行时间
     int32_t delay_;
 
     GPid pid_;
     uint32_t child_watch_id_;
-    // TODO: delete
-    sigc::signal<void, KSMAppEvent> app_event_;
+    sigc::signal<void> app_exited_;
 };
 
 using KSMAppVec = std::vector<std::shared_ptr<KSMApp>>;

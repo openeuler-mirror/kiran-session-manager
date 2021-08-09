@@ -171,6 +171,7 @@ bool KSMAppManager::add_app(Glib::RefPtr<Gio::DesktopAppInfo> app_info)
         KLOG_WARNING("The app %s already exist.", app->get_app_id().c_str());
         return false;
     }
+    app->signal_app_exited().connect(sigc::bind(sigc::mem_fun(this, &KSMAppManager::on_app_exited_cb), app->get_app_id()));
     return true;
 }
 
@@ -185,5 +186,12 @@ KSMAppVec KSMAppManager::get_apps_by_phase(KSMPhase phase)
         }
     }
     return apps;
+}
+
+void KSMAppManager::on_app_exited_cb(std::string app_id)
+{
+    auto app = this->get_app(app_id);
+    RETURN_IF_FALSE(app);
+    this->app_exited_.emit(app);
 }
 }  // namespace Kiran

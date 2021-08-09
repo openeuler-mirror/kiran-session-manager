@@ -248,6 +248,7 @@ void KSMManager::init()
     auto resource = Gio::Resource::create_from_file(KSM_INSTALL_DATADIR "/kiran-session-manager.gresource");
     resource->register_global();
 
+    this->app_manager_->signal_app_exited().connect(sigc::mem_fun(this, &KSMManager::on_app_exited_cb));
     this->client_manager_->signal_client_added().connect(sigc::mem_fun(this, &KSMManager::on_client_added_cb));
     this->client_manager_->signal_client_deleted().connect(sigc::mem_fun(this, &KSMManager::on_client_deleted_cb));
     this->client_manager_->signal_shutdown_canceled().connect(sigc::mem_fun(this, &KSMManager::on_xsmp_shutdown_canceled_cb));
@@ -546,7 +547,7 @@ void KSMManager::on_app_startup_finished(std::shared_ptr<KSMApp> app)
     this->waiting_apps_.erase(iter, this->waiting_apps_.end());
 
     if (this->waiting_apps_.size() == 0 &&
-        app->get_phase() < KSMPhase::KSM_PHASE_APPLICATION)
+        this->current_phase_ < KSMPhase::KSM_PHASE_APPLICATION)
     {
         if (this->waiting_apps_timeout_id_)
         {
@@ -617,6 +618,11 @@ void KSMManager::on_quit_dialog_response(int32_t response_id)
     }
 }
 
+void KSMManager::on_app_exited_cb(std::shared_ptr<KSMApp> app)
+{
+    this->on_app_startup_finished(app);
+}
+
 void KSMManager::on_client_added_cb(std::shared_ptr<KSMClient> client)
 {
     KLOG_PROFILE("");
@@ -638,6 +644,18 @@ void KSMManager::on_client_deleted_cb(std::shared_ptr<KSMClient> client)
     KLOG_DEBUG("client: %s.", client->get_id().c_str());
     // 客户端断开连接或者异常退出后无法再响应会话管理的请求，因此这里主动调用一次客户端响应回调函数来处理该客户端
     this->on_end_session_response_cb(client);
+
+    if (this->current_phase_ == KSMPhase::KSM_PHASE_RUNNING)
+    {
+        auto app = this->app_manager_->get_app_by_startup_id(client->get_id());
+        if (app && app->get_auto_restart())
+        {
+            auto idle = Glib::MainContext::get_default()->signal_idle();
+            idle.connect_once([app]() {
+                app->restart();
+            });
+        }
+    }
 }
 
 void KSMManager::on_xsmp_shutdown_canceled_cb(std::shared_ptr<KSMClient> client)

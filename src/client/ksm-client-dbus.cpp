@@ -27,6 +27,11 @@ KSMClientDBus::KSMClientDBus(const std::string &startup_id,
     this->object_path_ = fmt::format("{0}{1}", KSM_CLIENT_DBUS_OBJECT_PATH, ++KSMClientDBus::client_count_);
 }
 
+KSMClientDBus::~KSMClientDBus()
+{
+    KLOG_DEBUG("client %s is destroyed.", this->get_id().c_str());
+}
+
 bool KSMClientDBus::cancel_end_session()
 {
     this->CancelEndSession_signal.emit(false);
