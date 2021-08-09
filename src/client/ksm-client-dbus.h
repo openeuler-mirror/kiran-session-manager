@@ -23,11 +23,12 @@ namespace Kiran
 class KSMClientDBus : public KSMClient, public gnome::SessionManager::ClientPrivateStub
 {
 public:
-    KSMClientDBus(const std::string &startup_id);
+    KSMClientDBus(const std::string &startup_id, const std::string &dbus_name);
     virtual ~KSMClientDBus(){};
 
     KSMClientType get_type() { return KSMClientType::KSM_CLIENT_TYPE_DBUS; };
     Glib::DBusObjectPathString get_object_path() { return this->object_path_; };
+    std::string get_dbus_name() { return this->dbus_name_; };
 
     virtual bool cancel_end_session();
     virtual bool query_end_session(bool interact);
@@ -52,6 +53,7 @@ private:
     void on_bus_acquired(Glib::RefPtr<Gio::AsyncResult> &result);
 
 private:
+    std::string dbus_name_;
     sigc::signal<void, bool> end_session_response_;
 
     static int32_t client_count_;
