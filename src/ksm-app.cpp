@@ -14,6 +14,7 @@
 
 #include "src/ksm-app.h"
 #include <gio/gdesktopappinfo.h>
+#include "src/ksm-app-manager.h"
 #include "src/ksm-utils.h"
 
 namespace Kiran
@@ -25,8 +26,20 @@ KSMApp::KSMApp(const std::string &desktop_file)
     new (this) KSMApp(app_info);
 }
 
+KSMApp::~KSMApp()
+{
+    KLOG_DEBUG("App %s is destroyed.", this->app_id_.c_str());
+
+    if (this->child_watch_id_)
+    {
+        g_source_remove(this->child_watch_id_);
+        this->child_watch_id_ = 0;
+    }
+}
+
 KSMApp::KSMApp(Glib::RefPtr<Gio::DesktopAppInfo> app_info) : phase_(KSMPhase::KSM_PHASE_APPLICATION),
                                                              app_info_(app_info),
+                                                             auto_restart_(false),
                                                              delay_(-1),
                                                              pid_(-1),
                                                              child_watch_id_(0)
@@ -64,25 +77,30 @@ bool KSMApp::start()
         KLOG_WARNING("Failed to launch app %s: %s.", this->app_id_.c_str(), error->message);
         return false;
     }
-    else
-    {
-        // 这里传递this指针存在一定的风险，需要确保调用回调函数时该对象未被销毁
-        this->child_watch_id_ = g_child_watch_add(this->pid_,
-                                                  &KSMApp::on_app_exited_cb,
-                                                  this);
-    }
 
+    KLOG_DEBUG("Launch child pid: %d.", this->pid_);
+
+    char *app_id = g_strdup(this->app_id_.c_str());
+    this->child_watch_id_ = g_child_watch_add_full(G_PRIORITY_DEFAULT,
+                                                   this->pid_,
+                                                   &KSMApp::on_app_exited_cb,
+                                                   app_id,
+                                                   g_free);
     return true;
 }
 
 bool KSMApp::restart()
 {
+    KLOG_PROFILE("");
+
     this->stop();
     return this->start();
 }
 
 bool KSMApp::stop()
 {
+    KLOG_PROFILE("");
+
     if (this->pid_ <= 1)
     {
         KLOG_WARNING("The app %s is not running.", this->app_id_.c_str());
@@ -139,17 +157,30 @@ void KSMApp::load_app_info()
 {
     RETURN_IF_FALSE(this->app_info_);
 
+    this->startup_id_ = KSMUtils::generate_startup_id();
+
+    // Desktop ID
     this->app_id_ = this->app_info_->get_id();
 
+    // Phase
     auto phase_str = this->app_info_->get_string(KSM_AUTOSTART_APP_PHASE_KEY);
     if (phase_str.empty())
     {
         phase_str = this->app_info_->get_string(GSM_AUTOSTART_APP_PHASE_KEY);
     }
-
     this->phase_ = KSMUtils::phase_str2enum(phase_str);
-    this->startup_id_ = KSMUtils::generate_startup_id();
 
+    // Auto restart
+    if (this->app_info_->has_key(KSM_AUTOSTART_APP_AUTORESTART_KEY))
+    {
+        this->auto_restart_ = this->app_info_->get_boolean(KSM_AUTOSTART_APP_AUTORESTART_KEY);
+    }
+    else
+    {
+        this->auto_restart_ = this->app_info_->get_boolean(GSM_AUTOSTART_APP_AUTORESTART_KEY);
+    }
+
+    // Delay
     auto delay_str = this->app_info_->get_string(KSM_AUTOSTART_APP_DELAY_KEY);
     if (!delay_str.empty())
     {
@@ -176,21 +207,30 @@ void KSMApp::on_launch_cb(GDesktopAppInfo *appinfo, GPid pid, gpointer user_data
 
 void KSMApp::on_app_exited_cb(GPid pid, gint status, gpointer user_data)
 {
-    KSMApp *app = (KSMApp *)(user_data);
+    auto app_id = (char *)(user_data);
+    auto app = KSMAppManager::get_instance()->get_app(POINTER_TO_STRING(app_id));
+    auto pid_back = app->pid_;
 
     Glib::spawn_close_pid(pid);
-    app->pid_ = -1;
-    app->child_watch_id_ = 0;
 
     if (WIFEXITED(status))
     {
-        KLOG_DEBUG("The app %s exits. exit code: %d.", app->get_app_id().c_str(), WEXITSTATUS(status));
-        app->app_event_.emit(KSMAppEvent::KSM_APP_EVENT_EXITED);
+        KLOG_DEBUG("The app %s exits. pid: %d, exit code: %d.", app->get_app_id().c_str(), (int32_t)pid, WEXITSTATUS(status));
     }
     else if (WIFSIGNALED(status))
     {
-        KLOG_WARNING("The app %s exits abnormal, exit code: %d.", app->get_app_id().c_str(), WTERMSIG(status));
+        KLOG_WARNING("The app %s exits abnormal, pid: %d, exit code: %d.", app->get_app_id().c_str(), (int32_t)pid, WTERMSIG(status));
     }
+
+    /* 在程序重启时可能存在一个延时，导致最终函数执行顺序是：restart->stop->start->on_app_exited_cb
+        而在调用start函数时已经重新设置pid和child_watch_id了，因此如果pid != app->pid_则不再进行清理操作 */
+    if (pid == app->pid_)
+    {
+        app->pid_ = -1;
+        app->child_watch_id_ = 0;
+    }
+
+    app->app_exited_.emit();
 }
 
 }  // namespace Kiran

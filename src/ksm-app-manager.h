@@ -37,6 +37,8 @@ public:
     // 启动特定阶段的app，并返回启动成功或者延时启动的app列表
     KSMAppVec start_apps(KSMPhase phase);
 
+    sigc::signal<void, std::shared_ptr<KSMApp>> signal_app_exited() { return this->app_exited_; };
+
 private:
     void init();
 
@@ -48,11 +50,15 @@ private:
     // 获取在特定阶段启动的app
     KSMAppVec get_apps_by_phase(KSMPhase phase);
 
+    void on_app_exited_cb(std::string app_id);
+
 private:
     static KSMAppManager* instance_;
 
     Glib::RefPtr<Gio::Settings> settings_;
     // 开机启动应用
     std::map<std::string, std::shared_ptr<KSMApp>> apps_;
+
+    sigc::signal<void, std::shared_ptr<KSMApp>> app_exited_;
 };
 }  // namespace Kiran

@@ -90,9 +90,9 @@ std::shared_ptr<KSMClientDBus> KSMClientManager::add_client_dbus(const std::stri
 
     auto client = std::make_shared<KSMClientDBus>(new_startup_id, dbus_name);
     RETURN_VAL_IF_FALSE(this->add_client(client), nullptr);
-    // TODO: client作为bind被传递，需要判断client是否会被删除
+    // 共享指针client不能作为bind被传递，如果这样做的话会导致共享指针无法被销毁（引用计数死循环）
     client->signal_end_session_response().connect(sigc::bind(sigc::mem_fun(this, &KSMClientManager::on_dbus_client_end_session_response),
-                                                             client));
+                                                             client->get_id()));
     return client;
 }
 
@@ -255,8 +255,9 @@ void KSMClientManager::on_ice_conn_status_changed_cb(IceProcessMessagesStatus st
     }
 }
 
-void KSMClientManager::on_dbus_client_end_session_response(bool is_ok, std::shared_ptr<KSMClient> client)
+void KSMClientManager::on_dbus_client_end_session_response(bool is_ok, std::string startup_id)
 {
+    auto client = this->get_client(startup_id);
     RETURN_IF_FALSE(client);
 
     if (is_ok)

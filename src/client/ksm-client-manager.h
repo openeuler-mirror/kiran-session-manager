@@ -98,7 +98,7 @@ private:
                                   const Glib::VariantContainerBase &parameters);
     void on_new_xsmp_client_connected_cb(unsigned long *mask_ret, SmsCallbacks *callbacks_ret);
     void on_ice_conn_status_changed_cb(IceProcessMessagesStatus status, IceConn ice_conn);
-    void on_dbus_client_end_session_response(bool is_ok, std::shared_ptr<KSMClient> client);
+    void on_dbus_client_end_session_response(bool is_ok, std::string startup_id);
 
     static Status on_register_client_cb(SmsConn sms_conn, SmPointer manager_data, char *previous_id);
     static void on_interact_request_cb(SmsConn sms_conn, SmPointer manager_data, int dialog_type);
