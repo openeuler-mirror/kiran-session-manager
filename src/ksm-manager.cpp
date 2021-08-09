@@ -32,6 +32,7 @@ KSMManager::KSMManager(KSMAppManager *app_manager,
                                                            object_register_id_(0)
 {
     this->settings_ = Gio::Settings::create(KSM_SCHEMA_ID);
+
     this->presence_ = std::make_shared<KSMPresence>();
 }
 
@@ -68,7 +69,7 @@ void KSMManager::RegisterClient(const Glib::ustring &app_id,
         DBUS_ERROR_REPLY_AND_RET(KSMErrorCode::ERROR_MANAGER_PHASE_CANNOT_REGISTER, KSMUtils::phase_enum2str(this->current_phase_));
     }
 
-    auto client = this->client_manager_->add_client_dbus(client_startup_id);
+    auto client = this->client_manager_->add_client_dbus(client_startup_id, invocation.getMessage()->get_sender());
 
     if (!client)
     {
@@ -634,7 +635,7 @@ void KSMManager::on_client_added_cb(std::shared_ptr<KSMClient> client)
 void KSMManager::on_client_deleted_cb(std::shared_ptr<KSMClient> client)
 {
     RETURN_IF_FALSE(client);
-    KLOG_DEBUG("client: %s.", client->get_id());
+    KLOG_DEBUG("client: %s.", client->get_id().c_str());
     // 客户端断开连接或者异常退出后无法再响应会话管理的请求，因此这里主动调用一次客户端响应回调函数来处理该客户端
     this->on_end_session_response_cb(client);
 }

@@ -25,6 +25,7 @@ namespace Kiran
 #define DAEMON_DBUS_NAME "org.freedesktop.DBus"
 #define DAEMON_DBUS_OBJECT_PATH "/org/freedesktop/DBus"
 #define DAEMON_DBUS_INTERFACE_NAME "org.freedesktop.DBus"
+#define DAEMON_DBUS_SIGNAL_NAME_OWNER_CHANGED "NameOwnerChanged"
 
 #define SYSTEMD_DBUS_NAME "org.freedesktop.systemd1"
 #define SYSTEMD_DBUS_OBJECT_PATH "/org/freedesktop/systemd1"

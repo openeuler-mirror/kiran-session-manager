@@ -62,11 +62,12 @@ public:
     static void global_deinit() { delete instance_; };
 
     std::shared_ptr<KSMClient> get_client(const std::string &startup_id) { return MapHelper::get_value(this->clients_, startup_id); }
+    std::shared_ptr<KSMClientDBus> get_client_by_dbus_name(const std::string &dbus_name);
     KSMClientVec get_clients() { return MapHelper::get_values(this->clients_); };
 
     // 添加客户端
-    std::shared_ptr<KSMClientXsmp> add_client_xsmp(SmsConn sms_conn, const std::string &startup_id);
-    std::shared_ptr<KSMClientDBus> add_client_dbus(const std::string &startup_id);
+    std::shared_ptr<KSMClientXsmp> add_client_xsmp(const std::string &startup_id, SmsConn sms_conn);
+    std::shared_ptr<KSMClientDBus> add_client_dbus(const std::string &startup_id, const std::string &dbus_name);
 
     // 删除客户端
     bool delete_client(const std::string &startup_id);
@@ -92,6 +93,9 @@ private:
     std::shared_ptr<KSMClientXsmp> get_client_by_sms_conn(SmsConn sms_conn);
     std::shared_ptr<KSMClientXsmp> get_client_by_ice_conn(IceConn ice_conn);
 
+    void on_dbus_daemon_signal_cb(const Glib::ustring &sender_name,
+                                  const Glib::ustring &signal_name,
+                                  const Glib::VariantContainerBase &parameters);
     void on_new_xsmp_client_connected_cb(unsigned long *mask_ret, SmsCallbacks *callbacks_ret);
     void on_ice_conn_status_changed_cb(IceProcessMessagesStatus status, IceConn ice_conn);
     void on_dbus_client_end_session_response(bool is_ok, std::shared_ptr<KSMClient> client);
@@ -125,6 +129,9 @@ private:
 private:
     static KSMClientManager *instance_;
     KSMXsmpServer *xsmp_server_;
+
+    // dbus daemon代理
+    Glib::RefPtr<Gio::DBus::Proxy> dbus_daemon_proxy_;
 
     // 维护客户端对象 <startup_id, KSMClient>
     std::map<std::string, std::shared_ptr<KSMClient>> clients_;

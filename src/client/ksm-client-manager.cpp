@@ -25,6 +25,17 @@ namespace Kiran
 {
 KSMClientManager::KSMClientManager(KSMXsmpServer *xsmp_server) : xsmp_server_(xsmp_server)
 {
+    try
+    {
+        this->dbus_daemon_proxy_ = Gio::DBus::Proxy::create_for_bus_sync(Gio::DBus::BUS_TYPE_SESSION,
+                                                                         DAEMON_DBUS_NAME,
+                                                                         DAEMON_DBUS_OBJECT_PATH,
+                                                                         DAEMON_DBUS_INTERFACE_NAME);
+    }
+    catch (const Glib::Error &e)
+    {
+        KLOG_WARNING("%s.", e.what().c_str());
+    }
 }
 
 KSMClientManager *KSMClientManager::instance_ = nullptr;
@@ -34,14 +45,27 @@ void KSMClientManager::global_init(KSMXsmpServer *xsmp_server)
     instance_->init();
 }
 
+std::shared_ptr<KSMClientDBus> KSMClientManager::get_client_by_dbus_name(const std::string &dbus_name)
+{
+    for (auto iter : this->clients_)
+    {
+        auto client = iter.second;
+        CONTINUE_IF_TRUE(client->get_type() != KSM_CLIENT_TYPE_DBUS);
+        auto dbus_client = std::dynamic_pointer_cast<KSMClientDBus>(client);
+        RETURN_VAL_IF_TRUE(dbus_client->get_dbus_name() == dbus_name, dbus_client);
+    }
+    return nullptr;
+}
+
 void KSMClientManager::init()
 {
+    this->dbus_daemon_proxy_->signal_signal().connect(sigc::mem_fun(this, &KSMClientManager::on_dbus_daemon_signal_cb));
     this->xsmp_server_->signal_new_client_connected().connect(sigc::mem_fun(this, &KSMClientManager::on_new_xsmp_client_connected_cb));
     this->xsmp_server_->signal_ice_conn_status_changed().connect(sigc::mem_fun(this, &KSMClientManager::on_ice_conn_status_changed_cb));
 }
 
-std::shared_ptr<KSMClientXsmp> KSMClientManager::add_client_xsmp(SmsConn sms_conn,
-                                                                 const std::string &startup_id)
+std::shared_ptr<KSMClientXsmp> KSMClientManager::add_client_xsmp(const std::string &startup_id,
+                                                                 SmsConn sms_conn)
 {
     auto new_startup_id = startup_id;
     if (new_startup_id.empty())
@@ -54,7 +78,7 @@ std::shared_ptr<KSMClientXsmp> KSMClientManager::add_client_xsmp(SmsConn sms_con
     return client;
 }
 
-std::shared_ptr<KSMClientDBus> KSMClientManager::add_client_dbus(const std::string &startup_id)
+std::shared_ptr<KSMClientDBus> KSMClientManager::add_client_dbus(const std::string &startup_id, const std::string &dbus_name)
 {
     KLOG_PROFILE("startup id: %s.", startup_id.c_str());
 
@@ -64,7 +88,7 @@ std::shared_ptr<KSMClientDBus> KSMClientManager::add_client_dbus(const std::stri
         new_startup_id = KSMUtils::generate_startup_id();
     }
 
-    auto client = std::make_shared<KSMClientDBus>(new_startup_id);
+    auto client = std::make_shared<KSMClientDBus>(new_startup_id, dbus_name);
     RETURN_VAL_IF_FALSE(this->add_client(client), nullptr);
     // TODO: client作为bind被传递，需要判断client是否会被删除
     client->signal_end_session_response().connect(sigc::bind(sigc::mem_fun(this, &KSMClientManager::on_dbus_client_end_session_response),
@@ -130,6 +154,36 @@ std::shared_ptr<KSMClientXsmp> KSMClientManager::get_client_by_ice_conn(IceConn 
         }
     }
     return nullptr;
+}
+
+void KSMClientManager::on_dbus_daemon_signal_cb(const Glib::ustring &sender_name,
+                                                const Glib::ustring &signal_name,
+                                                const Glib::VariantContainerBase &parameters)
+{
+    RETURN_IF_TRUE(signal_name != DAEMON_DBUS_SIGNAL_NAME_OWNER_CHANGED);
+
+    if (!parameters.check_format_string("(sss)"))
+    {
+        KLOG_WARNING("The arguments format of signal NameOwnerChanged signal isn't (sss).");
+        return;
+    }
+
+    Glib::VariantBase old_name_child;
+    Glib::VariantBase new_name_child;
+    parameters.get_child(old_name_child, 1);
+    parameters.get_child(new_name_child, 2);
+
+    auto old_name = Glib::VariantBase::cast_dynamic<Glib::Variant<Glib::ustring>>(old_name_child).get();
+    auto new_name = Glib::VariantBase::cast_dynamic<Glib::Variant<Glib::ustring>>(new_name_child).get();
+    if (new_name.empty())
+    {
+        auto dbus_client = this->get_client_by_dbus_name(old_name);
+        if (dbus_client)
+        {
+            KLOG_DEBUG("Remove client %s which dbus name is %s.", dbus_client->get_id().c_str(), old_name.c_str());
+            this->delete_client(dbus_client->get_id());
+        }
+    }
 }
 
 void KSMClientManager::on_new_xsmp_client_connected_cb(unsigned long *mask_ret, SmsCallbacks *callbacks_ret)
@@ -237,7 +291,7 @@ Status KSMClientManager::on_register_client_cb(SmsConn sms_conn, SmPointer manag
         }
     });
 
-    auto client = client_manager->add_client_xsmp(sms_conn, POINTER_TO_STRING(previous_id));
+    auto client = client_manager->add_client_xsmp(POINTER_TO_STRING(previous_id), sms_conn);
     RETURN_VAL_IF_FALSE(client, False);
 
     KLOG_DEBUG("startup id: %s, previous_id: %s.",

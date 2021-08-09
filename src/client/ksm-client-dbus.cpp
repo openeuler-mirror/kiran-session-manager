@@ -19,7 +19,9 @@ namespace Kiran
 #define KSM_CLIENT_DBUS_OBJECT_PATH "/org/gnome/SessionManager/Client"
 int32_t KSMClientDBus::client_count_ = 0;
 
-KSMClientDBus::KSMClientDBus(const std::string &startup_id) : KSMClient(startup_id)
+KSMClientDBus::KSMClientDBus(const std::string &startup_id,
+                             const std::string &dbus_name) : KSMClient(startup_id),
+                                                             dbus_name_(dbus_name)
 {
     Gio::DBus::Connection::get(Gio::DBus::BUS_TYPE_SESSION, sigc::mem_fun(this, &KSMClientDBus::on_bus_acquired));
     this->object_path_ = fmt::format("{0}{1}", KSM_CLIENT_DBUS_OBJECT_PATH, ++KSMClientDBus::client_count_);
