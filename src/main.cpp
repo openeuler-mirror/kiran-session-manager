@@ -16,11 +16,13 @@
 #include <glib/gi18n.h>
 #include <gtkmm.h>
 #include <gtkmm/wrap_init.h>
-#include "src/client/ksm-client-manager.h"
-#include "src/ksm-app-manager.h"
-#include "src/ksm-manager.h"
-#include "src/ksm-utils.h"
-#include "src/ksm-xsmp-server.h"
+#include "src/app-manager.h"
+#include "src/client/client-manager.h"
+#include "src/session-manager.h"
+#include "src/utils.h"
+#include "src/xsmp-server.h"
+
+using namespace Kiran::Daemon;
 
 void init_env()
 {
@@ -29,7 +31,7 @@ void init_env()
 
     try
     {
-        auto key_regex = Glib::Regex::create("^[A-Za-z_][A-Za-z0-9]*$", Glib::RegexCompileFlags::REGEX_OPTIMIZE);
+        auto key_regex = Glib::Regex::create("^[A-Za-z_][A-Za-z0-9_]*$", Glib::RegexCompileFlags::REGEX_OPTIMIZE);
         auto value_regex = Glib::Regex::create("^([[:blank:]]|[^[:cntrl:]])*$", Glib::RegexCompileFlags::REGEX_OPTIMIZE);
 
         for (auto key : Glib::listenv())
@@ -41,7 +43,7 @@ void init_env()
                 KLOG_DEBUG("key: %s, value: %s.", key.c_str(), value.c_str());
             }
         }
-        Kiran::KSMUtils::setenvs(envs);
+        Utils::setenvs(envs);
     }
     catch (const Glib::Error &e)
     {
@@ -52,12 +54,12 @@ void init_env()
     if (Glib::getenv("DISPLAY").empty())
     {
         auto display_name = Gdk::Display::get_default()->get_name();
-        Kiran::KSMUtils::setenv("DISPLAY", display_name);
+        Utils::setenv("DISPLAY", display_name);
     }
 
     if (Glib::getenv("XDG_CURRENT_DESKTOP").empty())
     {
-        Kiran::KSMUtils::setenv("XDG_CURRENT_DESKTOP", "KIRAN");
+        Utils::setenv("XDG_CURRENT_DESKTOP", "KIRAN");
     }
 }
 
@@ -104,12 +106,12 @@ int main(int argc, char *argv[])
 
     init_env();
 
-    Kiran::KSMAppManager::global_init();
-    Kiran::KSMXsmpServer::global_init();
-    Kiran::KSMClientManager::global_init(Kiran::KSMXsmpServer::get_instance());
-    Kiran::KSMManager::global_init(Kiran::KSMAppManager::get_instance(),
-                                   Kiran::KSMClientManager::get_instance());
-    Kiran::KSMManager::get_instance()->start();
+    AppManager::global_init();
+    XsmpServer::global_init();
+    ClientManager::global_init(XsmpServer::get_instance());
+    SessionManager::global_init(AppManager::get_instance(),
+                                ClientManager::get_instance());
+    SessionManager::get_instance()->start();
 
     gtk_main();
 
