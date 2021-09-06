@@ -1,4 +1,10 @@
 /**
+ * @file          /kiran-ssr-manager/home/tangjie02/git/kiran-session-manager/include/ksm-error-i.h
+ * @brief         
+ * @author        tangjie02 <tangjie02@kylinos.com.cn>
+ * @copyright (c) 2020~2021 KylinSec Co., Ltd. All rights reserved. 
+ */
+/**
  * Copyright (c) 2020 ~ 2021 KylinSec Co., Ltd. 
  * kiran-session-manager is licensed under Mulan PSL v2.
  * You can use this software according to the terms and conditions of the Mulan PSL v2. 
