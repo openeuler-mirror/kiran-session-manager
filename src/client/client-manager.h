@@ -69,14 +69,21 @@ public:
 
     // 添加客户端
     std::shared_ptr<ClientXsmp> add_client_xsmp(const std::string &startup_id, SmsConn sms_conn);
-    std::shared_ptr<ClientDBus> add_client_dbus(const std::string &startup_id, const std::string &dbus_name);
+    std::shared_ptr<ClientDBus> add_client_dbus(const std::string &startup_id,
+                                                const std::string &dbus_name,
+                                                const std::string &app_id);
 
     // 删除客户端
     bool delete_client(const std::string &startup_id);
 
-    // 客户端被添加/删除信号
+    // 客户端被添加信号
     sigc::signal<void, std::shared_ptr<Client>> signal_client_added() { return this->client_added_; };
+    // 客户端被删除信号
     sigc::signal<void, std::shared_ptr<Client>> signal_client_deleted() { return this->client_deleted_; };
+    // 客户端请求与用户进行交互
+    sigc::signal<void, std::shared_ptr<Client>> signal_interact_request() { return this->interact_request_; };
+    // 客户端与用户交互完毕
+    sigc::signal<void, std::shared_ptr<Client>> signal_interact_done() { return this->interact_done_; };
     // 客户端申请退出会话
     sigc::signal<void, std::shared_ptr<Client>> signal_shutdown_request() { return this->shutdown_request_; };
     // 客户端申请取消退出会话
@@ -141,6 +148,8 @@ private:
     sigc::signal<void, std::shared_ptr<Client>> client_added_;
     sigc::signal<void, std::shared_ptr<Client>> client_deleted_;
 
+    sigc::signal<void, std::shared_ptr<Client>> interact_request_;
+    sigc::signal<void, std::shared_ptr<Client>> interact_done_;
     sigc::signal<void, std::shared_ptr<Client>> shutdown_request_;
     sigc::signal<void, std::shared_ptr<Client>> shutdown_canceled_;
     sigc::signal<void, std::shared_ptr<Client>> end_session_phase2_request_;

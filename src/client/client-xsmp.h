@@ -42,11 +42,12 @@ public:
     ClientType get_type() { return ClientType::CLIENT_TYPE_XSMP; };
     SmsConn get_sms_connection() { return this->sms_connection_; };
 
-    virtual bool cancel_end_session();
-    virtual bool query_end_session(bool interact);
-    virtual bool end_session(bool save_data);
-    virtual bool end_session_phase2();
-    virtual bool stop();
+    virtual std::string get_app_id() override;
+    virtual bool cancel_end_session() override;
+    virtual bool query_end_session(bool interact) override;
+    virtual bool end_session(bool save_data) override;
+    virtual bool end_session_phase2() override;
+    virtual bool stop() override;
 
     // 添加/更新/删除/查找属性
     void update_property(SmProp *property);

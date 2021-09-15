@@ -15,29 +15,33 @@
 #pragma once
 
 #include <gtkmm.h>
-#include "src/power.h"
 
 namespace Kiran
 {
 namespace Daemon
 {
-class QuitDialog : public Gtk::Dialog
+class ExitQueryWindow;
+
+class UIManager
 {
 public:
-    QuitDialog(GtkDialog *dialog, const Glib::RefPtr<Gtk::Builder> &builder, PowerAction power_action);
-    // KSMQuitDialog(PowerAction power_action);
-    virtual ~QuitDialog(){};
+    UIManager();
+    virtual ~UIManager(){};
 
-    static std::shared_ptr<QuitDialog> create(PowerAction power_action);
+    static UIManager* get_instance() { return instance_; };
 
-    PowerAction get_power_action() { return this->power_action_; };
+    static void global_init();
+
+    static void global_deinit() { delete instance_; };
 
 private:
     void init();
 
 private:
-    PowerAction power_action_;
-};
+    static UIManager* instance_;
 
+    // std::shared_ptr<MaskWindow> mask_window_;
+};
 }  // namespace Daemon
+
 }  // namespace Kiran

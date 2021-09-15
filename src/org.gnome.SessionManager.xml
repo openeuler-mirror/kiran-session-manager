@@ -55,11 +55,21 @@
             <description>Determine if the operation specified by flags is set.</description>
         </method>
 
+        <method name="GetInhibitor">
+            <arg name="cookie" direction="in" type="u">
+                <summary>The inhibitor cookie.</summary>
+            </arg>
+            <arg name="inhibitor" direction="out" type="s">
+                <summary>A json string that contains inhibitor informations.</summary>
+            </arg>
+            <description>This gets an inhibitor that are currently known to the session manager.</description>
+        </method>
+
         <method name="GetInhibitors">
             <arg name="inhibitors" direction="out" type="s">
                 <summary>A json string that contain all inhibitors informations.</summary>
             </arg>
-            <description>This gets a list of all the Inhibitors that are currently known to the session manager.</description>
+            <description>This gets a list of all the inhibitors that are currently known to the session manager.</description>
         </method>
 
         <method name="Shutdown">
@@ -107,15 +117,15 @@
         </method>
 
         <signal name="InhibitorAdded">
-            <arg name="id" type="o">
-                <summary>The object path for the added inhibitor</summary>
+            <arg name="cookie" type="u">
+                <summary>The inhibitor cookie.</summary>
             </arg>
             <description>Emitted when an inhibitor has been added to the session manager.</description>
         </signal>
 
         <signal name="InhibitorRemoved">
-            <arg name="id" type="o">
-                <summary>The object path for the removed inhibitor</summary>
+            <arg name="cookie" type="u">
+                <summary>The inhibitor cookie.</summary>
             </arg>
             <description>Emitted when an inhibitor has been removed from the session manager.</description>
         </signal>

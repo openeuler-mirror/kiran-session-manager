@@ -13,12 +13,10 @@
  */
 
 #include <session_manager_dbus_stub.h>
-#include "src/app.h"
+#include "src/app/app.h"
 #include "src/client/client.h"
-#include "src/inhibitors.h"
 #include "src/power.h"
 #include "src/presence.h"
-#include "src/quit-dialog.h"
 
 namespace Kiran
 {
@@ -26,18 +24,23 @@ namespace Daemon
 {
 class AppManager;
 class ClientManager;
+class Inhibitor;
+class InhibitorManager;
+class ExitQueryWindow;
 
 class SessionManager : public gnome::SessionManagerStub
 {
 public:
     SessionManager(AppManager *app_manager,
-                   ClientManager *client_manager);
+                   ClientManager *client_manager,
+                   InhibitorManager *inhibitor_manager);
     virtual ~SessionManager();
 
     static SessionManager *get_instance() { return instance_; };
 
     static void global_init(AppManager *app_manager,
-                            ClientManager *client_manager);
+                            ClientManager *client_manager,
+                            InhibitorManager *inhibitor_manager);
 
     static void global_deinit() { delete instance_; };
 
@@ -66,6 +69,9 @@ protected:
     // 判断指定flags的抑制器是否存在
     virtual void IsInhibited(guint32 flags,
                              MethodInvocation &invocation);
+
+    // 获取抑制器
+    virtual void GetInhibitor(guint32 cookie, MethodInvocation &invocation);
 
     // 获取所有抑制器
     virtual void GetInhibitors(MethodInvocation &invocation);
@@ -118,15 +124,20 @@ private:
     bool on_phase_startup_timeout();
     bool on_waiting_session_timeout(std::function<void(void)> phase_complete_callback);
     // 退出会话确认对话框响应
-    void on_quit_dialog_response(int32_t response_id);
+    void on_exit_window_response(int32_t response_id);
 
     void on_app_exited_cb(std::shared_ptr<App> app);
     void on_client_added_cb(std::shared_ptr<Client> client);
     void on_client_deleted_cb(std::shared_ptr<Client> client);
+    void on_interact_request_cb(std::shared_ptr<Client> client);
+    void on_interact_done_cb(std::shared_ptr<Client> client);
     // xsmp客户端请求取消结束会话响应
-    void on_xsmp_shutdown_canceled_cb(std::shared_ptr<Client> client);
+    void on_shutdown_canceled_cb(std::shared_ptr<Client> client);
     void on_end_session_phase2_request_cb(std::shared_ptr<Client> client);
     void on_end_session_response_cb(std::shared_ptr<Client> client);
+
+    void on_inhibitor_added_cb(std::shared_ptr<Inhibitor> inhibitor);
+    void on_inhibitor_deleted_cb(std::shared_ptr<Inhibitor> inhibitor);
 
     void on_bus_acquired(const Glib::RefPtr<Gio::DBus::Connection> &connect, Glib::ustring name);
     void on_name_acquired(const Glib::RefPtr<Gio::DBus::Connection> &connect, Glib::ustring name);
@@ -137,6 +148,7 @@ private:
 
     AppManager *app_manager_;
     ClientManager *client_manager_;
+    InhibitorManager *inhibitor_manager_;
 
     Glib::RefPtr<Gio::Settings> settings_;
 
@@ -154,10 +166,8 @@ private:
     KSMClientVec phase2_request_clients_;
 
     Power power_;
-    // 抑制器管理
-    Inhibitors inhibitors_;
     // 抑制对话框
-    std::shared_ptr<QuitDialog> quit_dialog_;
+    std::shared_ptr<ExitQueryWindow> exit_query_window_;
     // 空闲超时设置
     std::shared_ptr<Presence> presence_;
     PowerAction power_action_;

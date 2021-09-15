@@ -14,12 +14,13 @@
 
 #pragma once
 
-#include "src/app.h"
+#include "src/app/app.h"
 
 namespace Kiran
 {
 namespace Daemon
 {
+class App;
 class AppManager
 {
 public:

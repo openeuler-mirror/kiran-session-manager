@@ -12,13 +12,16 @@
  * Author:     tangjie02 <tangjie02@kylinos.com.cn>
  */
 
+#include <atkmm/wrap_init.h>
 #include <gdkmm/wrap_init.h>
 #include <glib/gi18n.h>
 #include <gtkmm.h>
 #include <gtkmm/wrap_init.h>
-#include "src/app-manager.h"
+#include "src/app/app-manager.h"
 #include "src/client/client-manager.h"
+#include "src/inhibitor-manager.h"
 #include "src/session-manager.h"
+#include "src/ui/ui-manager.h"
 #include "src/utils.h"
 #include "src/xsmp-server.h"
 
@@ -100,17 +103,21 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    gtk_init(NULL, NULL);
+    gtk_init(&argc, &argv);
     Gdk::wrap_init();
+    Atk::wrap_init();
     Gtk::wrap_init();
 
     init_env();
 
+    UIManager::global_init();
     AppManager::global_init();
     XsmpServer::global_init();
+    InhibitorManager::global_init();
     ClientManager::global_init(XsmpServer::get_instance());
     SessionManager::global_init(AppManager::get_instance(),
-                                ClientManager::get_instance());
+                                ClientManager::get_instance(),
+                                InhibitorManager::get_instance());
     SessionManager::get_instance()->start();
 
     gtk_main();

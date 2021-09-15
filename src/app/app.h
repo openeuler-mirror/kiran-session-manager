@@ -55,6 +55,8 @@ public:
 private:
     void load_app_info();
 
+    // void startup_notification();
+
     static void on_launch_cb(GDesktopAppInfo *appinfo, GPid pid, gpointer user_data);
     static void on_app_exited_cb(GPid pid, gint status, gpointer user_data);
 

@@ -13,9 +13,12 @@
  */
 
 #include "src/session-manager.h"
+#include <glib/gi18n.h>
 #include <json/json.h>
-#include "src/app-manager.h"
+#include "src/app/app-manager.h"
 #include "src/client/client-manager.h"
+#include "src/inhibitor-manager.h"
+#include "src/ui/exit-query-window.h"
 #include "src/utils.h"
 
 namespace Kiran
@@ -26,12 +29,14 @@ namespace Daemon
 #define KSM_PHASE_STARTUP_TIMEOUT 30
 
 SessionManager::SessionManager(AppManager *app_manager,
-                               ClientManager *client_manager) : app_manager_(app_manager),
-                                                                client_manager_(client_manager),
-                                                                current_phase_(KSMPhase::KSM_PHASE_IDLE),
-                                                                power_action_(PowerAction::POWER_ACTION_NONE),
-                                                                dbus_connect_id_(0),
-                                                                object_register_id_(0)
+                               ClientManager *client_manager,
+                               InhibitorManager *inhibitor_manager) : app_manager_(app_manager),
+                                                                      client_manager_(client_manager),
+                                                                      inhibitor_manager_(inhibitor_manager),
+                                                                      current_phase_(KSMPhase::KSM_PHASE_IDLE),
+                                                                      power_action_(PowerAction::POWER_ACTION_NONE),
+                                                                      dbus_connect_id_(0),
+                                                                      object_register_id_(0)
 {
     this->settings_ = Gio::Settings::create(KSM_SCHEMA_ID);
 
@@ -48,9 +53,10 @@ SessionManager::~SessionManager()
 
 SessionManager *SessionManager::instance_ = nullptr;
 void SessionManager::global_init(AppManager *app_manager,
-                                 ClientManager *client_manager)
+                                 ClientManager *client_manager,
+                                 InhibitorManager *inhibitor_manager)
 {
-    instance_ = new SessionManager(app_manager, client_manager);
+    instance_ = new SessionManager(app_manager, client_manager, inhibitor_manager);
     instance_->init();
 }
 
@@ -71,7 +77,7 @@ void SessionManager::RegisterClient(const Glib::ustring &app_id,
         DBUS_ERROR_REPLY_AND_RET(KSMErrorCode::ERROR_MANAGER_PHASE_CANNOT_REGISTER, Utils::phase_enum2str(this->current_phase_));
     }
 
-    auto client = this->client_manager_->add_client_dbus(client_startup_id, invocation.getMessage()->get_sender());
+    auto client = this->client_manager_->add_client_dbus(client_startup_id, invocation.getMessage()->get_sender(), app_id);
 
     if (!client)
     {
@@ -93,7 +99,7 @@ void SessionManager::Inhibit(const Glib::ustring &app_id,
                  reason.c_str(),
                  flags);
 
-    auto inhibitor = this->inhibitors_.add_inhibitor(app_id, toplevel_xid, reason, flags);
+    auto inhibitor = this->inhibitor_manager_->add_inhibitor(app_id, toplevel_xid, reason, flags);
 
     if (!inhibitor)
     {
@@ -108,12 +114,12 @@ void SessionManager::Uninhibit(guint32 inhibit_cookie,
 {
     KLOG_PROFILE("inhibit cookie: %u.", inhibit_cookie);
 
-    auto inhibitor = this->inhibitors_.get_inhibitor(inhibit_cookie);
+    auto inhibitor = InhibitorManager::get_instance()->get_inhibitor(inhibit_cookie);
     if (!inhibitor)
     {
         DBUS_ERROR_REPLY_AND_RET(KSMErrorCode::ERROR_MANAGER_INHIBITOR_NOTFOUND);
     }
-    this->inhibitors_.delete_inhibitor(inhibit_cookie);
+    InhibitorManager::get_instance()->delete_inhibitor(inhibit_cookie);
     invocation.ret();
 }
 
@@ -121,7 +127,38 @@ void SessionManager::IsInhibited(guint32 flags,
                                  MethodInvocation &invocation)
 {
     KLOG_PROFILE("flags: %u.", flags);
-    invocation.ret(this->inhibitors_.has_inhibitor(flags));
+    invocation.ret(InhibitorManager::get_instance()->has_inhibitor(flags));
+}
+
+void SessionManager::GetInhibitor(guint32 cookie, MethodInvocation &invocation)
+{
+    KLOG_PROFILE("");
+
+    Json::Value values;
+    Json::StreamWriterBuilder wbuilder;
+    wbuilder["indentation"] = "";
+
+    try
+    {
+        auto inhibitor = InhibitorManager::get_instance()->get_inhibitor(cookie);
+
+        if (inhibitor)
+        {
+            values[KSM_INHIBITOR_JK_COOKIE] = inhibitor->cookie;
+            values[KSM_INHIBITOR_JK_APP_ID] = inhibitor->app_id;
+            values[KSM_INHIBITOR_JK_TOPLEVEL_XID] = inhibitor->toplevel_xid;
+            values[KSM_INHIBITOR_JK_REASON] = inhibitor->reason;
+            values[KSM_INHIBITOR_JK_FLAGS] = inhibitor->flags;
+        }
+
+        auto retval = Json::writeString(wbuilder, values);
+        invocation.ret(Glib::ustring(retval));
+    }
+    catch (const std::exception &e)
+    {
+        KLOG_WARNING("%s.", e.what());
+        DBUS_ERROR_REPLY_AND_RET(KSMErrorCode::ERROR_MANAGER_GET_INHIBITORS_FAILED);
+    }
 }
 
 void SessionManager::GetInhibitors(MethodInvocation &invocation)
@@ -135,13 +172,13 @@ void SessionManager::GetInhibitors(MethodInvocation &invocation)
     try
     {
         int32_t i = 0;
-        for (auto inhibitor : this->inhibitors_.get_inhibitors())
+        for (auto inhibitor : this->inhibitor_manager_->get_inhibitors())
         {
-            values[i]["cookie"] = inhibitor->cookie;
-            values[i]["app_id"] = inhibitor->app_id;
-            values[i]["toplevel_xid"] = inhibitor->toplevel_xid;
-            values[i]["reason"] = inhibitor->reason;
-            values[i]["flags"] = inhibitor->flags;
+            values[i][KSM_INHIBITOR_JK_COOKIE] = inhibitor->cookie;
+            values[i][KSM_INHIBITOR_JK_APP_ID] = inhibitor->app_id;
+            values[i][KSM_INHIBITOR_JK_TOPLEVEL_XID] = inhibitor->toplevel_xid;
+            values[i][KSM_INHIBITOR_JK_REASON] = inhibitor->reason;
+            values[i][KSM_INHIBITOR_JK_FLAGS] = inhibitor->flags;
         }
 
         auto retval = Json::writeString(wbuilder, values);
@@ -247,15 +284,17 @@ void SessionManager::init()
     this->power_.init();
     this->presence_->init();
 
-    auto resource = Gio::Resource::create_from_file(KSM_INSTALL_DATADIR "/kiran-session-manager.gresource");
-    resource->register_global();
-
     this->app_manager_->signal_app_exited().connect(sigc::mem_fun(this, &SessionManager::on_app_exited_cb));
     this->client_manager_->signal_client_added().connect(sigc::mem_fun(this, &SessionManager::on_client_added_cb));
     this->client_manager_->signal_client_deleted().connect(sigc::mem_fun(this, &SessionManager::on_client_deleted_cb));
-    this->client_manager_->signal_shutdown_canceled().connect(sigc::mem_fun(this, &SessionManager::on_xsmp_shutdown_canceled_cb));
+    this->client_manager_->signal_interact_request().connect(sigc::mem_fun(this, &SessionManager::on_interact_request_cb));
+    this->client_manager_->signal_interact_done().connect(sigc::mem_fun(this, &SessionManager::on_interact_done_cb));
+    this->client_manager_->signal_shutdown_canceled().connect(sigc::mem_fun(this, &SessionManager::on_shutdown_canceled_cb));
     this->client_manager_->signal_end_session_phase2_request().connect(sigc::mem_fun(this, &SessionManager::on_end_session_phase2_request_cb));
     this->client_manager_->signal_end_session_response().connect(sigc::mem_fun(this, &SessionManager::on_end_session_response_cb));
+
+    this->inhibitor_manager_->signal_inhibitor_added().connect(sigc::mem_fun(this, &SessionManager::on_inhibitor_added_cb));
+    this->inhibitor_manager_->signal_inhibitor_deleted().connect(sigc::mem_fun(this, &SessionManager::on_inhibitor_deleted_cb));
 
     this->dbus_connect_id_ = Gio::DBus::own_name(Gio::DBus::BUS_TYPE_SESSION,
                                                  KSM_DBUS_NAME,
@@ -349,9 +388,9 @@ void SessionManager::process_phase_query_end_session()
     if (this->waiting_clients_.size() > 0)
     {
         auto timeout = Glib::MainContext::get_default()->signal_timeout();
-        this->waiting_clients_timeout_id_ = timeout.connect_seconds(sigc::bind(sigc::mem_fun(this, &SessionManager::on_waiting_session_timeout),
-                                                                               sigc::mem_fun(this, &SessionManager::query_end_session_complete)),
-                                                                    1);
+        this->waiting_clients_timeout_id_ = timeout.connect(sigc::bind(sigc::mem_fun(this, &SessionManager::on_waiting_session_timeout),
+                                                                       sigc::mem_fun(this, &SessionManager::query_end_session_complete)),
+                                                            300);
     }
     else
     {
@@ -372,26 +411,23 @@ void SessionManager::query_end_session_complete()
     this->waiting_clients_.clear();
     this->waiting_clients_timeout_id_.disconnect();
 
-    // TODO: 暂时不支持抑制器功能
-    this->start_next_phase();
-    return;
-
     // 如果不存在退出会话的抑制器，则直接进入下一个阶段
-    if (!this->inhibitors_.has_inhibitor(KSMInhibitorFlag::KSM_INHIBITOR_FLAG_QUIT))
+    if (!this->inhibitor_manager_->has_inhibitor(KSMInhibitorFlag::KSM_INHIBITOR_FLAG_QUIT))
     {
         this->start_next_phase();
         return;
     }
 
-    if (this->quit_dialog_)
+    if (this->exit_query_window_)
     {
-        this->quit_dialog_->present();
+        this->exit_query_window_->present();
         return;
     }
 
-    this->quit_dialog_ = QuitDialog::create(this->power_action_);
-    this->quit_dialog_->signal_response().connect(sigc::mem_fun(this, &SessionManager::on_quit_dialog_response));
-    this->quit_dialog_->show_all();
+    this->exit_query_window_ = ExitQueryWindow::create(this->power_action_);
+    this->exit_query_window_->signal_response().connect(sigc::mem_fun(this, &SessionManager::on_exit_window_response));
+
+    this->exit_query_window_->show_all();
 }
 
 void SessionManager::cancel_end_session()
@@ -399,6 +435,9 @@ void SessionManager::cancel_end_session()
     KLOG_PROFILE("");
 
     RETURN_IF_TRUE(this->current_phase_ < KSMPhase::KSM_PHASE_QUERY_END_SESSION);
+
+    // 如果取消退出，则之前通过Interact Request请求加入的抑制器需要全部移除
+    this->inhibitor_manager_->delete_inhibitors_with_startup_id();
 
     for (auto client : this->client_manager_->get_clients())
     {
@@ -408,7 +447,7 @@ void SessionManager::cancel_end_session()
         }
     }
 
-    this->quit_dialog_ = nullptr;
+    this->exit_query_window_ = nullptr;
     this->power_action_ = PowerAction::POWER_ACTION_NONE;
 
     // 回到运行阶段
@@ -533,6 +572,8 @@ void SessionManager::start_next_phase()
 
 void SessionManager::quit_session()
 {
+    KLOG_DEBUG("Quit Session.");
+
     this->power_.do_power_action(this->power_action_);
 }
 
@@ -587,32 +628,38 @@ bool SessionManager::on_phase_startup_timeout()
 
 bool SessionManager::on_waiting_session_timeout(std::function<void(void)> phase_complete_callback)
 {
+    KLOG_PROFILE("");
+
     for (auto client : this->waiting_clients_)
     {
         KLOG_WARNING("The client %s doesn't response message. phase: %s",
                      client->get_id().c_str(),
                      Utils::phase_enum2str(this->current_phase_).c_str());
+
+        // 将交互超时的客户端加入抑制器
+        this->inhibitor_manager_->add_inhibitor(client->get_app_id(),
+                                                0,
+                                                _("This program isn't responding"),
+                                                KSMInhibitorFlag::KSM_INHIBITOR_FLAG_QUIT,
+                                                client->get_id());
     }
 
     phase_complete_callback();
     return false;
 }
 
-void SessionManager::on_quit_dialog_response(int32_t response_id)
+void SessionManager::on_exit_window_response(int32_t response_id)
 {
     KLOG_PROFILE("response id: %d.", response_id);
 
-    // auto action = this->quit_dialog_->get_power_action();
-    this->quit_dialog_ = nullptr;
+    this->exit_query_window_ = nullptr;
 
     switch (response_id)
     {
-    case Gtk::RESPONSE_CANCEL:
-    case Gtk::RESPONSE_NONE:
-    case Gtk::RESPONSE_DELETE_EVENT:
+    case ExitQueryResponse::EXIT_QUERY_RESPONSE_CANCEL:
         this->cancel_end_session();
         break;
-    case Gtk::RESPONSE_ACCEPT:
+    case ExitQueryResponse::EXIT_QUERY_RESPONSE_OK:
         this->start_next_phase();
         break;
     default:
@@ -660,7 +707,30 @@ void SessionManager::on_client_deleted_cb(std::shared_ptr<Client> client)
     }
 }
 
-void SessionManager::on_xsmp_shutdown_canceled_cb(std::shared_ptr<Client> client)
+void SessionManager::on_interact_request_cb(std::shared_ptr<Client> client)
+{
+    RETURN_IF_FALSE(this->current_phase_ == KSMPhase::KSM_PHASE_QUERY_END_SESSION);
+
+    // 需要跟用户进行交互，因此此处需要添加抑制器，不能马上进行退出操作
+
+    this->inhibitor_manager_->add_inhibitor(client->get_app_id(),
+                                            0,
+                                            _("This program is blocking exit."),
+                                            KSMInhibitorFlag::KSM_INHIBITOR_FLAG_QUIT,
+                                            client->get_id());
+
+    /* 当通过SmsSaveYourself向xsmp客户端发起QueryEndSession时，客户端可能要求与用户交互(InteractRequest)，也可能直接回复SaveYourselfDone，
+       无论是那种情况，都表示客户端已经收到了会话管理发送的消息，因此应该将该客户端从等待队列中删除。这里为了方便直接调用on_end_session_response_cb
+       函数进行处理了，如果后续需要针对这两个消息做不同的处理，此处的逻辑需要修改。*/
+    this->on_end_session_response_cb(client);
+}
+
+void SessionManager::on_interact_done_cb(std::shared_ptr<Client> client)
+{
+    this->inhibitor_manager_->delete_inhibitor_by_startup_id(client->get_id());
+}
+
+void SessionManager::on_shutdown_canceled_cb(std::shared_ptr<Client> client)
 {
     KLOG_PROFILE("client: %s.", client->get_id().c_str());
 
@@ -706,6 +776,16 @@ void SessionManager::on_end_session_response_cb(std::shared_ptr<Client> client)
             break;
         }
     }
+}
+
+void SessionManager::on_inhibitor_added_cb(std::shared_ptr<Inhibitor> inhibitor)
+{
+    this->InhibitorAdded_signal.emit(inhibitor->cookie);
+}
+
+void SessionManager::on_inhibitor_deleted_cb(std::shared_ptr<Inhibitor> inhibitor)
+{
+    this->InhibitorRemoved_signal.emit(inhibitor->cookie);
 }
 
 void SessionManager::on_bus_acquired(const Glib::RefPtr<Gio::DBus::Connection> &connect, Glib::ustring name)

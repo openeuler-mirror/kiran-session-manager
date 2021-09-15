@@ -12,7 +12,8 @@
  * Author:     tangjie02 <tangjie02@kylinos.com.cn>
  */
 
-#include "src/app-manager.h"
+#include "src/app/app-manager.h"
+#include "src/app/app.h"
 #include "src/utils.h"
 
 namespace Kiran

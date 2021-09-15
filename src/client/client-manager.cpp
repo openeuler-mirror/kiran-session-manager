@@ -80,7 +80,9 @@ std::shared_ptr<ClientXsmp> ClientManager::add_client_xsmp(const std::string &st
     return client;
 }
 
-std::shared_ptr<ClientDBus> ClientManager::add_client_dbus(const std::string &startup_id, const std::string &dbus_name)
+std::shared_ptr<ClientDBus> ClientManager::add_client_dbus(const std::string &startup_id,
+                                                           const std::string &dbus_name,
+                                                           const std::string &app_id)
 {
     KLOG_PROFILE("startup id: %s.", startup_id.c_str());
 
@@ -90,7 +92,7 @@ std::shared_ptr<ClientDBus> ClientManager::add_client_dbus(const std::string &st
         new_startup_id = Utils::generate_startup_id();
     }
 
-    auto client = std::make_shared<ClientDBus>(new_startup_id, dbus_name);
+    auto client = std::make_shared<ClientDBus>(new_startup_id, dbus_name, app_id);
     RETURN_VAL_IF_FALSE(this->add_client(client), nullptr);
     // 共享指针client不能作为bind被传递，如果这样做的话会导致共享指针无法被销毁（引用计数死循环）
     client->signal_end_session_response().connect(sigc::bind(sigc::mem_fun(this, &ClientManager::on_dbus_client_end_session_response),
@@ -318,7 +320,7 @@ void ClientManager::on_interact_request_cb(SmsConn sms_conn, SmPointer manager_d
     auto client = client_manager->get_client_by_sms_conn(sms_conn);
     RETURN_IF_FALSE(client);
 
-    // TODO: 需要添加抑制器
+    client_manager->interact_request_.emit(client);
 
     KLOG_DEBUG("startup id: %s, dialog type: %d.", client->get_id().c_str(), dialog_type);
     SmsInteract(sms_conn);
@@ -337,6 +339,11 @@ void ClientManager::on_interact_done_cb(SmsConn sms_conn, SmPointer manager_data
     {
         client_manager->shutdown_canceled_.emit(client);
     }
+
+    /* 取消关闭(shutdown_canceled)信号应该要先于interact_done信号，否则如果先收到interact_done信号的话，
+       SessinManager会移除交互时添加的抑制器，当没有抑制器时，SessinManager会进入下一个阶段。此时再收到取消关闭信号
+       可能回被SessinManager忽略。*/
+    client_manager->interact_done_.emit(client);
 }
 
 void ClientManager::on_save_yourself_request_cb(SmsConn sms_conn,

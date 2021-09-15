@@ -37,6 +37,13 @@ ClientXsmp::~ClientXsmp()
     }
 }
 
+std::string ClientXsmp::get_app_id()
+{
+    auto app_id = this->Client::get_app_id();
+    RETURN_VAL_IF_TRUE(!app_id.empty(), app_id);
+    return this->get_program_name() + ".desktop";
+}
+
 bool ClientXsmp::cancel_end_session()
 {
     SmsShutdownCancelled(this->sms_connection_);
@@ -45,9 +52,7 @@ bool ClientXsmp::cancel_end_session()
 
 bool ClientXsmp::query_end_session(bool interact)
 {
-    // this->do_save_yourself(SmSaveGlobal, interact);
-
-    /* SmsConn/SaveType/shutdown/interact style/fast */
+        /* SmsConn/SaveType/shutdown/interact style/fast */
     SmsSaveYourself(this->sms_connection_,
                     SmSaveGlobal,
                     True,

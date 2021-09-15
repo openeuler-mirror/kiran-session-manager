@@ -31,6 +31,10 @@ namespace Kiran
 #define SYSTEMD_DBUS_OBJECT_PATH "/org/freedesktop/systemd1"
 #define SYSTEMD_DBUS_INTERFACE_NAME "org.freedesktop.systemd1.Manager"
 
+#define GRESOURCE_PATH "/com/kylinsec/Kiran/SessionManager"
+
+#define EPS 1e-6
+
 #define CONNECTION(text1, text2) text1##text2
 #define CONNECT(text1, text2) CONNECTION(text1, text2)
 
