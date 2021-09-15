@@ -14,7 +14,6 @@
 
 #pragma once
 
-// #include <client_dbus_stub.h>
 #include <client_private_dbus_stub.h>
 #include "src/client/client.h"
 
@@ -25,18 +24,21 @@ namespace Daemon
 class ClientDBus : public Client, public gnome::SessionManager::ClientPrivateStub
 {
 public:
-    ClientDBus(const std::string &startup_id, const std::string &dbus_name);
+    ClientDBus(const std::string &startup_id,
+               const std::string &dbus_name,
+               const std::string &app_id);
     virtual ~ClientDBus();
 
     ClientType get_type() { return ClientType::CLIENT_TYPE_DBUS; };
     Glib::DBusObjectPathString get_object_path() { return this->object_path_; };
     std::string get_dbus_name() { return this->dbus_name_; };
 
-    virtual bool cancel_end_session();
-    virtual bool query_end_session(bool interact);
-    virtual bool end_session(bool save_data);
-    virtual bool end_session_phase2();
-    virtual bool stop();
+    virtual std::string get_app_id() override;
+    virtual bool cancel_end_session() override;
+    virtual bool query_end_session(bool interact) override;
+    virtual bool end_session(bool save_data) override;
+    virtual bool end_session_phase2() override;
+    virtual bool stop() override;
 
     //
     sigc::signal<void, bool> signal_end_session_response() { return this->end_session_response_; };
@@ -56,6 +58,7 @@ private:
 
 private:
     std::string dbus_name_;
+    std::string app_id_;
     sigc::signal<void, bool> end_session_response_;
 
     static int32_t client_count_;

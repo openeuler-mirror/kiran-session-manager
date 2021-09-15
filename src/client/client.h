@@ -42,6 +42,8 @@ public:
 
     std::string get_id() { return this->id_; };
 
+    virtual std::string get_app_id();
+
     virtual ClientType get_type() = 0;
     virtual bool cancel_end_session() = 0;
     virtual bool query_end_session(bool interact) = 0;

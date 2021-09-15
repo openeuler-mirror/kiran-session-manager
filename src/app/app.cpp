@@ -12,15 +12,19 @@
  * Author:     tangjie02 <tangjie02@kylinos.com.cn>
  */
 
-#include "src/app.h"
+#include "src/app/app.h"
+#include <gdkmm.h>
 #include <gio/gdesktopappinfo.h>
-#include "src/app-manager.h"
+#include "src/app/app-manager.h"
 #include "src/utils.h"
 
 namespace Kiran
 {
 namespace Daemon
 {
+#define DESKTOP_KEY_DBUS_ACTIVATABLE "DBusActivatable"
+#define DESKTOP_KEY_STARTUP_NOTIFY "StartupNotify"
+
 App::App(const std::string &desktop_file)
 {
     auto basename = Glib::path_get_basename(desktop_file);
@@ -56,19 +60,19 @@ bool App::start()
 
     GError *error = NULL;
 
-    if (this->app_info_->get_boolean("DBusActivatable"))
+    if (this->app_info_->get_boolean(DESKTOP_KEY_DBUS_ACTIVATABLE))
     {
         KLOG_WARNING("DBus startup mode is not supported at present.");
         return false;
     }
 
-    auto launch_context = Gio::AppLaunchContext::create();
+    auto launch_context = Gdk::Display::get_default()->get_app_launch_context();
     launch_context->setenv("DESKTOP_AUTOSTART_ID", this->startup_id_);
 
     KLOG_DEBUG("Start app %s, startup id: %s.", this->app_id_.c_str(), this->startup_id_.c_str());
     if (!g_desktop_app_info_launch_uris_as_manager(this->app_info_->gobj(),
                                                    NULL,
-                                                   launch_context->gobj(),
+                                                   Glib::RefPtr<Gio::AppLaunchContext>::cast_dynamic(launch_context)->gobj(),
                                                    GSpawnFlags(G_SPAWN_DO_NOT_REAP_CHILD | G_SPAWN_SEARCH_PATH),
                                                    NULL,
                                                    NULL,
@@ -81,6 +85,7 @@ bool App::start()
     }
 
     KLOG_DEBUG("Launch child pid: %d.", this->pid_);
+    launch_context->unsetenv("DESKTOP_AUTOSTART_ID");
 
     char *app_id = g_strdup(this->app_id_.c_str());
     this->child_watch_id_ = g_child_watch_add_full(G_PRIORITY_DEFAULT,

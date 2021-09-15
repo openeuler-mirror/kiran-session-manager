@@ -34,6 +34,13 @@ extern "C"
 #define KSM_SCHEMA_KEY_PANEL "panel"
 #define KSM_SCHEMA_KEY_FILE_MANAGER "file-manager"
 
+// JK: json key
+#define KSM_INHIBITOR_JK_COOKIE "cookie"
+#define KSM_INHIBITOR_JK_APP_ID "app_id"
+#define KSM_INHIBITOR_JK_TOPLEVEL_XID "toplevel_xid"
+#define KSM_INHIBITOR_JK_REASON "reason"
+#define KSM_INHIBITOR_JK_FLAGS "flags"
+
     enum KSMPhase
     {
         // 未开始

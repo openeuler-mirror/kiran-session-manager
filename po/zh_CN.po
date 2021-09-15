@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kiran-cc-daemon 2.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-08-02 16:23+0800\n"
+"POT-Creation-Date: 2021-09-15 15:57+0800\n"
 "PO-Revision-Date: 2020-07-01 17:54+0800\n"
 "Last-Translator: tangjie02 <tangjie02@kylinos.com.cn>\n"
 "Language-Team: Chinese (simplified)\n"
@@ -46,7 +46,7 @@ msgstr ""
 
 #: ../data/com.kylinsec.kiran.session-manager.gschema.xml.in.h:7
 msgid "Panel"
-msgstr ""
+msgstr "面板"
 
 #: ../data/com.kylinsec.kiran.session-manager.gschema.xml.in.h:8
 msgid ""
@@ -56,7 +56,7 @@ msgstr ""
 
 #: ../data/com.kylinsec.kiran.session-manager.gschema.xml.in.h:9
 msgid "File Manager"
-msgstr ""
+msgstr "文件管理器"
 
 #: ../data/com.kylinsec.kiran.session-manager.gschema.xml.in.h:10
 msgid ""
@@ -64,42 +64,80 @@ msgid ""
 "your saved files."
 msgstr ""
 
-#: ../lib/error.cpp:37
+#: ../data/exit-query.ui.h:1
+msgid "Closing apps"
+msgstr "正在关闭应用"
+
+#: ../data/exit-query.ui.h:2 ../src/ui/exit-query-window.cpp:102
+msgid ""
+"If you want to go back and save your work, click 'cancel' and finish what "
+"you want to do"
+msgstr "如果想要返回并保存你的工作，可单击'取消'，然后完成你要执行的操作"
+
+#: ../data/exit-query.ui.h:3 ../src/ui/exit-query-window.cpp:116
+msgid "Forced shutdown"
+msgstr "强制关机"
+
+#: ../data/exit-query.ui.h:4
+msgid "Cancel"
+msgstr "取消"
+
+#: ../lib/error.cpp:32
 msgid "The phase {0} cannot be register."
 msgstr "在 {0} 阶段不允许注册。"
 
-#: ../lib/error.cpp:39
+#: ../lib/error.cpp:34
 msgid "The client {0} already registered."
 msgstr "客户端 {0} 已经注册。"
 
-#: ../lib/error.cpp:42
+#: ../lib/error.cpp:37
 msgid "The app {0} is not found."
 msgstr "App {0} 未发现。"
 
-#: ../lib/error.cpp:45
+#: ../lib/error.cpp:40
 msgid "Failed to generate unique cookie."
 msgstr "生成cookie失败。"
 
-#: ../lib/error.cpp:48
+#: ../lib/error.cpp:43
 msgid "The inhibitor is not found."
 msgstr "抑制器未发现。"
 
-#: ../lib/error.cpp:51 ../lib/error.cpp:60
+#: ../lib/error.cpp:46 ../lib/error.cpp:55
 msgid "Internal error."
 msgstr "内部错误。"
 
-#: ../lib/error.cpp:54
+#: ../lib/error.cpp:49
 msgid "The status is invalid."
 msgstr "状态不合法。"
 
-#: ../lib/error.cpp:57
+#: ../lib/error.cpp:52
 msgid "The action is not supported."
 msgstr "操作不支持。"
 
-#: ../lib/error.cpp:63
+#: ../lib/error.cpp:58
 msgid "Unknown error."
 msgstr "未知错误。"
 
-#: ../lib/error.cpp:67
+#: ../lib/error.cpp:62
 msgid " (error code: 0x{:x})"
 msgstr "(错误码: 0x{:x})"
+
+#: ../src/ui/exit-query-window.cpp:101
+msgid "Closing {0} apps"
+msgstr "正在关闭{0}个应用程序"
+
+#: ../src/ui/exit-query-window.cpp:113
+msgid "Forced logout"
+msgstr "强制注销"
+
+#: ../src/ui/exit-query-window.cpp:119
+msgid "Forced reboot"
+msgstr "强制重启"
+
+#: ../src/session-manager.cpp:642
+msgid "This program isn't responding"
+msgstr "程序未响应"
+
+#: ../src/session-manager.cpp:718
+msgid "This program is blocking exit."
+msgstr "程序阻止退出"

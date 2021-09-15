@@ -12,22 +12,34 @@
  * Author:     tangjie02 <tangjie02@kylinos.com.cn>
  */
 
-#include "src/client/client.h"
-#include "src/app/app-manager.h"
+#pragma once
+
+#include <gtkmm.h>
 
 namespace Kiran
 {
 namespace Daemon
 {
-Client::Client(const std::string &id) : id_(id)
-{
-}
+class Inhibitor;
 
-std::string Client::get_app_id()
+class InhibitorRow : public Gtk::Box
 {
-    auto app = AppManager::get_instance()->get_app_by_startup_id(this->id_);
-    return app ? app->get_app_id() : std::string();
-}
+public:
+    InhibitorRow(GtkBox *box, const Glib::RefPtr<Gtk::Builder> &builder, std::shared_ptr<Inhibitor> inhibitor);
+    virtual ~InhibitorRow(){};
+
+    static InhibitorRow *create(std::shared_ptr<Inhibitor> inhibitor);
+
+private:
+    void init();
+
+private:
+    Glib::RefPtr<Gtk::Builder> builder_;
+
+    Glib::RefPtr<Gio::DesktopAppInfo> app_info_;
+    std::string reason_;
+};
+
 }  // namespace Daemon
 
 }  // namespace Kiran

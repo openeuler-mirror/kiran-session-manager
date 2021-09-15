@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <gresources>
     <gresource prefix="/com/kylinsec/Kiran/SessionManager/">
-        <file alias="ui/ksm-quit-dialog">data/ksm-quit-dialog.ui</file>
+        <file alias="ui/exit-query">data/exit-query.ui</file>
+        <file alias="ui/inhibitor-row">data/inhibitor-row.ui</file>
+        <file alias="css/main">data/main.css</file>
     </gresource>
 </gresources>

@@ -22,8 +22,10 @@ namespace Daemon
 int32_t ClientDBus::client_count_ = 0;
 
 ClientDBus::ClientDBus(const std::string &startup_id,
-                       const std::string &dbus_name) : Client(startup_id),
-                                                       dbus_name_(dbus_name)
+                       const std::string &dbus_name,
+                       const std::string &app_id) : Client(startup_id),
+                                                    dbus_name_(dbus_name),
+                                                    app_id_(app_id)
 {
     Gio::DBus::Connection::get(Gio::DBus::BUS_TYPE_SESSION, sigc::mem_fun(this, &ClientDBus::on_bus_acquired));
     this->object_path_ = fmt::format("{0}{1}", KSM_CLIENT_DBUS_OBJECT_PATH, ++ClientDBus::client_count_);
@@ -32,6 +34,12 @@ ClientDBus::ClientDBus(const std::string &startup_id,
 ClientDBus::~ClientDBus()
 {
     KLOG_DEBUG("client %s is destroyed.", this->get_id().c_str());
+}
+
+std::string ClientDBus::get_app_id()
+{
+    RETURN_VAL_IF_TRUE(!this->app_id_.empty(), this->app_id_);
+    return this->Client::get_app_id();
 }
 
 bool ClientDBus::cancel_end_session()
