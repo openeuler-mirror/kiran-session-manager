@@ -12,11 +12,8 @@
  * Author:     tangjie02 <tangjie02@kylinos.com.cn>
  */
 
-#include <atkmm/wrap_init.h>
-#include <gdkmm/wrap_init.h>
 #include <glib/gi18n.h>
 #include <gtkmm.h>
-#include <gtkmm/wrap_init.h>
 #include "src/app/app-manager.h"
 #include "src/client/client-manager.h"
 #include "src/inhibitor-manager.h"
@@ -69,12 +66,14 @@ void init_env()
 int main(int argc, char *argv[])
 {
     klog_gtk3_init(std::string(), "kylinsec-session", PROJECT_NAME, PROJECT_NAME);
-    Gio::init();
 
     setlocale(LC_ALL, "");
     bindtextdomain(PROJECT_NAME, KSM_LOCALEDIR);
     bind_textdomain_codeset(PROJECT_NAME, "UTF-8");
     textdomain(PROJECT_NAME);
+
+    gtk_init(&argc, &argv);
+    Gtk::Main::init_gtkmm_internals();
 
     Glib::OptionContext context;
     Glib::OptionGroup group(PROJECT_NAME, "option group");
@@ -102,11 +101,6 @@ int main(int argc, char *argv[])
         KLOG_WARNING("%s", e.what().c_str());
         return EXIT_FAILURE;
     }
-
-    gtk_init(&argc, &argv);
-    Gdk::wrap_init();
-    Atk::wrap_init();
-    Gtk::wrap_init();
 
     init_env();
 
