@@ -3,31 +3,31 @@
         <key name="idle-delay" type="i">
             <default>5</default>
             <summary>Time before session is considered idle</summary>
-            <description>The number of minutes of inactivity before the session is considered idle.</description>
+            <description>The number of minutes of inactivity before the session is considered idle</description>
         </key>
 
         <key name="session-daemons" type="as">
             <default>[ 'mate-settings-daemon', 'kiran-session-daemon' ]</default>
             <summary>Default session daemons</summary>
-            <description>List of applications that are part of the default session.</description>
+            <description>List of applications that are part of the default session</description>
         </key>
 
         <key name="window-manager" type="s">
             <default>'marco'</default>
             <summary>Window Manager</summary>
-            <description>The window manager is the program that draws the title bar and borders around windows, and allows you to move and resize windows.</description>
+            <description>The window manager is the program that draws the title bar and borders around windows, and allows you to move and resize windows</description>
         </key>
 
-        <key name="panel" type="s">
+        <key name="Panel" type="s">
             <default>'kiran-panel'</default>
-            <summary>Panel</summary>
-            <description>The panel provides the bar at the top or bottom of the screen containing menus, the window list, status icons, the clock, etc.</description>
+            <summary>Side panel</summary>
+            <description>The side panel provides the bar at the top or bottom of the screen containing menus, the window list, status icons, the clock, etc</description>
         </key>
 
         <key name="file-manager" type="s">
             <default>'caja'</default>
             <summary>File Manager</summary>
-            <description>The file manager provides the desktop icons and allows you to interact with your saved files.</description>
+            <description>The file manager provides the desktop icons and allows you to interact with your saved files</description>
         </key>
     </schema>
 

@@ -3,5 +3,6 @@
 [type: gettext/gsettings]data/com.kylinsec.kiran.session-manager.gschema.xml.in
 [type: gettext/glade] data/exit-query.ui
 lib/error.cpp
+src/main.cpp
 src/ui/exit-query-window.cpp
 src/session-manager.cpp
