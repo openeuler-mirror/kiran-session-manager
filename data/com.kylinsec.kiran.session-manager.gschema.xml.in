@@ -18,7 +18,7 @@
             <description>The window manager is the program that draws the title bar and borders around windows, and allows you to move and resize windows</description>
         </key>
 
-        <key name="Panel" type="s">
+        <key name="panel" type="s">
             <default>'kiran-panel'</default>
             <summary>Side panel</summary>
             <description>The side panel provides the bar at the top or bottom of the screen containing menus, the window list, status icons, the clock, etc</description>
