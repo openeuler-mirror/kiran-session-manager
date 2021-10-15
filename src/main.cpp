@@ -59,7 +59,8 @@ void init_env()
 
     if (Glib::getenv("XDG_CURRENT_DESKTOP").empty())
     {
-        Utils::setenv("XDG_CURRENT_DESKTOP", "KIRAN");
+        // FIXME: 如果该变量不是MATE, 会导致caja无法启动,因此这里暂时设置为MATE,等更换文件管理器后改为KIRAN
+        Utils::setenv("XDG_CURRENT_DESKTOP", "MATE");
     }
 }
 
