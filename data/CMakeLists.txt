@@ -27,3 +27,7 @@ add_custom_target(${GRESOURCE_NAME} ALL
 
 install(FILES ${PROJECT_BINARY_DIR}/data/kiran-session-manager.gresource
         DESTINATION "${KSM_INSTALL_DATADIR}/")
+
+# txt
+install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/blacklist_autostart_apps.txt
+         DESTINATION "${KSM_INSTALL_DATADIR}/")

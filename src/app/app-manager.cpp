@@ -13,6 +13,7 @@
  */
 
 #include "src/app/app-manager.h"
+#include <fstream>
 #include "src/app/app.h"
 #include "src/utils.h"
 
@@ -20,6 +21,8 @@ namespace Kiran
 {
 namespace Daemon
 {
+#define BLACKLIST_APPS_PATH KSM_INSTALL_DATADIR "/blacklist_autostart_apps.txt"
+
 AppManager::AppManager()
 {
     this->settings_ = Gio::Settings::create(KSM_SCHEMA_ID);
@@ -90,6 +93,7 @@ void AppManager::init()
 
 void AppManager::load_apps()
 {
+    this->load_blacklist_autostart_apps();
     this->load_autostart_apps();
     this->load_required_apps();
 }
@@ -141,6 +145,23 @@ void AppManager::load_required_apps()
     }
 }
 
+void AppManager::load_blacklist_autostart_apps()
+{
+    static const int DESKTOP_ID_MAX_LEN = 256;
+    this->blacklist_apps_.clear();
+
+    std::ifstream ifs(BLACKLIST_APPS_PATH, std::ifstream::in);
+    if (ifs.is_open())
+    {
+        while (ifs.good())
+        {
+            char desktop_id[DESKTOP_ID_MAX_LEN] = {0};
+            ifs.getline(desktop_id, DESKTOP_ID_MAX_LEN);
+            this->blacklist_apps_.insert(desktop_id);
+        }
+    }
+}
+
 void AppManager::load_autostart_apps()
 {
     for (auto autostart_dir : Utils::get_autostart_dirs())
@@ -152,7 +173,15 @@ void AppManager::load_autostart_apps()
             {
                 auto file_path = Glib::build_filename(autostart_dir, file_name);
                 auto app_info = Gio::DesktopAppInfo::create_from_filename(file_path);
-                this->add_app(app_info);
+                CONTINUE_IF_FALSE(app_info);
+                if (this->blacklist_apps_.find(app_info->get_id()) != this->blacklist_apps_.end())
+                {
+                    KLOG_DEBUG("The app %s is in black list, so it isn't loaded.", app_info->get_id().c_str());
+                }
+                else
+                {
+                    this->add_app(app_info);
+                }
             }
         }
         catch (const Glib::Error &e)
