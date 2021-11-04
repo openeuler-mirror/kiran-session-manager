@@ -14,6 +14,7 @@
 
 #pragma once
 
+#include <set>
 #include "src/app/app.h"
 
 namespace Kiran
@@ -47,6 +48,7 @@ private:
 
     void load_apps();
     void load_required_apps();
+    void load_blacklist_autostart_apps();
     void load_autostart_apps();
     // 根据desktopinfo添加app
     bool add_app(Glib::RefPtr<Gio::DesktopAppInfo> app_info);
@@ -59,6 +61,8 @@ private:
     static AppManager* instance_;
 
     Glib::RefPtr<Gio::Settings> settings_;
+    // 需要排除的自动启动应用程序
+    std::set<std::string> blacklist_apps_;
     // 开机启动应用
     std::map<std::string, std::shared_ptr<App>> apps_;
 
