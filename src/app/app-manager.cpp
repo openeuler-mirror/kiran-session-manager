@@ -62,19 +62,28 @@ KSMAppVec AppManager::start_apps(KSMPhase phase)
         }
 
         // 如果应用由设置延时执行，则添加定时器延时启动应用
-        auto delay = app->get_delay();
+        auto delay = app->get_delay() * 1000;
+
+        /* 由于kiran-session-daemon和mate-session-daemon的部分插件不能同时启动，
+           因此这里需要预留一点时间让kiran-session-daemon调用gsettings把mate-session-daemon的插件关闭掉，
+           然后再启动mate-session-daemon，因此让mate-session-daemon延后一点运行*/
+        if (app->get_app_id() == "mate-settings-daemon.desktop")
+        {
+            delay = 500;
+        }
+
         if (delay > 0)
         {
             auto timeout = Glib::MainContext::get_default()->signal_timeout();
-            timeout.connect_seconds([app]() -> bool {
+            timeout.connect([app]() -> bool {
                 if (app->can_launched())
                 {
                     app->start();
                 }
                 return false;
             },
-                                    delay);
-            KLOG_DEBUG("The app is scheduled to start after %d seconds.", app->get_app_id().c_str(), delay);
+                            delay);
+            KLOG_DEBUG("The app %s is scheduled to start after %d milliseconds.", app->get_app_id().c_str(), delay);
         }
         else
         {
@@ -101,12 +110,12 @@ void AppManager::load_apps()
 void AppManager::load_required_apps()
 {
     // 会话后端
-    // auto session_daemons = this->settings_->get_string_array(KSM_SCHEMA_KEY_SESSION_DAEMONS);
-    // for (auto session_daemon : session_daemons)
-    // {
-    //     auto app_info = Gio::DesktopAppInfo::create(session_daemon + ".desktop");
-    //     this->add_app(app_info);
-    // }
+    auto session_daemons = this->settings_->get_string_array(KSM_SCHEMA_KEY_SESSION_DAEMONS);
+    for (auto session_daemon : session_daemons)
+    {
+        auto app_info = Gio::DesktopAppInfo::create(session_daemon + ".desktop");
+        this->add_app(app_info);
+    }
 
     // 窗口管理器
     auto window_manager = this->settings_->get_string(KSM_SCHEMA_KEY_WINDOW_MANAGER);
@@ -200,7 +209,7 @@ bool AppManager::add_app(Glib::RefPtr<Gio::DesktopAppInfo> app_info)
     auto iter = this->apps_.emplace(app->get_app_id(), app);
     if (!iter.second)
     {
-        KLOG_WARNING("The app %s already exist.", app->get_app_id().c_str());
+        KLOG_DEBUG("The app %s already exist.", app->get_app_id().c_str());
         return false;
     }
     app->signal_app_exited().connect(sigc::bind(sigc::mem_fun(this, &AppManager::on_app_exited_cb), app->get_app_id()));

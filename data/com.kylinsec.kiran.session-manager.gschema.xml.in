@@ -7,7 +7,7 @@
         </key>
 
         <key name="session-daemons" type="as">
-            <default>[ 'mate-settings-daemon', 'kiran-session-daemon' ]</default>
+            <default>['kiran-session-daemon', 'mate-settings-daemon']</default>
             <summary>Default session daemons</summary>
             <description>List of applications that are part of the default session</description>
         </key>
