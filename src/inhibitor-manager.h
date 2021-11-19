@@ -47,6 +47,7 @@ public:
     // 获取抑制器
     std::shared_ptr<Inhibitor> get_inhibitor(uint32_t cookie) { return MapHelper::get_value(this->inhibitors_, cookie); };
     KSMInhibitorVec get_inhibitors() { return MapHelper::get_values(this->inhibitors_); };
+    KSMInhibitorVec get_inhibitors_by_flag(KSMInhibitorFlag flag);
     // 添加抑制器
     std::shared_ptr<Inhibitor> add_inhibitor(const std::string &app_id,
                                              uint32_t toplevel_xid,
