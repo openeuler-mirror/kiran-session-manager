@@ -111,4 +111,17 @@ std::string StrUtils::trim(const std::string &s)
 {
     return StrUtils::ltrim(StrUtils::rtrim(s));
 }
+
+bool StrUtils::startswith(const std::string &str, const std::string &prefix)
+{
+    RETURN_VAL_IF_TRUE(str.size() < prefix.size(), false);
+    return (str.substr(0, prefix.size()) == prefix);
+}
+
+bool StrUtils::endswith(const std::string &str, const std::string &suffix)
+{
+    RETURN_VAL_IF_TRUE(str.size() < suffix.size(), false);
+    return (str.substr(str.size() - suffix.size(), suffix.size()) == suffix);
+}
+
 }  // namespace Kiran
