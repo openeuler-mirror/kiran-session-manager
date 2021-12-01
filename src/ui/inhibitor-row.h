@@ -37,7 +37,7 @@ private:
     Glib::RefPtr<Gtk::Builder> builder_;
 
     Glib::RefPtr<Gio::DesktopAppInfo> app_info_;
-    std::string reason_;
+    std::shared_ptr<Inhibitor> inhibitor_;
 };
 
 }  // namespace Daemon

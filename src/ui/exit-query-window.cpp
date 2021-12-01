@@ -107,7 +107,7 @@ void ExitQueryWindow::init()
     this->set_skip_pager_hint(true);
     this->set_keep_above();
 
-    auto inhibitors = InhibitorManager::get_instance()->get_inhibitors();
+    auto inhibitors = InhibitorManager::get_instance()->get_inhibitors_by_flag(KSMInhibitorFlag::KSM_INHIBITOR_FLAG_QUIT);
 
     this->title_->set_label(fmt::format(_("Closing {0} apps"), inhibitors.size()));
     this->title_desc_->set_label(_("If you want to go back and save your work, click 'cancel' and finish what you want to do"));

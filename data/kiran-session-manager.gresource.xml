@@ -4,5 +4,6 @@
         <file alias="ui/exit-query">data/exit-query.ui</file>
         <file alias="ui/inhibitor-row">data/inhibitor-row.ui</file>
         <file alias="css/main">data/main.css</file>
+        <file alias="image/app-missing">images/ksm-app-missing.svg</file>
     </gresource>
 </gresources>

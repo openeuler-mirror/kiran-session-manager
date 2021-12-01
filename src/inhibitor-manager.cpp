@@ -30,6 +30,19 @@ void InhibitorManager::global_init()
     instance_ = new InhibitorManager();
 }
 
+KSMInhibitorVec InhibitorManager::get_inhibitors_by_flag(KSMInhibitorFlag flag)
+{
+    KSMInhibitorVec inhibitors;
+    for (auto &iter : this->inhibitors_)
+    {
+        if ((iter.second->flags & flag) == flag)
+        {
+            inhibitors.push_back(iter.second);
+        }
+    }
+    return inhibitors;
+}
+
 std::shared_ptr<Inhibitor> InhibitorManager::add_inhibitor(const std::string &app_id,
                                                            uint32_t toplevel_xid,
                                                            const std::string &reason,

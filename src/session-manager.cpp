@@ -530,7 +530,7 @@ void SessionManager::process_phase_exit()
 
 void SessionManager::start_next_phase()
 {
-    bool start_next_phase = TRUE;
+    bool start_next_phase = true;
 
     switch (this->current_phase_)
     {
@@ -551,6 +551,7 @@ void SessionManager::start_next_phase()
         break;
     case KSMPhase::KSM_PHASE_EXIT:
         this->quit_session();
+        start_next_phase = false;
         break;
     default:
         break;
@@ -772,7 +773,9 @@ void SessionManager::on_end_session_response_cb(std::shared_ptr<Client> client)
             this->start_next_phase();
             break;
         default:
-            KLOG_WARNING("The phase is invalid. current phase: %d.", this->current_phase_);
+            KLOG_WARNING("The phase is invalid. current phase: %s, client id: %s.",
+                         Utils::phase_enum2str(this->current_phase_).c_str(),
+                         client->get_id().c_str());
             break;
         }
     }

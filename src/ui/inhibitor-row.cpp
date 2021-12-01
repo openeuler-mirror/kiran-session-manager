@@ -23,12 +23,10 @@ namespace Daemon
 InhibitorRow::InhibitorRow(GtkBox *box,
                            const Glib::RefPtr<Gtk::Builder> &builder,
                            std::shared_ptr<Inhibitor> inhibitor) : Gtk::Box(box),
-                                                                   builder_(builder)
+                                                                   builder_(builder),
+                                                                   inhibitor_(inhibitor)
 {
     KLOG_DEBUG("app_id : %s.", inhibitor->app_id.c_str());
-    this->app_info_ = Gio::DesktopAppInfo::create(inhibitor->app_id);
-    this->reason_ = inhibitor->reason;
-
     this->init();
 }
 
@@ -53,6 +51,8 @@ void InhibitorRow::init()
     Gtk::Label *app_name = NULL;
     Gtk::Label *description = NULL;
 
+    this->app_info_ = Gio::DesktopAppInfo::create(this->inhibitor_->app_id);
+
     try
     {
         this->builder_->get_widget<Gtk::Image>("app_icon", app_icon);
@@ -63,8 +63,13 @@ void InhibitorRow::init()
         {
             app_icon->set(Glib::RefPtr<const Gio::Icon>::cast_dynamic(this->app_info_->get_icon()), Gtk::IconSize(Gtk::ICON_SIZE_DIALOG));
             app_name->set_label(this->app_info_->get_locale_string("Name"));
-            description->set_label(this->reason_);
         }
+        else
+        {
+            app_icon->set(Gdk::Pixbuf::create_from_resource(GRESOURCE_PATH "/image/app-missing", 48, 48));
+            app_name->set_label(this->inhibitor_->app_id);
+        }
+        description->set_label(this->inhibitor_->reason);
     }
     catch (const Glib::Error &e)
     {
