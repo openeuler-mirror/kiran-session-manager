@@ -53,6 +53,10 @@ public:
     static std::string rtrim(const std::string &s);
     static std::string trim(const std::string &s);
 
+    // 判断str是否以prefix字符串开头
+    static bool startswith(const std::string &str, const std::string &prefix);
+    static bool endswith(const std::string &str, const std::string &suffix);
+
     template <class T>
     static std::string join(const std::vector<T> &vec, const std::string &join_chars);
 };

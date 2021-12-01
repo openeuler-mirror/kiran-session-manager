@@ -51,7 +51,22 @@ void InhibitorRow::init()
     Gtk::Label *app_name = NULL;
     Gtk::Label *description = NULL;
 
-    this->app_info_ = Gio::DesktopAppInfo::create(this->inhibitor_->app_id);
+    auto app_id = StrUtils::trim(this->inhibitor_->app_id);
+
+    if (!StrUtils::endswith(app_id, ".desktop"))
+    {
+        app_id += ".desktop";
+    }
+
+    // path_is_absolute函数只在window平台有效
+    if (Glib::path_is_absolute(this->inhibitor_->app_id) || app_id[0] == '/')
+    {
+        this->app_info_ = Gio::DesktopAppInfo::create_from_filename(this->inhibitor_->app_id);
+    }
+    else
+    {
+        this->app_info_ = Gio::DesktopAppInfo::create(this->inhibitor_->app_id);
+    }
 
     try
     {
