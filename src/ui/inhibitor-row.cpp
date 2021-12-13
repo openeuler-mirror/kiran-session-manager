@@ -13,6 +13,7 @@
  */
 
 #include "src/ui/inhibitor-row.h"
+#include <glib/gi18n.h>
 #include "lib/base.h"
 #include "src/inhibitor-manager.h"
 
@@ -68,6 +69,8 @@ void InhibitorRow::init()
         this->app_info_ = Gio::DesktopAppInfo::create(this->inhibitor_->app_id);
     }
 
+    KLOG_DEBUG("app_id: %s, has appinfo: %s.", app_id.c_str(), this->app_info_ ? "true" : "false");
+
     try
     {
         this->builder_->get_widget<Gtk::Image>("app_icon", app_icon);
@@ -82,7 +85,7 @@ void InhibitorRow::init()
         else
         {
             app_icon->set(Gdk::Pixbuf::create_from_resource(GRESOURCE_PATH "/image/app-missing", 48, 48));
-            app_name->set_label(this->inhibitor_->app_id);
+            app_name->set_label(_("Unknown application"));
         }
         description->set_label(this->inhibitor_->reason);
     }
