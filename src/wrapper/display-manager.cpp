@@ -23,15 +23,25 @@ namespace Daemon
 
 DisplayManager::DisplayManager()
 {
+    auto xdg_seat_object_path = Glib::getenv("XDG_SEAT_PATH");
+
     try
     {
-        auto xdg_seat_object_path = Glib::getenv("XDG_SEAT_PATH");
-        this->display_proxy_ = Gio::DBus::Proxy::create_for_bus_sync(Gio::DBus::BUS_TYPE_SYSTEM,
-                                                                     DISPLAY_MANAGER_DBUS_NAME,
-                                                                     xdg_seat_object_path,
-                                                                     DISPLAY_MANAGER_DBUS_INTERFACE,
-                                                                     Glib::RefPtr<Gio::DBus::InterfaceInfo>(),
-                                                                     Gio::DBus::PROXY_FLAGS_DO_NOT_AUTO_START);
+        if (xdg_seat_object_path.empty())
+        {
+            KLOG_WARNING("Not found XDG_SEAT_PATH.");
+        }
+        else
+        {
+            KLOG_DEBUG("XDG_SEAT_PATH: %s.", xdg_seat_object_path.c_str());
+
+            this->display_proxy_ = Gio::DBus::Proxy::create_for_bus_sync(Gio::DBus::BUS_TYPE_SYSTEM,
+                                                                         DISPLAY_MANAGER_DBUS_NAME,
+                                                                         xdg_seat_object_path,
+                                                                         DISPLAY_MANAGER_DBUS_INTERFACE,
+                                                                         Glib::RefPtr<Gio::DBus::InterfaceInfo>(),
+                                                                         Gio::DBus::PROXY_FLAGS_DO_NOT_AUTO_START);
+        }
     }
     catch (const Glib::Error& e)
     {
