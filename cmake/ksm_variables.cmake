@@ -12,3 +12,6 @@ option(SUPPORT_CAJA "Support caja file manager" OFF)
 list(APPEND KSM_COMPILER_FLAGS
   -Wno-parentheses                # Disable parentheses warning
 )
+
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED on)
