@@ -32,6 +32,8 @@ Presence::Presence() : enabled_idle_timeout_(true),
 
 void Presence::init()
 {
+    KLOG_PROFILE("");
+
     this->idle_timeout_ = this->settings_->get_int(KSM_SCHEMA_KEY_IDLE_DELAY);
     this->idle_xlarm_.init();
     this->update_idle_xlarm();

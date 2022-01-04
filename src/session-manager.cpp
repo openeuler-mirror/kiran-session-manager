@@ -281,6 +281,8 @@ void SessionManager::CanReboot(MethodInvocation &invocation)
 
 void SessionManager::init()
 {
+    KLOG_PROFILE("");
+
     this->power_.init();
     this->presence_->init();
 
