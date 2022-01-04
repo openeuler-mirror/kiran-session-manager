@@ -118,7 +118,7 @@ bool ClientManager::add_client(std::shared_ptr<Client> client)
 
     if (!iter.second)
     {
-        KLOG_WARNING("The client %s already exist.", client->get_id());
+        KLOG_WARNING("The client %s already exist.", client->get_id().c_str());
         return false;
     }
 
