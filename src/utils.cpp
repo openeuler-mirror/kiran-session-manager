@@ -125,7 +125,7 @@ void Utils::setenvs(const std::map<Glib::ustring, Glib::ustring> &envs)
             list_env.push_back(env);
         }
 
-        KLOG_DEBUG("envs: %s.", StrUtils::join(list_env, ";").c_str());
+        KLOG_DEBUG("Set environments: %s.", StrUtils::join(list_env, ";").c_str());
         auto systemd_proxy = Gio::DBus::Proxy::create_for_bus_sync(Gio::DBus::BUS_TYPE_SESSION,
                                                                    SYSTEMD_DBUS_NAME,
                                                                    SYSTEMD_DBUS_OBJECT_PATH,
