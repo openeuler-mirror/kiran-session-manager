@@ -69,10 +69,14 @@ void init_env()
         for (auto key : Glib::listenv())
         {
             auto value = Glib::getenv(key);
-            if (key_regex->match(value) && value_regex->match(value))
+            if (key_regex->match(key) && value_regex->match(value))
             {
                 envs.emplace(key, value);
-                KLOG_DEBUG("key: %s, value: %s.", key.c_str(), value.c_str());
+                KLOG_DEBUG("Add environment: %s=%s.", key.c_str(), value.c_str());
+            }
+            else
+            {
+                KLOG_WARNING("Filter environment: %s=%s.", key.c_str(), value.c_str());
             }
         }
         Utils::setenvs(envs);
