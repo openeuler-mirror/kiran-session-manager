@@ -65,11 +65,15 @@ KSMAppVec AppManager::start_apps(KSMPhase phase)
         auto delay = app->get_delay() * 1000;
 
         /* 由于kiran-session-daemon和mate-session-daemon的部分插件不能同时启动，
-           因此这里需要预留一点时间让kiran-session-daemon调用gsettings把mate-session-daemon的插件关闭掉，
-           然后再启动mate-session-daemon，因此让mate-session-daemon延后一点运行*/
+           因此需要等到kiran-session-daemon启动并调用RegisterClient接口后才能启动mate-settings-daemon，
+           在此阶段kiran-session-daemon会调用gsettings把与mate-session-daemon冲突的插件关闭掉，
+           当回话管理收到kiran-session-daemon的RegisterClient调用后再启动mate-settings-daemon*/
+        KLOG_DEBUG("DESKTOP ID: %s.", app->get_app_id().c_str());
         if (app->get_app_id() == "mate-settings-daemon.desktop")
         {
-            delay = 500;
+            KLOG_DEBUG("The boot of mate-settings-daemon need be delayed until the kiran-session-daemon calls RegisterClient.");
+            apps.push_back(app);
+            continue;
         }
 
         if (delay > 0)
