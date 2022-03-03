@@ -88,6 +88,9 @@ protected:
     virtual void RequestReboot(MethodInvocation &invocation);
     virtual void CanReboot(MethodInvocation &invocation);
 
+    // 添加会话程序的环境变量
+    virtual void Setenv(const Glib::ustring &name, const Glib::ustring &value, MethodInvocation &invocation);
+
 private:
     void init();
 

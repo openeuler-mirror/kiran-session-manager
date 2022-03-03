@@ -87,13 +87,13 @@ std::vector<std::string> Utils::get_autostart_dirs()
     return dirs;
 }
 
-void Utils::setenv(const std::string &key, const std::string &value)
+void Utils::setenv(const std::string &name, const std::string &value)
 {
-    KLOG_DEBUG("key: %s, value: %s.", key.c_str(), value.c_str());
+    KLOG_DEBUG("name: %s, value: %s.", name.c_str(), value.c_str());
 
-    Glib::setenv(key, value);
-    Utils::setenv_to_dbus(key, value);
-    Utils::setenv_to_systemd(key, value);
+    Glib::setenv(name, value);
+    Utils::setenv_to_dbus(name, value);
+    Utils::setenv_to_systemd(name, value);
 }
 
 void Utils::setenvs(const std::map<Glib::ustring, Glib::ustring> &envs)
@@ -196,7 +196,7 @@ std::string Utils::phase_enum2str(KSMPhase phase)
     return std::string();
 }
 
-void Utils::setenv_to_dbus(const std::string &key, const std::string &value)
+void Utils::setenv_to_dbus(const std::string &name, const std::string &value)
 {
     try
     {
@@ -206,7 +206,7 @@ void Utils::setenv_to_dbus(const std::string &key, const std::string &value)
                                                                   DAEMON_DBUS_INTERFACE_NAME);
         using param_type = std::tuple<std::map<Glib::ustring, Glib::ustring>>;
 
-        std::map<Glib::ustring, Glib::ustring> envs{{key, value}};
+        std::map<Glib::ustring, Glib::ustring> envs{{name, value}};
         auto parameter = Glib::Variant<param_type>::create(std::make_tuple(envs));
         daemon_proxy->call_sync("UpdateActivationEnvironment", parameter);
     }
@@ -217,7 +217,7 @@ void Utils::setenv_to_dbus(const std::string &key, const std::string &value)
     }
 }
 
-void Utils::setenv_to_systemd(const std::string &key, const std::string &value)
+void Utils::setenv_to_systemd(const std::string &name, const std::string &value)
 {
     try
     {
@@ -226,7 +226,7 @@ void Utils::setenv_to_systemd(const std::string &key, const std::string &value)
                                                                    SYSTEMD_DBUS_OBJECT_PATH,
                                                                    SYSTEMD_DBUS_INTERFACE_NAME);
         using param_type = std::tuple<std::vector<Glib::ustring>>;
-        auto env = fmt::format("{0}={1}", key, value);
+        auto env = fmt::format("{0}={1}", name, value);
         auto parameter = Glib::Variant<param_type>::create(std::make_tuple(std::vector<Glib::ustring>{env}));
         systemd_proxy->call_sync("SetEnvironment", parameter);
     }

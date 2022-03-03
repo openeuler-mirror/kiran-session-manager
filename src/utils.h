@@ -32,7 +32,7 @@ public:
     // 获取自动启动程序的目录列表
     static std::vector<std::string> get_autostart_dirs();
     // 设置环境变量
-    static void setenv(const std::string &key, const std::string &value);
+    static void setenv(const std::string &name, const std::string &value);
     static void setenvs(const std::map<Glib::ustring, Glib::ustring> &envs);
     // 生成cookie
     static uint32_t generate_cookie();
@@ -41,8 +41,8 @@ public:
     static std::string phase_enum2str(KSMPhase phase);
 
 private:
-    static void setenv_to_dbus(const std::string &key, const std::string &value);
-    static void setenv_to_systemd(const std::string &key, const std::string &value);
+    static void setenv_to_dbus(const std::string &name, const std::string &value);
+    static void setenv_to_systemd(const std::string &name, const std::string &value);
 
 private:
     static Glib::Rand rand_;
