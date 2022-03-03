@@ -116,6 +116,16 @@
             <description>Whether the user can reboot.</description>
         </method>
 
+        <method name="Setenv">
+            <arg name="name" type="s" direction="in">
+                <summary>The environment variable name</summary>
+            </arg>
+            <arg name="value" type="s" direction="in">
+                <summary>The environment variable value</summary>
+            </arg>
+            <description>Adds the variable name to the application launch environment with the specified value.  May only be used during the Session Manager initialization phase.</description>
+        </method>
+
         <signal name="InhibitorAdded">
             <arg name="cookie" type="u">
                 <summary>The inhibitor cookie.</summary>

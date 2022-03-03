@@ -279,6 +279,18 @@ void SessionManager::CanReboot(MethodInvocation &invocation)
     invocation.ret(this->power_.can_power_action(PowerAction::POWER_ACTION_REBOOT));
 }
 
+void SessionManager::Setenv(const Glib::ustring &name, const Glib::ustring &value, MethodInvocation &invocation)
+{
+    KLOG_PROFILE("name: %s, value: %s.", name.c_str(), value.c_str());
+
+    if (this->current_phase_ > KSMPhase::KSM_PHASE_INITIALIZATION)
+    {
+        DBUS_ERROR_REPLY_AND_RET(KSMErrorCode::ERROR_MANAGER_PHASE_INVALID);
+    }
+    Utils::setenv(name, value);
+    invocation.ret();
+}
+
 void SessionManager::init()
 {
     KLOG_PROFILE("");
