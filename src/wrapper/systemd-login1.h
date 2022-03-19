@@ -45,6 +45,8 @@ public:
     bool hibernate() { return this->do_method("Hibernate"); };
     // 挂起
     bool suspend() { return this->do_method("Suspend"); };
+    // 设置空闲提示
+    bool set_idle_hint(bool is_idle);
 
 private:
     bool can_do_method(const std::string &method_name);
@@ -53,6 +55,7 @@ private:
 private:
     // systemd-login1
     Glib::RefPtr<Gio::DBus::Proxy> login1_proxy_;
+    Glib::RefPtr<Gio::DBus::Proxy> session_proxy_;
 };
 }  // namespace Daemon
 }  // namespace Kiran
