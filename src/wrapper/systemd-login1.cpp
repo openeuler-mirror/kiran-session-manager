@@ -21,6 +21,7 @@ namespace Daemon
 #define LOGIN1_DBUS_NAME "org.freedesktop.login1"
 #define LOGIN1_DBUS_OBJECT_PATH "/org/freedesktop/login1"
 #define LOGIN1_MANAGER_DBUS_INTERFACE "org.freedesktop.login1.Manager"
+#define LOGIN1_SESSION_DBUS_INTERFACE "org.freedesktop.login1.Session"
 
 SystemdLogin1::SystemdLogin1()
 {
@@ -30,6 +31,18 @@ SystemdLogin1::SystemdLogin1()
                                                                     LOGIN1_DBUS_NAME,
                                                                     LOGIN1_DBUS_OBJECT_PATH,
                                                                     LOGIN1_MANAGER_DBUS_INTERFACE);
+
+        auto g_parameters = g_variant_new("(u)", (uint32_t)getpid());
+        Glib::VariantContainerBase parameters(g_parameters, false);
+
+        auto retval = this->login1_proxy_->call_sync("GetSessionByPID", parameters);
+        auto v1 = retval.get_child(0);
+        auto session_object_path = Glib::VariantBase::cast_dynamic<Glib::Variant<Glib::DBusObjectPathString>>(v1).get();
+
+        this->session_proxy_ = Gio::DBus::Proxy::create_for_bus_sync(Gio::DBus::BUS_TYPE_SYSTEM,
+                                                                     LOGIN1_DBUS_NAME,
+                                                                     session_object_path,
+                                                                     LOGIN1_SESSION_DBUS_INTERFACE);
     }
     catch (const Glib::Error& e)
     {
@@ -70,12 +83,32 @@ bool SystemdLogin1::do_method(const std::string& method_name)
 
     RETURN_VAL_IF_FALSE(this->login1_proxy_, false);
 
-    auto parameters = g_variant_new("(b)", FALSE);
-    Glib::VariantContainerBase base(parameters, false);
+    auto g_parameters = g_variant_new("(b)", FALSE);
+    Glib::VariantContainerBase parameters(g_parameters, false);
 
     try
     {
-        this->login1_proxy_->call_sync(method_name, base);
+        this->login1_proxy_->call_sync(method_name, parameters);
+    }
+    catch (const Glib::Error& e)
+    {
+        KLOG_WARNING("%s", e.what().c_str());
+        return false;
+    }
+    return true;
+}
+
+bool SystemdLogin1::set_idle_hint(bool is_idle)
+{
+    KLOG_PROFILE("");
+
+    RETURN_VAL_IF_FALSE(this->session_proxy_, false);
+
+    try
+    {
+        auto g_parameters = g_variant_new("(b)", is_idle);
+        Glib::VariantContainerBase parameters(g_parameters, false);
+        this->session_proxy_->call_sync("SetIdleHint", parameters);
     }
     catch (const Glib::Error& e)
     {
