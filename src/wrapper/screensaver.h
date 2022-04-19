@@ -27,7 +27,7 @@ public:
     ScreenSaver();
     virtual ~ScreenSaver(){};
 
-    void init();
+    static std::shared_ptr<ScreenSaver> get_default();
 
     // 锁屏
     bool lock();
@@ -45,6 +45,10 @@ public:
     bool poke();
 
 private:
+    void init();
+
+private:
+    static std::shared_ptr<ScreenSaver> instance_;
     Glib::RefPtr<Gio::DBus::Proxy> screensaver_proxy_;
 };
 }  // namespace Daemon

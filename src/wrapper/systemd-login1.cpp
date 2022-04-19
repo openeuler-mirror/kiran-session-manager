@@ -37,17 +37,125 @@ SystemdLogin1::SystemdLogin1()
 
         auto retval = this->login1_proxy_->call_sync("GetSessionByPID", parameters);
         auto v1 = retval.get_child(0);
-        auto session_object_path = Glib::VariantBase::cast_dynamic<Glib::Variant<Glib::DBusObjectPathString>>(v1).get();
+        this->session_object_path_ = Glib::VariantBase::cast_dynamic<Glib::Variant<Glib::DBusObjectPathString>>(v1).get();
 
         this->session_proxy_ = Gio::DBus::Proxy::create_for_bus_sync(Gio::DBus::BUS_TYPE_SYSTEM,
                                                                      LOGIN1_DBUS_NAME,
-                                                                     session_object_path,
+                                                                     this->session_object_path_,
                                                                      LOGIN1_SESSION_DBUS_INTERFACE);
     }
     catch (const Glib::Error& e)
     {
         KLOG_WARNING("%s", e.what().c_str());
     }
+}
+
+std::shared_ptr<SystemdLogin1> SystemdLogin1::instance_ = nullptr;
+std::shared_ptr<SystemdLogin1> SystemdLogin1::get_default()
+{
+    if (!instance_)
+    {
+        instance_ = std::make_shared<SystemdLogin1>();
+        instance_->init();
+    }
+    return instance_;
+}
+
+bool SystemdLogin1::set_idle_hint(bool is_idle)
+{
+    KLOG_PROFILE("");
+
+    RETURN_VAL_IF_FALSE(this->session_proxy_, false);
+
+    try
+    {
+        auto g_parameters = g_variant_new("(b)", is_idle);
+        Glib::VariantContainerBase parameters(g_parameters, false);
+        this->session_proxy_->call_sync("SetIdleHint", parameters);
+    }
+    catch (const Glib::Error& e)
+    {
+        KLOG_WARNING("%s", e.what().c_str());
+        return false;
+    }
+    return true;
+}
+
+bool SystemdLogin1::is_last_session()
+{
+    KLOG_PROFILE("");
+
+    try
+    {
+        auto user_uid = getuid();
+        auto retval = this->login1_proxy_->call_sync("ListSessions");
+        auto out_param1 = Glib::VariantBase::cast_dynamic<Glib::VariantContainerBase>(retval.get_child(0));
+
+        using SessionTupleType = std::tuple<Glib::ustring, uint32_t, Glib::ustring, Glib::ustring, Glib::DBusObjectPathString>;
+        for (uint32_t i = 0; i < out_param1.get_n_children(); ++i)
+        {
+            auto param1_item = Glib::VariantBase::cast_dynamic<Glib::VariantContainerBase>(out_param1.get_child(i));
+            // auto param1_item2 = Glib::VariantBase::cast_dynamic<Glib::Variant<uint32_t>>(param1_item.get_child(1)).get();
+            // auto param1_item5 = Glib::VariantBase::cast_dynamic<Glib::Variant<Glib::DBusObjectPathString>>(param1_item.get_child(4)).get();
+            auto session_tuple = Glib::VariantBase::cast_dynamic<Glib::Variant<SessionTupleType>>(param1_item).get();
+
+            CONTINUE_IF_TRUE(std::get<1>(session_tuple) != user_uid);
+            CONTINUE_IF_TRUE(std::get<4>(session_tuple) == this->session_object_path_);
+            // CONTINUE_IF_TRUE(param1_item2 != user_uid);
+            // CONTINUE_IF_TRUE(param1_item5 == this->session_object_path_);
+
+            Glib::ustring state;
+            Glib::ustring type;
+
+            try
+            {
+                auto session_proxy = Gio::DBus::Proxy::create_for_bus_sync(Gio::DBus::BUS_TYPE_SYSTEM,
+                                                                           LOGIN1_DBUS_NAME,
+                                                                           //    param1_item5,
+                                                                           std::get<4>(session_tuple),
+                                                                           LOGIN1_SESSION_DBUS_INTERFACE);
+
+                Glib::VariantBase variant_state;
+                Glib::VariantBase type_state;
+                session_proxy->get_cached_property(variant_state, "State");
+                session_proxy->get_cached_property(type_state, "Type");
+
+                state = Glib::VariantBase::cast_dynamic<Glib::Variant<Glib::ustring>>(variant_state).get();
+                type = Glib::VariantBase::cast_dynamic<Glib::Variant<Glib::ustring>>(type_state).get();
+            }
+            catch (const Glib::Error& e)
+            {
+                KLOG_WARNING("%s", e.what().c_str());
+                continue;
+            }
+            catch (const std::exception& e)
+            {
+                KLOG_WARNING("%s", e.what());
+                continue;
+            }
+
+            CONTINUE_IF_TRUE(state == "closing");
+            CONTINUE_IF_TRUE(type != "x11" && type != "wayland");
+
+            KLOG_DEBUG("Has other session running: %s.", std::get<4>(session_tuple).c_str());
+            return false;
+        }
+    }
+    catch (const Glib::Error& e)
+    {
+        KLOG_WARNING("%s", e.what().c_str());
+        return false;
+    }
+    catch (const std::exception& e)
+    {
+        KLOG_WARNING("%s", e.what());
+        return false;
+    }
+    return true;
+}
+
+void SystemdLogin1::init()
+{
 }
 
 bool SystemdLogin1::can_do_method(const std::string& method_name)
@@ -89,26 +197,6 @@ bool SystemdLogin1::do_method(const std::string& method_name)
     try
     {
         this->login1_proxy_->call_sync(method_name, parameters);
-    }
-    catch (const Glib::Error& e)
-    {
-        KLOG_WARNING("%s", e.what().c_str());
-        return false;
-    }
-    return true;
-}
-
-bool SystemdLogin1::set_idle_hint(bool is_idle)
-{
-    KLOG_PROFILE("");
-
-    RETURN_VAL_IF_FALSE(this->session_proxy_, false);
-
-    try
-    {
-        auto g_parameters = g_variant_new("(b)", is_idle);
-        Glib::VariantContainerBase parameters(g_parameters, false);
-        this->session_proxy_->call_sync("SetIdleHint", parameters);
     }
     catch (const Glib::Error& e)
     {

@@ -539,7 +539,32 @@ void SessionManager::process_phase_exit()
             KLOG_WARNING("Failed to stop client: %s.", client->get_id().c_str());
         }
     }
+
+    this->maybe_restart_user_bus();
     this->start_next_phase();
+}
+
+void SessionManager::maybe_restart_user_bus()
+{
+    RETURN_IF_TRUE(!SystemdLogin1::get_default()->is_last_session());
+
+    KLOG_DEBUG("Restart dbus.service.");
+
+    try
+    {
+        auto systemd_proxy = Gio::DBus::Proxy::create_for_bus_sync(Gio::DBus::BUS_TYPE_SESSION,
+                                                                   SYSTEMD_DBUS_NAME,
+                                                                   SYSTEMD_DBUS_OBJECT_PATH,
+                                                                   SYSTEMD_DBUS_INTERFACE_NAME);
+
+        auto g_parameters = g_variant_new("(ss)", "dbus.service", "replace");
+        Glib::VariantContainerBase parameters(g_parameters, false);
+        systemd_proxy->call_sync("TryRestartUnit", parameters);
+    }
+    catch (const Glib::Error &e)
+    {
+        KLOG_WARNING("%s", e.what().c_str());
+    }
 }
 
 void SessionManager::start_next_phase()
@@ -841,7 +866,7 @@ void SessionManager::on_name_acquired(const Glib::RefPtr<Gio::DBus::Connection> 
 
 void SessionManager::on_name_lost(const Glib::RefPtr<Gio::DBus::Connection> &connect, Glib::ustring name)
 {
-    KLOG_WARNING("Failed to register dbus name: %s", name.c_str());
+    KLOG_WARNING("Lost dbus name: %s", name.c_str());
 }
 }  // namespace Daemon
 }  // namespace Kiran
