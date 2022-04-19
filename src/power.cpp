@@ -19,10 +19,6 @@ namespace Kiran
 {
 namespace Daemon
 {
-#define SCREENSAVER_DBUS_NAME "org.mate.ScreenSaver"
-#define SCREENSAVER_DBUS_OBJECT_PATH "/org/mate/ScreenSaver"
-#define SCREENSAVER_DBUS_INTERFACE "org.mate.ScreenSaver"
-
 Power::Power()
 {
     this->display_manager_ = DisplayManager::get_default();
