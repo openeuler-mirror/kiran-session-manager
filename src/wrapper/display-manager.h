@@ -26,12 +26,15 @@ public:
     DisplayManager();
     virtual ~DisplayManager(){};
 
+    static std::shared_ptr<DisplayManager> get_default();
+
     // 是否可切换用户
     bool can_switch_user();
     // 切换用户
     bool switch_user();
 
 private:
+    static std::shared_ptr<DisplayManager> instance_;
     // 显示管理器(LightDM)
     Glib::RefPtr<Gio::DBus::Proxy> display_proxy_;
 };

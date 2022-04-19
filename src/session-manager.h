@@ -110,6 +110,8 @@ private:
     // 退出阶段
     void process_phase_exit();
 
+    // 如果是当前账户的最后一个会话，需要停止会话中的dbus程序
+    void maybe_restart_user_bus();
     // 开始下一个阶段
     void start_next_phase();
 

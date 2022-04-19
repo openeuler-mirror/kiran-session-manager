@@ -49,6 +49,16 @@ DisplayManager::DisplayManager()
     }
 }
 
+std::shared_ptr<DisplayManager> DisplayManager::instance_ = nullptr;
+std::shared_ptr<DisplayManager> DisplayManager::get_default()
+{
+    if (!instance_)
+    {
+        instance_ = std::make_shared<DisplayManager>();
+    }
+    return instance_;
+}
+
 bool DisplayManager::can_switch_user()
 {
     RETURN_VAL_IF_FALSE(this->display_proxy_, false);
