@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN" "http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
+<node xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
+    <interface name="org.gnome.SessionManager.ClientPrivate">
+        <method name="EndSessionResponse">
+            <arg name="is_ok" type="b" direction="in">
+                <summary>Whether or not it is OK to preceed</summary>
+            </arg>
+            <arg name="reason" type="s" direction="in">
+                <summary>The reason string</summary>
+            </arg>
+            <description>This method should be used by the client in response to the QueryEndSession and EndSession signals.</description>
+        </method>
+
+        <signal name="Stop">
+            <arg name="placeholder" type="b" />
+            <description>The client should stop and remove itself from the session in response to this signal.</description>
+        </signal>
+
+        <signal name="QueryEndSession">
+            <arg name="flags" type="u">
+                <summary>Flags</summary>
+            </arg>
+            <description>This signal is used to inform the client that the session is about to end.  The client must respond 
+            by calling EndSessionResponse within one second of the signal emission. If the client responds with an EndSessionResponse
+            is-ok argument equal to FALSE and a reason then this reason may be displayed to the user. The client must not attempt to
+            perform any actions or interact with the user in response to this signal.  Any actions required for a clean shutdown should
+            take place in response to the EndSession signal. The client should limit operations until either a EndSession or CancelEndSession
+            signal is received.</description>
+        </signal>
+
+        <signal name="EndSession">
+            <arg name="flags" type="u">
+                <summary>Flags</summary>
+            </arg>
+            <description>This signal is used to inform the client that the session is about to end.  The client must respond by
+            calling EndSessionResponse within ten seconds of the signal emission. The client must not attempt to interact with
+            the user in response to this signal. The application will be given a maxium of ten seconds to perform any actions required
+            for a clean shutdown.</description>
+        </signal>
+
+        <signal name="CancelEndSession">
+            <arg name="placeholder" type="b" />
+            <description>This signal indicates to the client that a previous emission ofQueryEndSession has been cancelled.
+            The client should resume normal operations.</description>
+        </signal>
+
+    </interface>
+</node>

@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN" "http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
+<node xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
+    <interface name="org.gnome.SessionManager">
+        <method name="RegisterClient">
+            <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
+            <arg type="s" name="app_id" direction="in">
+                <summary>The application id, that commmonly is desktop filename.</summary>
+            </arg>
+            <arg type="s" name="client_startup_id" direction="in">
+                <summary>Client startup id.</summary>
+            </arg>
+            <arg type="o" name="client_id" direction="out">
+                <summary>The object path for the client allocation.</summary>
+            </arg>
+            <description>Register a client for the caller.</description>
+        </method>
+
+        <method name="Inhibit">
+            <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
+            <arg type="s" name="app_id" direction="in">
+                <summary>The application id.</summary>
+            </arg>
+            <arg type="u" name="toplevel_xid" direction="in">
+                <summary>The argument is ignored.</summary>
+            </arg>
+            <arg type="s" name="reason" direction="in">
+                <summary>The reason for the inhibit.</summary>
+            </arg>
+            <arg type="u" name="flags" direction="in">
+                <summary>Specify what should be inhibited, Refer to KSMInhibitorFlag in ksm-i.h</summary>
+            </arg>
+            <arg type="u" name="inhibit_cookie" direction="out">
+                <summary>The inhibitor cookie that is used to Uninhibit.</summary>
+            </arg>
+
+            <description>Inhibit that the session manager quit(logout, shutdown, reboot), save(hibernate, suspend) and idle.</description>
+        </method>
+
+        <method name="Uninhibit">
+            <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
+            <arg type="u" name="inhibit_cookie" direction="in">
+                <summary>The inhibitor cookie.</summary>
+            </arg>
+            <description>Cancel the inhibitor.</description>
+        </method>
+
+        <method name="IsInhibited">
+            <arg type="u" name="flags" direction="in">
+                <summary>Specify the inhibitor flag, Refer to KSMInhibitorFlag in ksm-i.h</summary>
+            </arg>
+            <arg type="b" name="is_inhibited" direction="out">
+                <summary>Return true if all the bit in flags is set.</summary>
+            </arg>
+            <description>Determine if the operation specified by flags is set.</description>
+        </method>
+
+        <method name="GetInhibitor">
+            <arg name="cookie" direction="in" type="u">
+                <summary>The inhibitor cookie.</summary>
+            </arg>
+            <arg name="inhibitor" direction="out" type="s">
+                <summary>A json string that contains inhibitor informations.</summary>
+            </arg>
+            <description>This gets an inhibitor that are currently known to the session manager.</description>
+        </method>
+
+        <method name="GetInhibitors">
+            <arg name="inhibitors" direction="out" type="s">
+                <summary>A json string that contain all inhibitors informations.</summary>
+            </arg>
+            <description>This gets a list of all the inhibitors that are currently known to the session manager.</description>
+        </method>
+
+        <method name="Shutdown">
+            <description>Shutdown the system.</description>
+        </method>
+
+        <method name="RequestShutdown">
+            <description>Shutdown the system, the interface is designed to compatible with other application.</description>
+        </method>
+
+        <method name="CanShutdown">
+            <arg name="is_available" direction="out" type="b">
+                <summary>True if shutdown is available to the user, false otherwise.</summary>
+            </arg>
+            <description>Whether the user can shutdown.</description>
+        </method>
+
+        <method name="Logout">
+            <arg name="mode" type="u" direction="in">
+                <summary>The argument is ignored.</summary>
+            </arg>
+            <description>Logout the session.</description>
+        </method>
+
+        <method name="CanLogout">
+            <arg name="is_available" direction="out" type="b">
+                <summary>True if logout is available to the user, false otherwise.</summary>
+            </arg>
+            <description>Whether the user can logout.</description>
+        </method>
+
+        <method name="Reboot">
+            <description>Reboot the system.</description>
+        </method>
+
+        <method name="RequestReboot">
+            <description>Reboot the system, the interface is designed to compatible with other application.</description>
+        </method>
+
+        <method name="CanReboot">
+            <arg name="is_available" direction="out" type="b">
+                <summary>True if reboot is available to the user, false otherwise</summary>
+            </arg>
+            <description>Whether the user can reboot.</description>
+        </method>
+
+        <method name="Setenv">
+            <arg name="name" type="s" direction="in">
+                <summary>The environment variable name</summary>
+            </arg>
+            <arg name="value" type="s" direction="in">
+                <summary>The environment variable value</summary>
+            </arg>
+            <description>Adds the variable name to the application launch environment with the specified value.  May only be used during the Session Manager initialization phase.</description>
+        </method>
+
+        <signal name="InhibitorAdded">
+            <arg name="cookie" type="u">
+                <summary>The inhibitor cookie.</summary>
+            </arg>
+            <description>Emitted when an inhibitor has been added to the session manager.</description>
+        </signal>
+
+        <signal name="InhibitorRemoved">
+            <arg name="cookie" type="u">
+                <summary>The inhibitor cookie.</summary>
+            </arg>
+            <description>Emitted when an inhibitor has been removed from the session manager.</description>
+        </signal>
+
+        <signal name="PhaseChanged">
+            <arg name="phase" type="i" />
+            <description>The stage where session manager is in.</description>
+        </signal>
+
+    </interface>
+</node>
