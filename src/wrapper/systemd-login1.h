@@ -27,7 +27,7 @@ public:
     SystemdLogin1();
     virtual ~SystemdLogin1(){};
 
-    void init();
+    static std::shared_ptr<SystemdLogin1> get_default();
 
     // 是否支持关机
     bool can_shutdown() { return this->can_do_method("CanPowerOff"); };
@@ -45,14 +45,23 @@ public:
     bool hibernate() { return this->do_method("Hibernate"); };
     // 挂起
     bool suspend() { return this->do_method("Suspend"); };
+    // 设置空闲提示
+    bool set_idle_hint(bool is_idle);
+    // 是否为当前用户的最后一个会话
+    bool is_last_session();
 
 private:
+    void init();
+
     bool can_do_method(const std::string &method_name);
     bool do_method(const std::string &method_name);
 
 private:
+    static std::shared_ptr<SystemdLogin1> instance_;
     // systemd-login1
     Glib::RefPtr<Gio::DBus::Proxy> login1_proxy_;
+    Glib::RefPtr<Gio::DBus::Proxy> session_proxy_;
+    Glib::DBusObjectPathString session_object_path_;
 };
 }  // namespace Daemon
 }  // namespace Kiran

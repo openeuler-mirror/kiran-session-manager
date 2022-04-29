@@ -279,8 +279,22 @@ void SessionManager::CanReboot(MethodInvocation &invocation)
     invocation.ret(this->power_.can_power_action(PowerAction::POWER_ACTION_REBOOT));
 }
 
+void SessionManager::Setenv(const Glib::ustring &name, const Glib::ustring &value, MethodInvocation &invocation)
+{
+    KLOG_PROFILE("name: %s, value: %s.", name.c_str(), value.c_str());
+
+    if (this->current_phase_ > KSMPhase::KSM_PHASE_INITIALIZATION)
+    {
+        DBUS_ERROR_REPLY_AND_RET(KSMErrorCode::ERROR_MANAGER_PHASE_INVALID);
+    }
+    Utils::setenv(name, value);
+    invocation.ret();
+}
+
 void SessionManager::init()
 {
+    KLOG_PROFILE("");
+
     this->power_.init();
     this->presence_->init();
 
@@ -525,7 +539,32 @@ void SessionManager::process_phase_exit()
             KLOG_WARNING("Failed to stop client: %s.", client->get_id().c_str());
         }
     }
+
+    this->maybe_restart_user_bus();
     this->start_next_phase();
+}
+
+void SessionManager::maybe_restart_user_bus()
+{
+    RETURN_IF_TRUE(!SystemdLogin1::get_default()->is_last_session());
+
+    KLOG_DEBUG("Restart dbus.service.");
+
+    try
+    {
+        auto systemd_proxy = Gio::DBus::Proxy::create_for_bus_sync(Gio::DBus::BUS_TYPE_SESSION,
+                                                                   SYSTEMD_DBUS_NAME,
+                                                                   SYSTEMD_DBUS_OBJECT_PATH,
+                                                                   SYSTEMD_DBUS_INTERFACE_NAME);
+
+        auto g_parameters = g_variant_new("(ss)", "dbus.service", "replace");
+        Glib::VariantContainerBase parameters(g_parameters, false);
+        systemd_proxy->call_sync("TryRestartUnit", parameters);
+    }
+    catch (const Glib::Error &e)
+    {
+        KLOG_WARNING("%s", e.what().c_str());
+    }
 }
 
 void SessionManager::start_next_phase()
@@ -685,6 +724,18 @@ void SessionManager::on_client_added_cb(std::shared_ptr<Client> client)
         return;
     }
     KLOG_DEBUG("The new client %s match the app %s.", client->get_id().c_str(), app->get_app_id().c_str());
+
+    // 此时说明kiran-session-daemon已经关闭掉与mate-settings-daemon冲突的插件，这时可以运行mate-settings-daemon
+    auto iter = std::find_if(this->waiting_apps_.begin(), this->waiting_apps_.end(), [](std::shared_ptr<App> app) {
+        return app->get_app_id() == "mate-settings-daemon.desktop";
+    });
+    if (app->get_app_id() == "kiran-session-daemon.desktop" &&
+        iter != this->waiting_apps_.end())
+    {
+        KLOG_DEBUG("Start to boot %s.", (*iter)->get_app_id().c_str());
+        (*iter)->start();
+    }
+
     this->on_app_startup_finished(app);
 }
 
@@ -815,7 +866,7 @@ void SessionManager::on_name_acquired(const Glib::RefPtr<Gio::DBus::Connection> 
 
 void SessionManager::on_name_lost(const Glib::RefPtr<Gio::DBus::Connection> &connect, Glib::ustring name)
 {
-    KLOG_WARNING("Failed to register dbus name: %s", name.c_str());
+    KLOG_WARNING("Lost dbus name: %s", name.c_str());
 }
 }  // namespace Daemon
 }  // namespace Kiran

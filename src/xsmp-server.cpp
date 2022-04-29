@@ -58,6 +58,8 @@ void XsmpServer::global_init()
 
 void XsmpServer::init()
 {
+    KLOG_PROFILE("");
+
     char error_string[BUFSIZ];
     SmsSetErrorHandler(&XsmpServer::on_sms_error_handler_cb);
     IceSetIOErrorHandler(&XsmpServer::on_ice_io_error_handler_cb);

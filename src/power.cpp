@@ -19,15 +19,11 @@ namespace Kiran
 {
 namespace Daemon
 {
-#define SCREENSAVER_DBUS_NAME "org.mate.ScreenSaver"
-#define SCREENSAVER_DBUS_OBJECT_PATH "/org/mate/ScreenSaver"
-#define SCREENSAVER_DBUS_INTERFACE "org.mate.ScreenSaver"
-
 Power::Power()
 {
-    this->display_manager_ = std::make_shared<DisplayManager>();
-    this->systemd_login1_ = std::make_shared<SystemdLogin1>();
-    this->screensaver_ = std::make_shared<ScreenSaver>();
+    this->display_manager_ = DisplayManager::get_default();
+    this->systemd_login1_ = SystemdLogin1::get_default();
+    this->screensaver_ = ScreenSaver::get_default();
 }
 
 void Power::init()

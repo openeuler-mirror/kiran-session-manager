@@ -61,6 +61,8 @@ std::shared_ptr<ClientDBus> ClientManager::get_client_by_dbus_name(const std::st
 
 void ClientManager::init()
 {
+    KLOG_PROFILE("");
+
     this->dbus_daemon_proxy_->signal_signal().connect(sigc::mem_fun(this, &ClientManager::on_dbus_daemon_signal_cb));
     this->xsmp_server_->signal_new_client_connected().connect(sigc::mem_fun(this, &ClientManager::on_new_xsmp_client_connected_cb));
     this->xsmp_server_->signal_ice_conn_status_changed().connect(sigc::mem_fun(this, &ClientManager::on_ice_conn_status_changed_cb));
@@ -118,7 +120,7 @@ bool ClientManager::add_client(std::shared_ptr<Client> client)
 
     if (!iter.second)
     {
-        KLOG_WARNING("The client %s already exist.", client->get_id());
+        KLOG_WARNING("The client %s already exist.", client->get_id().c_str());
         return false;
     }
 

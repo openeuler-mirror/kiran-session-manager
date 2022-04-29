@@ -32,6 +32,8 @@ void UIManager::global_init()
 
 void UIManager::init()
 {
+    KLOG_PROFILE("");
+
     auto resource = Gio::Resource::create_from_file(KSM_INSTALL_DATADIR "/kiran-session-manager.gresource");
     resource->register_global();
 

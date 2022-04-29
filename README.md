@@ -3,7 +3,7 @@
 
 ## 编译安装
 ```
-# yum install cmake glibmm24-devel glib2-devel gtkmm30-devel systemd-devel gettext gcc-c++ dbus-daemon jsoncpp-devel kiran-log-gtk3-devel gdbus-codegen-glibmm fmt-devel gtest-devel
+# yum install cmake glibmm24-devel glib2-devel gtkmm30-devel systemd-devel gettext gcc-c++ dbus-daemon jsoncpp-devel kiran-log-gtk3-devel gdbus-codegen-glibmm fmt-devel gtest-devel libICE-devel libSM-devel
 # mkdir build
 # cd build && cmake -DCMAKE_INSTALL_PREFIX=/usr ..
 # make

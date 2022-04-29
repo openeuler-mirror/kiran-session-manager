@@ -219,6 +219,7 @@ void IdleXAlarm::register_xalarm_by_xsync(std::shared_ptr<XAlarmInfo> xalarm, XS
     else
     {
         xalarm->xalarm_id = XSyncCreateAlarm(this->xdisplay_, flags, &attr);
+        KLOG_DEBUG("Create new xalarm: %d.", (int32_t)xalarm->xalarm_id);
     }
 
     return;

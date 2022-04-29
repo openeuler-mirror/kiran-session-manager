@@ -12,6 +12,7 @@
  * Author:     tangjie02 <tangjie02@kylinos.com.cn>
  */
 
+#include <glib.h>
 #include <glib/gi18n.h>
 #include <gtkmm.h>
 #include "src/app/app-manager.h"
@@ -23,6 +24,37 @@
 #include "src/xsmp-server.h"
 
 using namespace Kiran::Daemon;
+
+#define DBUS_LAUNCH_COMMAND "dbus-launch"
+
+bool start_dbus_session(int argc, char **argv)
+{
+    int i = 0;
+
+    RETURN_VAL_IF_TRUE(!Glib::getenv("DBUS_SESSION_BUS_ADDRESS").empty(), true);
+    RETURN_VAL_IF_TRUE(Kiran::StrUtils::startswith(argv[0], DBUS_LAUNCH_COMMAND), true);
+
+    char **new_argv = (char **)g_malloc(argc + 3 * sizeof(*argv));
+
+    new_argv[0] = (char *)DBUS_LAUNCH_COMMAND;
+    new_argv[1] = (char *)"--exit-with-session";
+
+    for (i = 0; i < argc; i++)
+    {
+        new_argv[i + 2] = argv[i];
+    }
+
+    new_argv[i + 2] = NULL;
+
+    KLOG_DEBUG("Start session manager by dbus-launch.");
+
+    if (!execvp(DBUS_LAUNCH_COMMAND, new_argv))
+    {
+        KLOG_WARNING("No session bus and could not exec dbus-launch: %s", g_strerror(errno));
+        return false;
+    }
+    return true;
+}
 
 void init_env()
 {
@@ -37,10 +69,14 @@ void init_env()
         for (auto key : Glib::listenv())
         {
             auto value = Glib::getenv(key);
-            if (key_regex->match(value) && value_regex->match(value))
+            if (key_regex->match(key) && value_regex->match(value))
             {
                 envs.emplace(key, value);
-                KLOG_DEBUG("key: %s, value: %s.", key.c_str(), value.c_str());
+                KLOG_DEBUG("Add environment: %s=%s.", key.c_str(), value.c_str());
+            }
+            else
+            {
+                KLOG_WARNING("Filter environment: %s=%s.", key.c_str(), value.c_str());
             }
         }
         Utils::setenvs(envs);
@@ -71,6 +107,9 @@ void init_env()
 int main(int argc, char *argv[])
 {
     klog_gtk3_init(std::string(), "kylinsec-session", PROJECT_NAME, PROJECT_NAME);
+
+    // 这里做一个兼容性处理，当会话dbus-daemon没有启动时（一般不会出现），由会话管理进行拉起
+    start_dbus_session(argc, argv);
 
     setlocale(LC_ALL, "");
     bindtextdomain(PROJECT_NAME, KSM_LOCALEDIR);

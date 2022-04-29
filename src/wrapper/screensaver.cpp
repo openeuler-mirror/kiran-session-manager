@@ -18,9 +18,9 @@ namespace Kiran
 {
 namespace Daemon
 {
-#define SCREENSAVER_DBUS_NAME "org.mate.ScreenSaver"
-#define SCREENSAVER_DBUS_OBJECT_PATH "/org/mate/ScreenSaver"
-#define SCREENSAVER_DBUS_INTERFACE "org.mate.ScreenSaver"
+#define SCREENSAVER_DBUS_NAME "com.kylinsec.Kiran.ScreenSaver"
+#define SCREENSAVER_DBUS_OBJECT_PATH "/com/kylinsec/Kiran/ScreenSaver"
+#define SCREENSAVER_DBUS_INTERFACE "com.kylinsec.Kiran.ScreenSaver"
 
 // 屏保锁屏后，检查锁屏状态的最大次数
 #define SCREENSAVER_LOCK_CHECK_MAX_COUNT 50
@@ -29,20 +29,15 @@ ScreenSaver::ScreenSaver()
 {
 }
 
-void ScreenSaver::init()
+std::shared_ptr<ScreenSaver> ScreenSaver::instance_ = nullptr;
+std::shared_ptr<ScreenSaver> ScreenSaver::get_default()
 {
-    try
+    if (!instance_)
     {
-        this->screensaver_proxy_ = Gio::DBus::Proxy::create_for_bus_sync(Gio::DBus::BUS_TYPE_SESSION,
-                                                                         SCREENSAVER_DBUS_NAME,
-                                                                         SCREENSAVER_DBUS_OBJECT_PATH,
-                                                                         SCREENSAVER_DBUS_INTERFACE);
+        instance_ = std::make_shared<ScreenSaver>();
+        instance_->init();
     }
-    catch (const Glib::Error& e)
-    {
-        KLOG_WARNING("%s", e.what().c_str());
-        return;
-    }
+    return instance_;
 }
 
 bool ScreenSaver::lock()
@@ -143,6 +138,22 @@ bool ScreenSaver::poke()
     }
 
     return true;
+}
+
+void ScreenSaver::init()
+{
+    try
+    {
+        this->screensaver_proxy_ = Gio::DBus::Proxy::create_for_bus_sync(Gio::DBus::BUS_TYPE_SESSION,
+                                                                         SCREENSAVER_DBUS_NAME,
+                                                                         SCREENSAVER_DBUS_OBJECT_PATH,
+                                                                         SCREENSAVER_DBUS_INTERFACE);
+    }
+    catch (const Glib::Error& e)
+    {
+        KLOG_WARNING("%s", e.what().c_str());
+        return;
+    }
 }
 }  // namespace Daemon
 }  // namespace Kiran
