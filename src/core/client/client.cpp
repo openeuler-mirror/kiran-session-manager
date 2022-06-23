@@ -12,32 +12,19 @@
  * Author:     tangjie02 <tangjie02@kylinos.com.cn>
  */
 
-#pragma once
-
-#include <QJsonObject>
-#include <QWidget>
-
-namespace Ui
-{
-class InhibitorRow;
-}  // namespace Ui
+#include "src/core/client/client.h"
+#include "src/core/app/app-manager.h"
 
 namespace Kiran
 {
-class InhibitorRow : public QWidget
+Client::Client(const QString &id, QObject *parent) : QObject(parent),
+                                                     m_id(id)
 {
-    Q_OBJECT
+}
 
-public:
-    InhibitorRow(const QJsonObject &inhibitor, QWidget *parent = nullptr);
-    virtual ~InhibitorRow(){};
-
-private:
-    void initUI();
-
-private:
-    Ui::InhibitorRow *m_ui;
-    QJsonObject m_inhibitor;
-};
-
+QString Client::getAppID()
+{
+    auto app = AppManager::getInstance()->getAppByStartupID(this->m_id);
+    return app ? app->getAppID() : QString();
+}
 }  // namespace Kiran

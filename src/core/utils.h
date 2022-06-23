@@ -14,30 +14,29 @@
 
 #pragma once
 
-#include <QJsonObject>
-#include <QWidget>
-
-namespace Ui
-{
-class InhibitorRow;
-}  // namespace Ui
+#include <QSharedPointer>
 
 namespace Kiran
 {
-class InhibitorRow : public QWidget
+class Utils
 {
-    Q_OBJECT
-
 public:
-    InhibitorRow(const QJsonObject &inhibitor, QWidget *parent = nullptr);
-    virtual ~InhibitorRow(){};
+    Utils();
+    virtual ~Utils(){};
+
+    static QSharedPointer<Utils> getDefault();
+
+    // 生成随机的startup id
+    QString generateStartupID();
+    // 获取自动启动程序的目录列表
+    QStringList getAutostartDirs();
+    // 设置环境变量
+    void setEnv(const QString &name, const QString &value);
+    void setEnvs(const QMap<QString, QString> &envs);
+    // 生成cookie
+    uint32_t generateCookie();
 
 private:
-    void initUI();
-
-private:
-    Ui::InhibitorRow *m_ui;
-    QJsonObject m_inhibitor;
+    static QSharedPointer<Utils> m_instance;
 };
-
 }  // namespace Kiran

@@ -13,260 +13,170 @@
  */
 
 #include "src/ui/exit-query-window.h"
-#include <glib/gi18n.h>
-#include "lib/base.h"
-#include "src/inhibitor-manager.h"
+#include <style-property.h>
+#include <KDesktopFile>
+#include <QApplication>
+#include <QDesktopWidget>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonValue>
+#include <QPainter>
+#include <QResizeEvent>
+#include <QScreen>
+#include <iostream>
+#include "lib/base/base.h"
 #include "src/ui/inhibitor-row.h"
+#include "src/ui/session_manager_interface.h"
+#include "src/ui/ui_exit-query-window.h"
+
+QT_BEGIN_NAMESPACE
+Q_WIDGETS_EXPORT void qt_blurImage(QImage &blurImage, qreal radius, bool quality, int transposed = 0);
+QT_END_NAMESPACE
 
 namespace Kiran
 {
-namespace Daemon
-{
-#define BLUR_APREC 16
-#define BLUR_ZPREC 7
 #define BLUR_RADIUS 10
-#define BLUR_MAX_CHANNEL_NUM 4
 
-ExitQueryWindow::ExitQueryWindow(GtkWindow *window,
-                                 const Glib::RefPtr<Gtk::Builder> &builder,
-                                 PowerAction power_action) : Gtk::Window(window),
-                                                             builder_(builder),
-                                                             power_action_(power_action),
-                                                             blur_alpha_(0),
-                                                             content_(NULL),
-                                                             title_(NULL),
-                                                             title_desc_(NULL),
-                                                             ok_(NULL),
-                                                             cancel_(NULL)
+ExitQueryWindow::ExitQueryWindow(int32_t powerAction,
+                                 QWidget *parent) : QWidget(parent, Qt::FramelessWindowHint | Qt::BypassWindowManagerHint | Qt::WindowStaysOnTopHint | Qt::Widget),
+                                                    m_ui(new Ui::ExitQueryWindow),
+                                                    m_powerAction(powerAction)
 {
-    this->blur_alpha_ = (int32_t)((1 << BLUR_APREC) * (1.0f - expf(-2.3f / (BLUR_RADIUS + 1.f))));
+    this->m_ui->setupUi(this);
 
-    try
-    {
-        this->builder_->get_widget<Gtk::Box>("content", this->content_);
-        this->builder_->get_widget<Gtk::Label>("title", this->title_);
-        this->builder_->get_widget<Gtk::Label>("title_desc", this->title_desc_);
-        this->builder_->get_widget<Gtk::Box>("inhibitors", this->inhibitors_);
-        this->builder_->get_widget<Gtk::Button>("ok", this->ok_);
-        this->builder_->get_widget<Gtk::Button>("cancel", this->cancel_);
-    }
-    catch (const Glib::Error &e)
-    {
-        KLOG_WARNING("%s.", e.what().c_str());
-    }
+    this->m_sessionManagerProxy = new SessionManagerProxy(KSM_DBUS_NAME,
+                                                          KSM_DBUS_OBJECT_PATH,
+                                                          QDBusConnection::sessionBus(),
+                                                          this);
 
-    this->init();
+    this->initUI();
 }
 
-std::shared_ptr<ExitQueryWindow> ExitQueryWindow::create(PowerAction power_action)
+void ExitQueryWindow::initUI()
 {
-    ExitQueryWindow *window = NULL;
-    try
-    {
-        auto builder = Gtk::Builder::create_from_resource(GRESOURCE_PATH "/ui/exit-query");
-        builder->get_widget_derived<ExitQueryWindow>("window", window, power_action);
-    }
-    catch (const Glib::Error &e)
-    {
-        KLOG_WARNING("%s", e.what().c_str());
-    }
+    auto primaryScreen = QApplication::primaryScreen();
+    auto desktopRect = primaryScreen->virtualGeometry();
 
-    return std::shared_ptr<ExitQueryWindow>(window);
+    this->m_ui->m_inhibitorsScrollArea->setStyleSheet("QScrollArea {background-color:transparent;}");
+    this->m_ui->m_inhibitorsScrollArea->setFrameStyle(QFrame::NoFrame);
+    this->m_ui->m_inhibitorsScrollArea->viewport()->setStyleSheet("background-color:transparent;");
+    StylePropertyHelper::setButtonType(this->m_ui->m_ok, Kiran::ButtonType::BUTTON_Default);
+
+    this->initInhibitors();
+    this->onVirtualGeometryChanged(desktopRect);
+
+    connect(primaryScreen, SIGNAL(virtualGeometryChanged(const QRect &)), this, SLOT(onVirtualGeometryChanged(const QRect &)));
+
+    connect(this->m_ui->m_ok, &QPushButton::clicked, std::bind(&ExitQueryWindow::onResultClicked, this, std::placeholders::_1, "ok"));
+    connect(this->m_ui->m_cancel, &QPushButton::clicked, std::bind(&ExitQueryWindow::onResultClicked, this, std::placeholders::_1, "cancel"));
 }
 
-void ExitQueryWindow::on_realize()
+void ExitQueryWindow::initInhibitors()
 {
-    Gtk::Window::on_realize();
-    // 不让窗口管理器接管相关事件处理，否则会导致该窗口在扩展屏时无法覆盖panel区域
-    this->get_window()->set_override_redirect(true);
-}
+    QJsonParseError jsonError;
 
-bool ExitQueryWindow::on_draw(const Cairo::RefPtr<Cairo::Context> &cr)
-{
-    KLOG_PROFILE("");
+    auto reply = this->m_sessionManagerProxy->GetInhibitors();
+    reply.waitForFinished();
 
-    if (!this->background_surface_)
+    if (reply.isError())
     {
-        this->background_surface_ = this->get_blur_background_surface();
+        KLOG_WARNING() << "Failed to get inhibitors: " << reply.error().message();
+        return;
     }
 
-    auto surface_pattern = Cairo::SurfacePattern::create(this->background_surface_);
-    cr->save();
-    cr->set_source(surface_pattern);
-    cr->paint();
-    cr->restore();
+    auto inhibitors = reply.value();
 
-    this->propagate_draw(*this->get_child(), cr);
-    return true;
-}
-
-void ExitQueryWindow::init()
-{
-    this->set_decorated(false);
-    this->set_skip_taskbar_hint(true);
-    this->set_skip_pager_hint(true);
-    this->set_keep_above();
-
-    auto inhibitors = InhibitorManager::get_instance()->get_inhibitors_by_flag(KSMInhibitorFlag::KSM_INHIBITOR_FLAG_QUIT);
-
-    this->title_->set_label(fmt::format(_("Closing {0} apps"), inhibitors.size()));
-    this->title_desc_->set_label(_("If you want to go back and save your work, click 'cancel' and finish what you want to do"));
-
-    for (auto inhibitor : inhibitors)
+    auto jsonDoc = QJsonDocument::fromJson(inhibitors.toUtf8(), &jsonError);
+    if (jsonDoc.isNull())
     {
-        auto inhibitor_row = InhibitorRow::create(inhibitor);
-        this->inhibitors_->pack_start(*inhibitor_row, Gtk::PackOptions::PACK_SHRINK);
+        KLOG_WARNING() << "Parser inhibitors failed: " << jsonError.errorString();
+        return;
     }
 
-    switch (this->power_action_)
+    auto jsonRoot = jsonDoc.array();
+    this->m_ui->m_title->setText(tr("Closing %1 apps").arg(jsonRoot.size()));
+    this->m_ui->m_titleDesc->setText(tr("If you want to go back and save your work, click 'cancel' and finish what you want to do"));
+
+    for (auto iter : jsonRoot)
+    {
+        auto jsonInhibitor = iter.toObject();
+        if (jsonInhibitor.contains(KSM_INHIBITOR_JK_FLAGS) &&
+            jsonInhibitor.take(KSM_INHIBITOR_JK_FLAGS).toInt() == KSMInhibitorFlag::KSM_INHIBITOR_FLAG_QUIT)
+        {
+            this->m_ui->m_inhibitorsLayout->addWidget(new InhibitorRow(jsonInhibitor));
+        }
+    }
+
+    this->m_ui->m_inhibitorsLayout->addStretch();
+
+    switch (this->m_powerAction)
     {
     case PowerAction::POWER_ACTION_LOGOUT:
-        this->ok_->set_label(_("Forced logout"));
+        this->m_ui->m_ok->setText(tr("Forced logout"));
         break;
     case PowerAction::POWER_ACTION_SHUTDOWN:
-        this->ok_->set_label(_("Forced shutdown"));
+        this->m_ui->m_ok->setText(tr("Forced shutdown"));
         break;
     case PowerAction::POWER_ACTION_REBOOT:
-        this->ok_->set_label(_("Forced reboot"));
+        this->m_ui->m_ok->setText(tr("Forced reboot"));
         break;
     default:
-        KLOG_WARNING("The power action is unsupported.");
+        KLOG_WARNING() << "The power action is unsupported. action: " << this->m_powerAction;
         break;
     }
-
-    this->on_monitor_changed();
-
-    // 处理信号
-    this->ok_->signal_clicked().connect([this]() {
-        this->response_.emit(ExitQueryResponse::EXIT_QUERY_RESPONSE_OK);
-    });
-    this->cancel_->signal_clicked().connect([this]() {
-        this->response_.emit(ExitQueryResponse::EXIT_QUERY_RESPONSE_CANCEL);
-    });
-    this->get_screen()->signal_monitors_changed().connect(sigc::mem_fun(this, &ExitQueryWindow::on_monitor_changed));
-    this->get_screen()->signal_size_changed().connect(sigc::mem_fun(this, &ExitQueryWindow::on_monitor_changed));
-
-    this->content_->signal_size_allocate().connect(sigc::mem_fun(this, &ExitQueryWindow::on_content_size_allocate_cb));
 }
 
-Cairo::RefPtr<Cairo::ImageSurface> ExitQueryWindow::get_blur_background_surface()
+void ExitQueryWindow::onResultClicked(bool checked, const QString &result)
 {
-    // FIXME: 有一定几率取到的根窗口图片为空白，导致背景色变为黑色
-
-    int32_t x = 0;
-    int32_t y = 0;
-    int32_t width = 0;
-    int32_t height = 0;
-
-    this->get_window()->get_geometry(x, y, width, height);
-    auto root = this->get_screen()->get_root_window();
-    auto pixbuf = Gdk::Pixbuf::create(root, x, y, width, height);
-
-    KLOG_DEBUG("blur: %d-%d-%d-%d.", x, y, width, height);
-
-    auto surface = Cairo::ImageSurface::create(Cairo::FORMAT_ARGB32, pixbuf->get_width(), pixbuf->get_height());
-    auto cairo = Cairo::Context::create(surface);
-    cairo->save();
-    Gdk::Cairo::set_source_pixbuf(cairo, pixbuf, 0, 0);
-    cairo->paint();
-    cairo->restore();
-    this->surface_blur(surface);
-    return surface;
+    QJsonObject jsonObj;
+    jsonObj.insert("response_id", result);
+    QJsonDocument jsonDoc(jsonObj);
+    std::cout << jsonDoc.toJson().data();
+    QApplication::quit();
 }
 
-void ExitQueryWindow::pixel_blur(unsigned char pixel[],
-                                 int32_t base[],
-                                 int32_t channel_num)
+// void ExitQueryWindow::resizeEvent(QResizeEvent *event)
+// {
+//     KLOG_WARNING() << "cur height: " << event->size().height() << " old height: " << event->oldSize().height();
+//     QWidget::resizeEvent(event);
+// }
+
+void ExitQueryWindow::paintEvent(QPaintEvent *event)
 {
-    for (int32_t i = 0; i < channel_num; ++i)
+    QPainter painter(this);
+    auto screen = QApplication::primaryScreen();
+    auto desktopRect = screen->virtualGeometry();
+
+    // 只加载一次
+    if (this->m_backgroundPixmap.isNull())
     {
-        auto tmp = base[i];
-        base[i] += (this->blur_alpha_ * ((int32_t(pixel[i]) << BLUR_ZPREC) - tmp)) >> BLUR_APREC;
-        pixel[i] = base[i] >> BLUR_ZPREC;
+        auto image = screen->grabWindow(QApplication::desktop()->winId(),
+                                        desktopRect.x(),
+                                        desktopRect.y(),
+                                        desktopRect.width(),
+                                        desktopRect.height())
+                         .toImage();
+        qt_blurImage(image, BLUR_RADIUS, true);
+        this->m_backgroundPixmap = QPixmap::fromImage(image);
     }
+    painter.drawPixmap(desktopRect.x(), desktopRect.y(), this->m_backgroundPixmap);
+
+    QWidget::paintEvent(event);
 }
 
-void ExitQueryWindow::surface_blur(Cairo::RefPtr<Cairo::ImageSurface> surface)
+void ExitQueryWindow::onVirtualGeometryChanged(const QRect &rect)
 {
-    RETURN_IF_FALSE(surface->get_format() == Cairo::FORMAT_RGB24 ||
-                    surface->get_format() == Cairo::FORMAT_ARGB32);
+    this->move(rect.topLeft());
+    this->resize(QSize(rect.width(), rect.height()));
 
-    auto pixels = surface->get_data();
-    auto width = surface->get_width();
-    auto height = surface->get_height();
-    auto stride = surface->get_stride();
-    auto channels = stride / width;
-    int32_t origin[BLUR_MAX_CHANNEL_NUM] = {0};
+    auto primaryScreen = QApplication::primaryScreen();
+    auto primaryRect = primaryScreen->geometry();
 
-    for (auto row = 0; row < height; ++row)
-    {
-        auto row_head = &pixels[row * stride];
+    auto x = primaryRect.x() + (primaryRect.width() - this->m_ui->m_content->width()) / 2;
+    auto y = primaryRect.y() + (primaryRect.height() - this->m_ui->m_content->height()) / 2;
 
-        for (auto i = 0; i < channels; ++i)
-        {
-            origin[i] = *(row_head + i) << BLUR_ZPREC;
-        }
-
-        for (auto col = 0; col < width; col++)
-        {
-            this->pixel_blur(&row_head[col * channels], origin, channels);
-        }
-
-        for (auto col = width - 2; col >= 0; --col)
-        {
-            this->pixel_blur(&row_head[col * channels], origin, channels);
-        }
-    }
-
-    for (auto col = 0; col < width; ++col)
-    {
-        auto col_head = pixels + col * channels;
-
-        for (auto i = 0; i < channels; ++i)
-        {
-            origin[i] = *(col_head + i) << BLUR_ZPREC;
-        }
-
-        for (auto row = 0; row < height; ++row)
-        {
-            this->pixel_blur(&col_head[row * stride], origin, channels);
-        }
-
-        for (auto row = height - 2; row >= 0; --row)
-        {
-            this->pixel_blur(&col_head[row * stride], origin, channels);
-        }
-    }
+    this->m_ui->m_leftSpacer->changeSize(x, 1);
+    this->m_ui->m_topSpacer->changeSize(1, y);
 }
-
-void ExitQueryWindow::on_monitor_changed()
-{
-    // 窗口需要覆盖整个屏幕
-    int32_t x = 0;
-    int32_t y = 0;
-    int32_t width = 0;
-    int32_t height = 0;
-
-    this->get_screen()->get_root_window()->get_geometry(x, y, width, height);
-    this->move(x, y);
-    this->resize(width, height);
-}
-
-void ExitQueryWindow::on_content_size_allocate_cb(Gtk::Allocation &allocation)
-{
-    // 内容部分相对主显示器居中
-    Gdk::Rectangle monitor_rect;
-    auto primary_monitor = this->get_display()->get_primary_monitor();
-    primary_monitor->get_geometry(monitor_rect);
-
-    KLOG_DEBUG("Allocation      x-y-width-height: %d-%d-%d-%d.", allocation.get_x(), allocation.get_y(), allocation.get_width(), allocation.get_height());
-    KLOG_DEBUG("Primary monitor x-y-width-height: %d-%d-%d-%d.", monitor_rect.get_x(), monitor_rect.get_y(), monitor_rect.get_width(), monitor_rect.get_height());
-
-    allocation.set_x(monitor_rect.get_x() + (monitor_rect.get_width() - allocation.get_width()) / 2);
-    allocation.set_y(monitor_rect.get_y() + (monitor_rect.get_height() - allocation.get_height()) / 2);
-    this->content_->size_allocate(allocation);
-}
-
-}  // namespace Daemon
 
 }  // namespace Kiran

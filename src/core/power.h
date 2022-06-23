@@ -14,30 +14,35 @@
 
 #pragma once
 
-#include <QJsonObject>
-#include <QWidget>
-
-namespace Ui
-{
-class InhibitorRow;
-}  // namespace Ui
+#include <QObject>
+#include "ksm-i.h"
 
 namespace Kiran
 {
-class InhibitorRow : public QWidget
+class Power : public QObject
 {
     Q_OBJECT
-
 public:
-    InhibitorRow(const QJsonObject &inhibitor, QWidget *parent = nullptr);
-    virtual ~InhibitorRow(){};
+    Power(QObject *parent);
+    virtual ~Power(){};
+
+    void init();
+
+    // 是否可以执行该电源行为
+    bool canPowerAction(PowerAction powerAction);
+    // 执行电源行为
+    bool doPowerAction(PowerAction powerAction);
 
 private:
-    void initUI();
-
-private:
-    Ui::InhibitorRow *m_ui;
-    QJsonObject m_inhibitor;
+    // 切换用户
+    bool switchUser();
+    // 挂起
+    bool suspend();
+    // 休眠
+    bool hibernate();
+    // 关机
+    bool shutdown();
+    // 重启
+    bool reboot();
 };
-
 }  // namespace Kiran

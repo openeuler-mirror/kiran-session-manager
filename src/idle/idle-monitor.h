@@ -14,30 +14,36 @@
 
 #pragma once
 
-#include <QJsonObject>
-#include <QWidget>
+#include <QObject>
 
-namespace Ui
-{
-class InhibitorRow;
-}  // namespace Ui
+class IdleMonitorAdaptor;
 
 namespace Kiran
 {
-class InhibitorRow : public QWidget
+class IdleMonitor : public QObject
 {
     Q_OBJECT
 
 public:
-    InhibitorRow(const QJsonObject &inhibitor, QWidget *parent = nullptr);
-    virtual ~InhibitorRow(){};
+    IdleMonitor(QObject *parent = nullptr);
+    virtual ~IdleMonitor(){};
+
+    void init();
+
+public Q_SLOTS:  // METHODS
+    int AddIdleTimeout(qulonglong interval);
+    qulonglong GetIdletime();
+    void RemoveIdleTimeout(int id);
+    void SimulateUserActivity();
+
+Q_SIGNALS:  // SIGNALS
+    void ResumingFromIdle();
+    void TimeoutReached(int id, qulonglong interval);
 
 private:
-    void initUI();
+    IdleMonitorAdaptor *m_dbusAdaptor;
 
-private:
-    Ui::InhibitorRow *m_ui;
-    QJsonObject m_inhibitor;
+    QString m_clientID;
 };
 
 }  // namespace Kiran
