@@ -123,14 +123,25 @@ int main(int argc, char *argv[])
     parser.addVersionOption();
     parser.addOption(QCommandLineOption(QStringList({"s", "session-type"}),
                                         app.translate("main", "Specify a session type that contains required components."),
-                                        app.translate("main", "session type"),
+                                        app.translate("main", "SESSION_NAME"),
                                         QStringLiteral("kiran")));
+
+    parser.addOption(QCommandLineOption(QStringList({"a", "autostart"}),
+                                        app.translate("main", "Override standard autostart directories."),
+                                        app.translate("main", "AUTOSTART_DIRS"),
+                                        QStringLiteral("")));
     parser.process(app);
 
     initEnv();
 
     auto sessionType = parser.value(QStringLiteral("session-type"));
     KLOG_DEBUG() << "sessionType: " << sessionType;
+
+    if (parser.isSet("autostart"))
+    {
+        auto autostartDirs = parser.value(QStringLiteral("autostart"));
+        Utils::getDefault()->setAutostartDirs(autostartDirs);
+    }
 
     AppManager::globalInit(sessionType);
     XsmpServer::globalInit();

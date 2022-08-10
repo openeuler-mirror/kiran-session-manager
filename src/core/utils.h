@@ -28,6 +28,8 @@ public:
 
     // 生成随机的startup id
     QString generateStartupID();
+    // 设置自定义的自启动目录，覆盖默认加载目录
+    void setAutostartDirs(const QString &autostartDirs);
     // 获取自动启动程序的目录列表
     QStringList getAutostartDirs();
     // 设置环境变量
@@ -38,5 +40,8 @@ public:
 
 private:
     static QSharedPointer<Utils> m_instance;
+
+    QStringList m_customAutostartDirs;
+    bool m_useCustomAutostartDirs;
 };
 }  // namespace Kiran

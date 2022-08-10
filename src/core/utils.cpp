@@ -48,7 +48,7 @@ namespace Kiran
 * number is actually more likely to be globally unique.
 */
 
-Utils::Utils()
+Utils::Utils() : m_useCustomAutostartDirs(false)
 {
     qDBusRegisterMetaType<QMap<QString, QString>>();
 }
@@ -89,8 +89,19 @@ QString Utils::generateStartupID()
                              sequence);
 }
 
+void Utils::setAutostartDirs(const QString &autostartDirs)
+{
+    this->m_customAutostartDirs = autostartDirs.split(';');
+    this->m_useCustomAutostartDirs = true;
+}
+
 QStringList Utils::getAutostartDirs()
 {
+    if (this->m_useCustomAutostartDirs)
+    {
+        return this->m_customAutostartDirs;
+    }
+
     QStringList autostartDirs;
     auto configDirs = QStandardPaths::standardLocations(QStandardPaths::StandardLocation::ConfigLocation);
 

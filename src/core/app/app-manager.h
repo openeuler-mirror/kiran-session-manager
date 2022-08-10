@@ -28,12 +28,12 @@ class AppManager : public QObject
     Q_OBJECT
 
 public:
-    AppManager(const QString& session_name);
+    AppManager(const QString& sessionName);
     virtual ~AppManager(){};
 
     static AppManager* getInstance() { return m_instance; };
 
-    static void globalInit(const QString& session_name);
+    static void globalInit(const QString& sessionName);
 
     static void globalDeinit() { delete m_instance; };
 
