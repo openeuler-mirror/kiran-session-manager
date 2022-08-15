@@ -322,7 +322,8 @@ void SessionManager::onClientAdded(Client *client)
     KLOG_DEBUG() << "The new client " << client->getID() << " match the app " << app->getAppID();
 
     // 此时说明kiran-session-daemon已经关闭掉与mate-settings-daemon冲突的插件，这时可以运行mate-settings-daemon
-    auto iter = std::find_if(this->m_waitingApps.begin(), this->m_waitingApps.end(), [](App *app) { return app->getAppID() == "mate-settings-daemon.desktop"; });
+    auto iter = std::find_if(this->m_waitingApps.begin(), this->m_waitingApps.end(), [](App *app)
+                             { return app->getAppID() == "mate-settings-daemon.desktop"; });
     if (app->getAppID() == "kiran-session-daemon.desktop" &&
         iter != this->m_waitingApps.end())
     {
@@ -430,7 +431,8 @@ void SessionManager::onEndSessionResponse(Client *client)
 
     auto iter = std::remove_if(this->m_waitingClients.begin(),
                                this->m_waitingClients.end(),
-                               [client](Client *item) {
+                               [client](Client *item)
+                               {
                                    return client->getID() == item->getID();
                                });
     this->m_waitingClients.erase(iter, this->m_waitingClients.end());
@@ -609,7 +611,8 @@ void SessionManager::processPhaseQueryEndSession()
     if (this->m_waitingClients.size() > 0)
     {
         connect(this->m_waitingClientsTimeoutID,
-                &QTimer::timeout, [this]() -> void { this->onWaitingSessionTimeout(std::bind(&SessionManager::queryEndSessionComplete, this)); });
+                &QTimer::timeout, [this]() -> void
+                { this->onWaitingSessionTimeout(std::bind(&SessionManager::queryEndSessionComplete, this)); });
 
         this->m_waitingClientsTimeoutID->start(300);
     }
@@ -634,11 +637,11 @@ void SessionManager::queryEndSessionComplete()
     this->m_waitingClientsTimeoutID->stop();
 
     // 如果不存在退出会话的抑制器，则直接进入下一个阶段
-    // if (!this->m_inhibitorManager->hasInhibitor(KSMInhibitorFlag::KSM_INHIBITOR_FLAG_QUIT))
-    // {
-    //     this->startNextPhase();
-    //     return;
-    // }
+    if (!this->m_inhibitorManager->hasInhibitor(KSMInhibitorFlag::KSM_INHIBITOR_FLAG_QUIT))
+    {
+        this->startNextPhase();
+        return;
+    }
 
     if (this->m_process->state() != QProcess::Running)
     {
@@ -691,7 +694,8 @@ void SessionManager::processPhaseEndSessionPhase1()
     if (this->m_waitingClients.size() > 0)
     {
         connect(this->m_waitingClientsTimeoutID,
-                &QTimer::timeout, [this]() -> void { this->onWaitingSessionTimeout(std::bind(&SessionManager::startNextPhase, this)); });
+                &QTimer::timeout, [this]() -> void
+                { this->onWaitingSessionTimeout(std::bind(&SessionManager::startNextPhase, this)); });
         this->m_waitingClientsTimeoutID->start(KSM_PHASE_STARTUP_TIMEOUT * 1000);
     }
     else
@@ -722,7 +726,8 @@ void SessionManager::processPhaseEndSessionPhase2()
     if (this->m_waitingClients.size() > 0)
     {
         connect(this->m_waitingClientsTimeoutID,
-                &QTimer::timeout, [this]() -> void { this->onWaitingSessionTimeout(std::bind(&SessionManager::startNextPhase, this)); });
+                &QTimer::timeout, [this]() -> void
+                { this->onWaitingSessionTimeout(std::bind(&SessionManager::startNextPhase, this)); });
 
         this->m_waitingClientsTimeoutID->start(KSM_PHASE_STARTUP_TIMEOUT * 1000);
     }
@@ -824,7 +829,8 @@ void SessionManager::onAppStartupFinished(App *app)
 
     auto iter = std::remove_if(this->m_waitingApps.begin(),
                                this->m_waitingApps.end(),
-                               [app](App *item) -> bool {
+                               [app](App *item) -> bool
+                               {
                                    return item->getAppID() == app->getAppID();
                                });
 
