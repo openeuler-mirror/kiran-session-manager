@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN" "http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
+<node xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
+    <interface name="org.gnome.SessionManager.Presence">
+        <method name="SetStatus">
+            <arg type="u" name="status" direction="in">
+                <summary>The status value</summary>
+            </arg>
+            <description>Set the status value of the session.</description>
+        </method>
+
+        <method name="SetStatusText">
+            <arg type="s" name="status_text" direction="in">
+                <summary>The descriptive status for the session.</summary>
+            </arg>
+            <description>Set the descriptive status text for the session.</description>
+        </method>
+
+        <property name="status" type="u" access="readwrite">
+            <description>The status of the session.</description>
+        </property>
+
+        <property name="status_text" type="s" access="readwrite">
+            <description>The descriptive status for the session.</description>
+        </property>
+
+        <signal name="StatusChanged">
+            <arg name="status" type="u">
+                <summary>The new status value</summary>
+            </arg>
+            <description>Indicates that the session status value has changed.</description>
+        </signal>
+
+        <signal name="StatusTextChanged">
+            <arg name="status_text" type="s">
+                <summary>The new status text</summary>
+            </arg>
+            <description>Indicates that the descriptive session status text has changed.</description>
+        </signal>
+
+    </interface>
+</node>
