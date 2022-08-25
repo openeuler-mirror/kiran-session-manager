@@ -1,0 +1,8 @@
+variables:
+  RPM_BUILD_REQUIRES: 'cmake make gcc-c++ gettext kiran-log-gtk3-devel jsoncpp-devel gtest-devel fmt-devel libICE-devel libSM-devel libXext-devel gdbus-codegen-glibmm gtkmm30-devel'
+
+include:
+  - project: 'os/gitlab-ci'
+    ref: main
+    file: '/cmake/cxx.gitlab-ci.yml'
+
