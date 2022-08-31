@@ -62,9 +62,13 @@ extern "C"
     // 暂时兼容旧的gnome规范，新的会话管理部分状态未使用
     enum KSMPresenceStatus
     {
+        // 正常可用状态
         KSM_PRESENCE_STATUS_AVAILABLE = 0,
+        // 未使用
         KSM_PRESENCE_STATUS_INVISIBLE,
+        // 未使用
         KSM_PRESENCE_STATUS_BUSY,
+        // 空闲状态
         KSM_PRESENCE_STATUS_IDLE,
         KSM_PRESENCE_STATUS_LAST,
     };
