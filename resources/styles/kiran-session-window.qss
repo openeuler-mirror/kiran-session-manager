@@ -1,0 +1,22 @@
+
+QWidget#m_mask {
+    background: rgba(34, 34, 34, 60%);
+}
+
+QLabel {
+    color: white;
+}
+
+QLabel#m_title {
+    font-size: 24px;
+}
+
+QWidget#m_inhibitors {
+    background: transparent;
+    border: none;
+}
+
+QWidget#InhibitorRow {
+    background: transparent;
+}
+
