@@ -102,6 +102,8 @@ public Q_SLOTS:
 
     // 退出会话确认对话框响应
     void onExitWindowResponse();
+    // 系统信号处理
+    void onSystemSignal(int signo);
 
 private:
     void init();
@@ -126,6 +128,8 @@ private:
     void maybeRestartUserBus();
     // 开始下一个阶段
     void startNextPhase();
+    // 处理application阶段结束
+    void processPhaseApplicationEnd();
 
     // 所有跟客户端的交互都已经处理完毕，开始真正的退出会话
     void quitSession();

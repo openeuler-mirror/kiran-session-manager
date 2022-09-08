@@ -13,6 +13,7 @@
  */
 
 #include "src/core/session-manager.h"
+#include <signal.h>
 #include <QGSettings>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -27,6 +28,7 @@
 #include "src/core/power.h"
 #include "src/core/presence.h"
 #include "src/core/session_manager_adaptor.h"
+#include "src/core/signal-handler.h"
 #include "src/core/utils.h"
 
 namespace Kiran
@@ -503,6 +505,16 @@ void SessionManager::onExitWindowResponse()
     }
 }
 
+void SessionManager::onSystemSignal(int signo)
+{
+    KLOG_DEBUG("Receive signal: %d.", signo);
+
+    if (signo == SIGTERM)
+    {
+        this->quitSession();
+    }
+}
+
 void SessionManager::init()
 {
     this->m_power->init();
@@ -568,6 +580,7 @@ void SessionManager::processPhase()
         break;
     case KSMPhase::KSM_PHASE_END_SESSION_PHASE2:
         this->processPhaseEndSessionPhase2();
+        break;
     case KSMPhase::KSM_PHASE_EXIT:
         this->processPhaseExit();
         break;
@@ -789,7 +802,9 @@ void SessionManager::startNextPhase()
     case KSMPhase::KSM_PHASE_WINDOW_MANAGER:
     case KSMPhase::KSM_PHASE_PANEL:
     case KSMPhase::KSM_PHASE_DESKTOP:
+        break;
     case KSMPhase::KSM_PHASE_APPLICATION:
+        this->processPhaseApplicationEnd();
         break;
     case KSMPhase::KSM_PHASE_RUNNING:
         break;
@@ -817,6 +832,17 @@ void SessionManager::startNextPhase()
     {
         KLOG_DEBUG() << "Keep current phase: " << App::phaseEnum2str(this->m_currentPhase);
     }
+}
+
+void SessionManager::processPhaseApplicationEnd()
+{
+    connect(SignalHandler::get_default(),
+            &SignalHandler::signalReceived,
+            QCoreApplication::instance(),
+            std::bind(&SessionManager::onSystemSignal, this, std::placeholders::_1));
+    /* 需要监听SIGTERM信号，否则在maybeRestartUserBus函数中重置dbus.service时会发送SIGTERM信号，
+       导致程序直接退出进入登录界面，如果此时是重启请求，则重启功能失效。*/
+    SignalHandler::get_default()->addSignal(SIGTERM);
 }
 
 void SessionManager::quitSession()

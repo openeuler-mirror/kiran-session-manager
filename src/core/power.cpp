@@ -108,7 +108,7 @@ bool Power::shutdown()
 
 bool Power::reboot()
 {
-    RETURN_VAL_IF_TRUE(!SystemdLogin1::getDefault()->reboot(), false);
+    RETURN_VAL_IF_TRUE(!SystemdLogin1::getDefault()->canReboot(), false);
     return SystemdLogin1::getDefault()->reboot();
 }
 
