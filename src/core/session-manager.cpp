@@ -368,6 +368,9 @@ void SessionManager::onClientDeleted(Client *client)
     {
         auto app = this->m_appManager->getAppByStartupID(client->getID());
 
+        /* QT应用程序不会使用会话管理通过DESKTOP_AUTOSTART_ID环境变量传递的值作为StartupID，在执行onRegisterClient回调时，
+           QT传递的previousID为空，因此会话管理又重新生成了一个新的StartupID给QT程序，因此通过getAppByStartupID函数是无法找到
+           对应App对象的，因此这里计划通过Xsmp协议中ProgramName属性来作为AppID，然后关联到App对象。*/
         if (!app)
         {
             app = this->m_appManager->getApp(client->getAppID());
