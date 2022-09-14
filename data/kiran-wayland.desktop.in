@@ -2,7 +2,7 @@
 Name=KIRAN
 Comment=This session logs you into KIRAN
 Comment[zh_CN]=此会话将您登录到 KIRAN
-Exec=@CMAKE_INSTALL_FULL_BINDIR@/kiran-session-manager --session-type=kiran
+Exec=@CMAKE_INSTALL_FULL_BINDIR@/kiran-session-manager --session-type=kiran-wayland
 TryExec=@CMAKE_INSTALL_FULL_BINDIR@/kiran-session-manager
 Type=Application
 DesktopNames=KIRAN

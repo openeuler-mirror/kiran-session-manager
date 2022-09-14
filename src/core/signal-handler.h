@@ -14,30 +14,35 @@
 
 #pragma once
 
-#include <QJsonObject>
-#include <QWidget>
-
-namespace Ui
-{
-class InhibitorRow;
-}  // namespace Ui
+#include <QObject>
+#include <QSet>
+#include <QSocketNotifier>
 
 namespace Kiran
 {
-class InhibitorRow : public QWidget
+class SignalHandler : public QObject
 {
     Q_OBJECT
-
 public:
-    InhibitorRow(const QJsonObject &inhibitor, QWidget *parent = nullptr);
-    virtual ~InhibitorRow(){};
+    virtual ~SignalHandler();
+
+    static SignalHandler *get_default();
+
+    void addSignal(int signal);
+
+Q_SIGNALS:
+    void signalReceived(int signal);
 
 private:
-    void initUI();
+    SignalHandler();
+    void handleSignal();
+    static void signalHandler(int signal);
 
 private:
-    Ui::InhibitorRow *m_ui;
-    QJsonObject m_inhibitor;
+    static SignalHandler *m_instance;
+
+    QSocketNotifier *m_handler;
+    QSet<int> m_signos;
+    static int signalFD[2];
 };
-
 }  // namespace Kiran

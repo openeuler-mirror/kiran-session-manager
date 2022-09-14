@@ -14,30 +14,38 @@
 
 #pragma once
 
-#include <QJsonObject>
-#include <QWidget>
-
-namespace Ui
-{
-class InhibitorRow;
-}  // namespace Ui
+#include <QSharedPointer>
 
 namespace Kiran
 {
-class InhibitorRow : public QWidget
+// 对screensaver的dbus接口的封装
+class ScreenSaver
 {
-    Q_OBJECT
-
 public:
-    InhibitorRow(const QJsonObject &inhibitor, QWidget *parent = nullptr);
-    virtual ~InhibitorRow(){};
+    ScreenSaver();
+    virtual ~ScreenSaver(){};
+
+    static QSharedPointer<ScreenSaver> getDefault();
+
+    // 锁屏
+    bool lock();
+
+    // 添加throttle，禁止运行屏保主题。函数返回一个cookie，可以通过cookie移除该throttle
+    uint32_t addThrottle(const QString &reason);
+
+    // 锁屏并添加throttle，如果失败则返回0，否则返回cookie
+    uint32_t lockAndThrottle(const QString &reason);
+
+    // 移除throttle
+    bool removeThrottle(uint32_t cookie);
+
+    // 模拟用户激活操作
+    bool poke();
 
 private:
-    void initUI();
+    void init();
 
 private:
-    Ui::InhibitorRow *m_ui;
-    QJsonObject m_inhibitor;
+    static QSharedPointer<ScreenSaver> m_instance;
 };
-
 }  // namespace Kiran

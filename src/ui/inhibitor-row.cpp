@@ -13,88 +13,50 @@
  */
 
 #include "src/ui/inhibitor-row.h"
-#include <glib/gi18n.h>
-#include "lib/base.h"
-#include "src/inhibitor-manager.h"
+#include <KDesktopFile>
+#include <QScopedPointer>
+#include "lib/base/base.h"
+#include "src/ui/ui_inhibitor-row.h"
 
 namespace Kiran
 {
-namespace Daemon
+InhibitorRow::InhibitorRow(const QJsonObject &inhibitor,
+                           QWidget *parent) : QWidget(parent),
+                                              m_ui(new Ui::InhibitorRow),
+                                              m_inhibitor(inhibitor)
 {
-InhibitorRow::InhibitorRow(GtkBox *box,
-                           const Glib::RefPtr<Gtk::Builder> &builder,
-                           std::shared_ptr<Inhibitor> inhibitor) : Gtk::Box(box),
-                                                                   builder_(builder),
-                                                                   inhibitor_(inhibitor)
-{
-    KLOG_DEBUG("app_id : %s.", inhibitor->app_id.c_str());
-    this->init();
+    this->m_ui->setupUi(this);
+    this->initUI();
 }
 
-InhibitorRow *InhibitorRow::create(std::shared_ptr<Inhibitor> inhibitor)
+void InhibitorRow::initUI()
 {
-    InhibitorRow *row = NULL;
-    try
+    auto appID = this->m_inhibitor.value(KSM_INHIBITOR_JK_APP_ID).toString();
+    auto reason = this->m_inhibitor.value(KSM_INHIBITOR_JK_REASON).toString();
+
+    KLOG_DEBUG() << "Init inhibitor row for app: " << appID;
+
+    QScopedPointer<KDesktopFile> desktopFile(new KDesktopFile(appID));
+
+    if (desktopFile)
     {
-        auto builder = Gtk::Builder::create_from_resource(GRESOURCE_PATH "/ui/inhibitor-row");
-        builder->get_widget_derived<InhibitorRow>("row-box", row, inhibitor);
-    }
-    catch (const Glib::Error &e)
-    {
-        KLOG_WARNING("%s", e.what().c_str());
-    }
-    return row;
-}
-
-void InhibitorRow::init()
-{
-    Gtk::Image *app_icon = NULL;
-    Gtk::Label *app_name = NULL;
-    Gtk::Label *description = NULL;
-
-    auto app_id = StrUtils::trim(this->inhibitor_->app_id);
-
-    if (!StrUtils::endswith(app_id, ".desktop"))
-    {
-        app_id += ".desktop";
-    }
-
-    // path_is_absolute函数只在window平台有效
-    if (Glib::path_is_absolute(this->inhibitor_->app_id) || app_id[0] == '/')
-    {
-        this->app_info_ = Gio::DesktopAppInfo::create_from_filename(this->inhibitor_->app_id);
-    }
-    else
-    {
-        this->app_info_ = Gio::DesktopAppInfo::create(this->inhibitor_->app_id);
-    }
-
-    KLOG_DEBUG("app_id: %s, has appinfo: %s.", app_id.c_str(), this->app_info_ ? "true" : "false");
-
-    try
-    {
-        this->builder_->get_widget<Gtk::Image>("app_icon", app_icon);
-        this->builder_->get_widget<Gtk::Label>("app_name", app_name);
-        this->builder_->get_widget<Gtk::Label>("description", description);
-
-        if (this->app_info_)
+        auto appIcon = QIcon::fromTheme(desktopFile->readIcon());
+        if (appIcon.isNull())
         {
-            app_icon->set(Glib::RefPtr<const Gio::Icon>::cast_dynamic(this->app_info_->get_icon()), Gtk::IconSize(Gtk::ICON_SIZE_DIALOG));
-            app_name->set_label(this->app_info_->get_locale_string("Name"));
+            this->m_ui->m_appIcon->setIcon(QIcon(":/app-missing.svg"));
         }
         else
         {
-            app_icon->set(Gdk::Pixbuf::create_from_resource(GRESOURCE_PATH "/image/app-missing", 48, 48));
-            app_name->set_label(_("Unknown application"));
+            this->m_ui->m_appIcon->setIcon(appIcon);
         }
-        description->set_label(this->inhibitor_->reason);
+        this->m_ui->m_appName->setText(desktopFile->readName());
     }
-    catch (const Glib::Error &e)
+    else
     {
-        KLOG_WARNING("%s", e.what().c_str());
+        this->m_ui->m_appIcon->setIcon(QIcon(":/app-missing.svg"));
+        this->m_ui->m_appName->setText(tr("Unknown application"));
     }
+    this->m_ui->m_appDesc->setText(reason);
 }
-
-}  // namespace Daemon
 
 }  // namespace Kiran
