@@ -14,30 +14,26 @@
 
 #pragma once
 
-#include <QJsonObject>
-#include <QWidget>
-
-namespace Ui
-{
-class InhibitorRow;
-}  // namespace Ui
+#include <QSharedPointer>
 
 namespace Kiran
 {
-class InhibitorRow : public QWidget
+class DisplayManager
 {
-    Q_OBJECT
-
 public:
-    InhibitorRow(const QJsonObject &inhibitor, QWidget *parent = nullptr);
-    virtual ~InhibitorRow(){};
+    DisplayManager();
+    virtual ~DisplayManager(){};
+
+    static QSharedPointer<DisplayManager> getDefault();
+
+    // 是否可切换用户
+    bool canSwitchUser();
+    // 切换用户
+    bool switchUser();
 
 private:
-    void initUI();
+    static QSharedPointer<DisplayManager> m_instance;
 
-private:
-    Ui::InhibitorRow *m_ui;
-    QJsonObject m_inhibitor;
+    QString m_xdgSeatPath;
 };
-
 }  // namespace Kiran

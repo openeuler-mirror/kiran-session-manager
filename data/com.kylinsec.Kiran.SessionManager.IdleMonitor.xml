@@ -1,0 +1,30 @@
+<!DOCTYPE node PUBLIC
+'-//freedesktop//DTD D-BUS Object Introspection 1.0//EN'
+'http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd'>
+<node>
+
+  <interface name="com.kylinsec.Kiran.SessionManager.IdleMonitor">
+    <method name="GetIdletime">
+      <arg name="idletime" direction="out" type="t"/>
+    </method>
+
+    <method name="AddIdleTimeout">
+      <arg name="interval" direction="in" type="t" />
+      <arg name="id" direction="out" type="i" />
+    </method>
+
+    <method name="RemoveIdleTimeout">
+      <arg name="id" direction="in" type="i" />
+    </method>
+
+    <method name="SimulateUserActivity"/>
+
+    <signal name="ResumingFromIdle" />
+
+    <signal name="TimeoutReached">
+      <arg name="id" direction="out" type="i" />
+      <arg name="interval" direction="out" type="t" />
+    </signal>
+
+  </interface>
+</node>

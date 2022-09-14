@@ -25,8 +25,13 @@ extern "C"
 #define KSM_DBUS_OBJECT_PATH "/org/gnome/SessionManager"
 #define KSM_DBUS_INTERFACE_NAME "org.gnome.SessionManager"
 
+#define KSM_CLIENT_PRIVATE_DBUS_INTERFACE "org.gnome.SessionManager.ClientPrivate"
+
 #define KSM_PRESENCE_DBUS_OBJECT_PATH "/org/gnome/SessionManager/Presence"
 #define KSM_PRESENCE_DBUS_INTERFACE_NAME "org.gnome.SessionManager.Presence"
+
+#define KSM_IDLE_DBUS_NAME "com.kylinsec.Kiran.SessionManager.IdleMonitor"
+#define KSM_IDLE_DBUS_OBJECT_PATH "/com/kylinsec/Kiran/SessionManager/IdleMonitor"
 
 #define KSM_SCHEMA_ID "com.kylinsec.kiran.session-manager"
 #define KSM_SCHEMA_KEY_SESSION_DAEMONS "session-daemons"
@@ -40,32 +45,6 @@ extern "C"
 #define KSM_INHIBITOR_JK_TOPLEVEL_XID "toplevel_xid"
 #define KSM_INHIBITOR_JK_REASON "reason"
 #define KSM_INHIBITOR_JK_FLAGS "flags"
-
-    enum KSMPhase
-    {
-        // 未开始
-        KSM_PHASE_IDLE = 0,
-        // 启动控制中心会话后端
-        KSM_PHASE_INITIALIZATION,
-        // 启动窗口管理器
-        KSM_PHASE_WINDOW_MANAGER,
-        // 启动底部面板
-        KSM_PHASE_PANEL,
-        // 启动文件管理器
-        KSM_PHASE_DESKTOP,
-        // 启动其他应用程序
-        KSM_PHASE_APPLICATION,
-        // 会话运行阶段
-        KSM_PHASE_RUNNING,
-        // 会话结束阶段
-        KSM_PHASE_QUERY_END_SESSION,
-        // 会话结束第一阶段
-        KSM_PHASE_END_SESSION_PHASE1,
-        // 会话结束第二阶段
-        KSM_PHASE_END_SESSION_PHASE2,
-        // 会话结束第二阶段
-        KSM_PHASE_EXIT
-    };
 
     // 抑制器标记位
     enum KSMInhibitorFlag
@@ -83,11 +62,32 @@ extern "C"
     // 暂时兼容旧的gnome规范，新的会话管理部分状态未使用
     enum KSMPresenceStatus
     {
+        // 正常可用状态
         KSM_PRESENCE_STATUS_AVAILABLE = 0,
+        // 未使用
         KSM_PRESENCE_STATUS_INVISIBLE,
+        // 未使用
         KSM_PRESENCE_STATUS_BUSY,
+        // 空闲状态
         KSM_PRESENCE_STATUS_IDLE,
         KSM_PRESENCE_STATUS_LAST,
+    };
+
+    enum PowerAction
+    {
+        POWER_ACTION_NONE,
+        // 切换用户
+        POWER_ACTION_SWITCH_USER,
+        // 注销
+        POWER_ACTION_LOGOUT,
+        // 挂起
+        POWER_ACTION_SUSPEND,
+        // 休眠
+        POWER_ACTION_HIBERNATE,
+        // 关机
+        POWER_ACTION_SHUTDOWN,
+        // 重启
+        POWER_ACTION_REBOOT,
     };
 
 #ifdef __cplusplus

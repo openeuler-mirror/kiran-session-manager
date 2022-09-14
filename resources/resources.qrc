@@ -1,0 +1,10 @@
+<RCC>
+    <!--主题-->
+    <qresource prefix="/">
+        <file>styles/kiran-session-window.qss</file>
+    </qresource>
+
+    <qresource prefix="/">
+        <file alias="app-missing.svg">images/app-missing.svg</file>
+    </qresource>
+</RCC>

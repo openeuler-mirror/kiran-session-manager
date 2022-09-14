@@ -12,13 +12,16 @@
  * Author:     tangjie02 <tangjie02@kylinos.com.cn>
  */
 
-#include <gtkmm.h>
+#include <QWidget>
 
-#include "src/power.h"
+class SessionManagerProxy;
+
+namespace Ui
+{
+class ExitQueryWindow;
+}  // namespace Ui
 
 namespace Kiran
-{
-namespace Daemon
 {
 enum ExitQueryResponse
 {
@@ -26,57 +29,32 @@ enum ExitQueryResponse
     EXIT_QUERY_RESPONSE_CANCEL,
 };
 
-class ExitQueryWindow : public Gtk::Window
+class ExitQueryWindow : public QWidget
 {
+    Q_OBJECT
+
 public:
-    ExitQueryWindow(GtkWindow *window, const Glib::RefPtr<Gtk::Builder> &builder, PowerAction power_action);
+    ExitQueryWindow(int32_t powerAction, QWidget *parent = nullptr);
     virtual ~ExitQueryWindow(){};
 
-    static std::shared_ptr<ExitQueryWindow> create(PowerAction power_action);
+private:
+    void initUI();
+    void initInhibitors();
 
-    // 确认退出
-    sigc::signal<void, ExitQueryResponse> signal_response() { return this->response_; };
-
-protected:
-    virtual void on_realize() override;
-    virtual bool on_draw(const Cairo::RefPtr<Cairo::Context> &cr) override;
+    void onResultClicked(bool checked, const QString &result);
 
 private:
-    void init();
+    // virtual void resizeEvent(QResizeEvent *event) override;
+    virtual void paintEvent(QPaintEvent *event) override;
 
-    Cairo::RefPtr<Cairo::ImageSurface> get_blur_background_surface();
-
-    // 高斯模糊
-    void surface_blur(Cairo::RefPtr<Cairo::ImageSurface> surface);
-    void pixel_blur(unsigned char pixel[], int32_t base[], int32_t channel_num);
-
-    void on_monitor_changed();
-    void on_content_size_allocate_cb(Gtk::Allocation &allocation);
+private Q_SLOTS:
+    void onVirtualGeometryChanged(const QRect &rect);
 
 private:
-    Glib::RefPtr<Gtk::Builder> builder_;
-    sigc::signal<void, ExitQueryResponse> response_;
-
-    PowerAction power_action_;
-
-    // 高斯模糊背景
-    Cairo::RefPtr<Cairo::ImageSurface> background_surface_;
-    int32_t blur_alpha_;
-
-    // 内容
-    Gtk::Box *content_;
-    // 标题
-    Gtk::Label *title_;
-    // 标题描述
-    Gtk::Label *title_desc_;
-    // 抑制器列表
-    Gtk::Box *inhibitors_;
-    // 确认按钮
-    Gtk::Button *ok_;
-    // 取消按钮
-    Gtk::Button *cancel_;
+    Ui::ExitQueryWindow *m_ui;
+    SessionManagerProxy *m_sessionManagerProxy;
+    int32_t m_powerAction;
+    QPixmap m_backgroundPixmap;
 };
-
-}  // namespace Daemon
 
 }  // namespace Kiran

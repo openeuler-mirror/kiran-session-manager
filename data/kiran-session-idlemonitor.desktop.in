@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=Kiran Session Idle Monitor
+Exec=/usr/bin/kiran-session-idlemonitor
+NoDisplay=true
+X-KIRAN-Autostart-Phase=PostDisplayServer
+X-KIRAN-Autostart-Notify=true
+X-KIRAN-AutoRestart=true
