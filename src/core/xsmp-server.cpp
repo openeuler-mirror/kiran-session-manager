@@ -26,6 +26,15 @@
 #include <QTimer>
 #include "src/core/utils.h"
 
+extern "C"
+{
+#define ICE_t
+#define TRANS_SERVER
+#include <X11/Xtrans/Xtrans.h>
+#undef ICE_t
+#undef TRANS_SERVER
+}
+
 namespace Kiran
 {
 #define KSM_ICE_MAGIC_COOKIE_AUTH_NAME "MIT-MAGIC-COOKIE-1"
@@ -167,12 +176,13 @@ void XsmpServer::listenSocket()
 {
     char errorString[BUFSIZ];
 
+    _IceTransNoListen("tcp");
+
     /* Create the XSMP socket. Older versions of IceListenForConnections
      * have a bug which causes the umask to be set to 0 on certain types
      * of failures. Probably not an issue on any modern systems, but
      * we'll play it safe.
     */
-
     auto savedUmask = umask(0);
     umask(savedUmask);
     // 监听网络连接，该函数会对每种socket类型(例如：unix/tcp/DECnet)返回一个地址
