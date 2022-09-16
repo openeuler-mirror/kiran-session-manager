@@ -19,6 +19,15 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
+extern "C"
+{
+#define ICE_t
+#define TRANS_SERVER
+#include <X11/Xtrans/Xtrans.h>
+#undef ICE_t
+#undef TRANS_SERVER
+}
+
 namespace Kiran
 {
 namespace Daemon
@@ -81,6 +90,8 @@ void XsmpServer::init()
 void XsmpServer::listen_socket()
 {
     char error_string[BUFSIZ];
+
+    _IceTransNoListen("tcp");
 
     /* Create the XSMP socket. Older versions of IceListenForConnections
      * have a bug which causes the umask to be set to 0 on certain types
@@ -171,12 +182,13 @@ void XsmpServer::update_ice_authority()
 
     // 删除认证文件中包含network_ids的认证信息，然后重新设置新的认证信息
     auto fp = fopen(filename, "r+");
-    SCOPE_EXIT({
-        if (fp)
+    SCOPE_EXIT(
         {
-            fclose(fp);
-        }
-    });
+            if (fp)
+            {
+                fclose(fp);
+            }
+        });
 
     if (fp)
     {
