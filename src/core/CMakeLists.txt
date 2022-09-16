@@ -54,6 +54,7 @@ target_include_directories(
           ${X11_ICE_INCLUDE_DIRS}
           ${X11_SM_INCLUDE_DIRS}
           ${XEXT_INCLUDE_DIRS}
+          ${XTRANS_INCLUDE_DIRS}
           ${GSETTINGS_QT_INCLUDE_DIRS})
 
 target_link_libraries(
@@ -62,6 +63,7 @@ target_link_libraries(
           ${X11_ICE_LIBRARIES}
           ${X11_SM_LIBRARIES}
           ${XEXT_LIBRARIES}
+          ${XTRANS_LIBRARIES}
           ${GSETTINGS_QT_LIBRARIES}
           Qt5::Core
           KF5::ConfigCore
