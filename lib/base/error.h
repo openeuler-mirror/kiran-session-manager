@@ -14,22 +14,23 @@
 
 #pragma once
 
+#include <fmt/format.h>
 #include <QString>
 #include <cstdint>
 #include "ksm-error-i.h"
 
 namespace Kiran
 {
-#define KSM_ERROR2STR(error_code) KSMError::getErrorDesc(error_code)
+#define KSM_ERROR2STR(errorCode) KSMError::getErrorDesc(errorCode)
 
-#define DBUS_ERROR_REPLY(type, error_code, ...)                                                        \
-    {                                                                                                  \
-        auto errMessage = QString::asprintf(KSM_ERROR2STR(error_code).toUtf8().data(), ##__VA_ARGS__); \
-        sendErrorReply(type, errMessage);                                                              \
+#define DBUS_ERROR_REPLY(type, errorCode, ...)                                                \
+    {                                                                                         \
+        auto errMessage = fmt::format(KSM_ERROR2STR(errorCode).toStdString(), ##__VA_ARGS__); \
+        sendErrorReply(type, QString(errMessage.c_str()));                                    \
     }
 
-#define DBUS_ERROR_REPLY_AND_RET(type, error_code, ...) \
-    DBUS_ERROR_REPLY(type, error_code, ##__VA_ARGS__);  \
+#define DBUS_ERROR_REPLY_AND_RET(type, errorCode, ...) \
+    DBUS_ERROR_REPLY(type, errorCode, ##__VA_ARGS__);  \
     return;
 
 class KSMError
@@ -38,7 +39,7 @@ public:
     KSMError();
     virtual ~KSMError(){};
 
-    static QString getErrorDesc(KSMErrorCode error_code);
+    static QString getErrorDesc(KSMErrorCode errorCode);
 };
 
 }  // namespace Kiran
