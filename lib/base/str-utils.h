@@ -14,7 +14,6 @@
 
 #pragma once
 
-#include <json/json.h>
 #include "lib/base/base.h"
 
 namespace Kiran
@@ -38,10 +37,6 @@ public:
     // 判断str是否以prefix字符串开头
     static bool startswith(const std::string &str, const std::string &prefix);
     static bool endswith(const std::string &str, const std::string &suffix);
-
-    // json字符串和Json::Value相互转化
-    static std::string json2str(const Json::Value &json);
-    static Json::Value str2json(const std::string &str);
 
     template <class T>
     static std::string join(const std::vector<T> &vec, const std::string &join_chars);

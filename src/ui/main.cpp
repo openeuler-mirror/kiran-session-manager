@@ -12,7 +12,6 @@
  * Author:     tangjie02 <tangjie02@kylinos.com.cn>
  */
 
-#include <json/json.h>
 #include <QApplication>
 #include <QCommandLineParser>
 #include <QFileInfo>
