@@ -1,0 +1,3 @@
+#!/bin/sh
+
+exec @CMAKE_INSTALL_FULL_BINDIR@/kiran-session-manager --session-type=kiran-wayland
