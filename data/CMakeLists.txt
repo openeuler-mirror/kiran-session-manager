@@ -1,27 +1,29 @@
 cmake_minimum_required(VERSION 3.2)
 
-# gschema.xml
-file(GLOB SCHEMA_IN_FILES ./*.gschema.xml.in)
+# xxx.in -> xxx
+file(GLOB XXX_IN_FILES ./*.in)
 
-foreach(SCHEMA_IN_FILE IN LISTS SCHEMA_IN_FILES)
-  string(REGEX REPLACE ".+/(.+)\\..*" "\\1" SCHEMA_FILE ${SCHEMA_IN_FILE})
-  configure_file(${SCHEMA_IN_FILE} ${PROJECT_BINARY_DIR}/data/${SCHEMA_FILE})
-
-  install(FILES ${PROJECT_BINARY_DIR}/data/${SCHEMA_FILE}
-          DESTINATION ${CMAKE_INSTALL_FULL_DATADIR}/glib-2.0/schemas/)
+foreach(XXX_IN_FILE IN LISTS XXX_IN_FILES)
+  string(REGEX REPLACE ".+/(.+)\\..*" "\\1" XXX_FILE ${XXX_IN_FILE})
+  configure_file(${XXX_IN_FILE} ${PROJECT_BINARY_DIR}/data/${XXX_FILE} @ONLY)
 endforeach()
+
+# wayland executable file
+install(PROGRAMS ${PROJECT_BINARY_DIR}/data/kiran-session-wayland
+                 ${PROJECT_BINARY_DIR}/data/kiran-session-kwayland
+        DESTINATION ${CMAKE_INSTALL_FULL_BINDIR}/)
+
+# gschema.xml
+install(
+  FILES
+    ${PROJECT_BINARY_DIR}/data/com.kylinsec.kiran.session-manager.gschema.xml
+  DESTINATION ${CMAKE_INSTALL_FULL_DATADIR}/glib-2.0/schemas/)
 
 # conf
 install(FILES ${PROJECT_SOURCE_DIR}/data/90-lightdm-kiran-greeter.conf
         DESTINATION ${CMAKE_INSTALL_FULL_DATADIR}/lightdm/lightdm.conf.d)
 
-# desktop.in
-file(GLOB DESKTOP_IN_FILES ./*.desktop.in)
-foreach(DESKTOP_IN_FILE IN LISTS DESKTOP_IN_FILES)
-  string(REGEX REPLACE ".+/(.+)\\..*" "\\1" DESKTOP_FILE ${DESKTOP_IN_FILE})
-  configure_file(${DESKTOP_IN_FILE} ${PROJECT_BINARY_DIR}/data/${DESKTOP_FILE})
-endforeach()
-
+# desktop
 install(FILES ${PROJECT_BINARY_DIR}/data/kiran.desktop
         DESTINATION ${CMAKE_INSTALL_FULL_DATADIR}/xsessions)
 install(FILES ${PROJECT_BINARY_DIR}/data/kiran-wayland.desktop
