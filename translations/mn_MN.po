@@ -1,0 +1,159 @@
+# Chinese translations for kiran package
+# kiran 软件包的简体中文翻译.
+# Copyright (C) 2020 THE kiran'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the kiran package.
+# tangjie02 <tangjie02@kylinos.com.cn>, 2020.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: kiran-cc-daemon 2.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2021-12-01 20:32+0800\n"
+"PO-Revision-Date: 2020-07-01 17:54+0800\n"
+"Last-Translator: tangjie02 <tangjie02@kylinos.com.cn>\n"
+"Language-Team: Chinese (simplified)\n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ../data/com.kylinsec.kiran.session-manager.gschema.xml.in.h:1
+msgid "Time before session is considered idle"
+msgstr "Хуралдааны өмнөх цагийг залхуу гэж үздэг"
+
+#: ../data/com.kylinsec.kiran.session-manager.gschema.xml.in.h:2
+msgid ""
+"The number of minutes of inactivity before the session is considered idle"
+msgstr "Хуралдаан болохоос өмнөх идэвхгүй байх минутын тоог залхуу гэж үзнэ"
+
+#: ../data/com.kylinsec.kiran.session-manager.gschema.xml.in.h:3
+msgid "Default session daemons"
+msgstr "Дефолт хуралдаан daemons"
+
+#: ../data/com.kylinsec.kiran.session-manager.gschema.xml.in.h:4
+msgid "List of applications that are part of the default session"
+msgstr "Дефолт хуралдааны нэг хэсэг болох өргөдлийн жагсаалт"
+
+#: ../data/com.kylinsec.kiran.session-manager.gschema.xml.in.h:5
+msgid "Window Manager"
+msgstr "Цонхны менежер"
+
+#: ../data/com.kylinsec.kiran.session-manager.gschema.xml.in.h:6
+msgid ""
+"The window manager is the program that draws the title bar and borders "
+"around windows, and allows you to move and resize windows"
+msgstr ""
+"Цонхны менежер нь нэрийн барыг зурж, цонхыг тойруулах хил хязгаартай програм"
+" юм. Мөн танд цонхыг нүүлгэж, дахин хийх боломжийг олгож байна"
+
+#: ../data/com.kylinsec.kiran.session-manager.gschema.xml.in.h:7
+msgid "Side panel"
+msgstr "Сайдын панел"
+
+#: ../data/com.kylinsec.kiran.session-manager.gschema.xml.in.h:8
+msgid ""
+"The side panel provides the bar at the top or bottom of the screen "
+"containing menus, the window list, status icons, the clock, etc"
+msgstr ""
+"Хажуугийн хавтан нь дэлгэцийн дээд эсвэл доод хэсэгт байрлах барыг цэс, "
+"цонхны жагсаалт, статусын зургууд, цаг гэх мэт"
+
+#: ../data/com.kylinsec.kiran.session-manager.gschema.xml.in.h:9
+msgid "File Manager"
+msgstr "Файлын менежер"
+
+#: ../data/com.kylinsec.kiran.session-manager.gschema.xml.in.h:10
+msgid ""
+"The file manager provides the desktop icons and allows you to interact with "
+"your saved files"
+msgstr ""
+"Файлын менежер нь ширээний зургуудыг хангаж, хадгалагдсан файлуудтайгаа "
+"харилцах боломжийг олгодог"
+
+#: ../data/exit-query.ui.h:1
+msgid "Closing apps"
+msgstr "Хаалтын апп-ууд"
+
+#: ../data/exit-query.ui.h:2 ../src/ui/exit-query-window.cpp:113
+msgid ""
+"If you want to go back and save your work, click 'cancel' and finish what "
+"you want to do"
+msgstr ""
+"Хэрвээ та буцаж очоод ажлаа аврахыг хүсвэл 'cancel' дарж, хийхийг хүссэн "
+"зүйлээ дуусгаарай"
+
+#: ../data/exit-query.ui.h:3 ../src/ui/exit-query-window.cpp:127
+msgid "Forced shutdown"
+msgstr "Албадан хаах"
+
+#: ../data/exit-query.ui.h:4
+msgid "Cancel"
+msgstr "Цуцлах"
+
+#: ../lib/error.cpp:32
+msgid "The phase {0} cannot be register."
+msgstr "{0} үе шатыг бүртгэх боломжгүй."
+
+#: ../lib/error.cpp:34
+msgid "The client {0} already registered."
+msgstr "Үйлчлүүлэгч аль хэдийн бүртгүүлсэн {0}."
+
+#: ../lib/error.cpp:37
+msgid "The app {0} is not found."
+msgstr "{0} апп олдохгүй байна."
+
+#: ../lib/error.cpp:40
+msgid "Failed to generate unique cookie."
+msgstr "Өвөрмөц жигнэмэг хийж чадаагүй."
+
+#: ../lib/error.cpp:43
+msgid "The inhibitor is not found."
+msgstr "Хориглож байгаа хүн олдсонгүй."
+
+#: ../lib/error.cpp:46 ../lib/error.cpp:55
+msgid "Internal error."
+msgstr "Дотоод алдаа."
+
+#: ../lib/error.cpp:49
+msgid "The status is invalid."
+msgstr "Статус нь хүчингүй."
+
+#: ../lib/error.cpp:52
+msgid "The action is not supported."
+msgstr "Үйлдлийг дэмждэггүй."
+
+#: ../lib/error.cpp:58
+msgid "Unknown error."
+msgstr "Тодорхойгүй алдаа."
+
+#: ../lib/error.cpp:62
+msgid " (error code: 0x{:x})"
+msgstr "(алдааны код: 0x{:x})"
+
+#: ../src/main.cpp:90
+msgid "Output version infomation and exit"
+msgstr "Өгөгдлийн хувилбарын мэдээлэл, гарах"
+
+#: ../src/ui/exit-query-window.cpp:112
+msgid "Closing {0} apps"
+msgstr "{0} апп-уудыг хаах"
+
+#: ../src/ui/exit-query-window.cpp:124
+msgid "Forced logout"
+msgstr "Хүчээр логут"
+
+#: ../src/ui/exit-query-window.cpp:130
+msgid "Forced reboot"
+msgstr "Хүчээр дахин ажил хийлгэх"
+
+#: ../src/session-manager.cpp:643
+msgid "This program isn't responding"
+msgstr "Энэ хөтөлбөр хариу өгөхгүй байна"
+
+#: ../src/session-manager.cpp:719
+msgid "This program is blocking exit."
+msgstr "Энэ програм гарахыг хааж байна."
+
+#: ../src/ui/inhibitor-row.cpp:88
+msgid "Unknown application"
+msgstr "Үл мэдэх өргөдөл"
