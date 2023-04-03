@@ -17,7 +17,7 @@ set(TARGET_NAME kiran-session-window)
 qt5_wrap_ui(UI_FILES ${CMAKE_CURRENT_SOURCE_DIR}/exit-query-window.ui
             ${CMAKE_CURRENT_SOURCE_DIR}/inhibitor-row.ui)
 
-set(TS_FILES "${PROJECT_SOURCE_DIR}/translations/${TARGET_NAME}.zh_CN.ts")
+file(GLOB TS_FILES "${PROJECT_SOURCE_DIR}/translations/${TARGET_NAME}.*.ts")
 qt5_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
 
 add_executable(
