@@ -3,12 +3,12 @@ cmake_minimum_required(VERSION 3.0)
 file(GLOB_RECURSE SRC_H_FILES ./*.h)
 file(GLOB_RECURSE SRC_CPP_FILES ./*.cpp)
 
-qt_add_dbus_adaptor(
+qt5_add_dbus_adaptor(
   SESSION_MANAGER_SRCS ${CMAKE_SOURCE_DIR}/data/org.gnome.SessionManager.xml
   ${CMAKE_SOURCE_DIR}/src/core/session-manager.h Kiran::SessionManager
   session_manager_adaptor SessionManagerAdaptor)
 
-qt_add_dbus_adaptor(
+qt5_add_dbus_adaptor(
   CLIENT_PRIVATE_SRCS
   ${CMAKE_SOURCE_DIR}/data/org.gnome.SessionManager.ClientPrivate.xml
   ${CMAKE_SOURCE_DIR}/src/core/client/client-dbus.h
@@ -16,7 +16,7 @@ qt_add_dbus_adaptor(
   client_dbus_adaptor
   ClientDBusAdaptor)
 
-qt_add_dbus_adaptor(
+qt5_add_dbus_adaptor(
   PRESENCE_SRCS ${CMAKE_SOURCE_DIR}/data/org.gnome.SessionManager.Presence.xml
   ${CMAKE_SOURCE_DIR}/src/core/presence.h Kiran::Presence presence_adaptor
   PresenceAdaptor)
@@ -25,7 +25,7 @@ set_source_files_properties(
   ${CMAKE_SOURCE_DIR}/data/com.kylinsec.Kiran.SessionManager.IdleMonitor.xml
   PROPERTIES CLASSNAME IdleMonitorProxy NO_NAMESPACE true)
 
-qt_add_dbus_interface(
+qt5_add_dbus_interface(
   IDLE_MONITOR_SRCS
   ${CMAKE_SOURCE_DIR}/data/com.kylinsec.Kiran.SessionManager.IdleMonitor.xml
   idle_monitor_proxy)
@@ -33,7 +33,7 @@ qt_add_dbus_interface(
 set(TARGET_NAME kiran-session-manager)
 
 file(GLOB TS_FILES "${PROJECT_SOURCE_DIR}/translations/${TARGET_NAME}.*.ts")
-qt_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
+qt5_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
 
 add_executable(
   ${TARGET_NAME}
