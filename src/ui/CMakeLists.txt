@@ -8,7 +8,7 @@ set_source_files_properties(
   ${CMAKE_SOURCE_DIR}/data/org.gnome.SessionManager.xml
   PROPERTIES CLASSNAME SessionManagerProxy NO_NAMESPACE true)
 
-qt_add_dbus_interface(
+qt5_add_dbus_interface(
   SESSION_MANAGER_SRCS ${CMAKE_SOURCE_DIR}/data/org.gnome.SessionManager.xml
   session_manager_interface)
 
@@ -18,7 +18,7 @@ qt5_wrap_ui(UI_FILES ${CMAKE_CURRENT_SOURCE_DIR}/exit-query-window.ui
             ${CMAKE_CURRENT_SOURCE_DIR}/inhibitor-row.ui)
 
 set(TS_FILES "${PROJECT_SOURCE_DIR}/translations/${TARGET_NAME}.zh_CN.ts")
-qt_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
+qt5_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
 
 add_executable(
   ${TARGET_NAME}
