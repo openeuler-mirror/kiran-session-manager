@@ -20,6 +20,7 @@
 #include <QTranslator>
 #include <QtGlobal>
 #include <iostream>
+#include <unistd.h>
 #include "config.h"
 #include "lib/base/base.h"
 #include "src/core/app/app-manager.h"

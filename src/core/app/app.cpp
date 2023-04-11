@@ -18,6 +18,7 @@
 #include <KService>
 #include <QFileInfo>
 #include <QProcess>
+#include <QUrl>
 #include "lib/base/base.h"
 
 #include "src/core/app/app-manager.h"

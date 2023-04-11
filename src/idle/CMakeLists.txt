@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.0)
 file(GLOB_RECURSE IDLE_H_FILES ./*.h)
 file(GLOB_RECURSE IDLE_CPP_FILES ./*.cpp)
 
-qt_add_dbus_adaptor(
+qt5_add_dbus_adaptor(
   IDLE_MONITOR_SRCS
   ${CMAKE_SOURCE_DIR}/data/com.kylinsec.Kiran.SessionManager.IdleMonitor.xml
   ${CMAKE_SOURCE_DIR}/src/idle/idle-monitor.h

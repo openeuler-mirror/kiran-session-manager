@@ -15,6 +15,7 @@
 #pragma once
 
 #include "src/core/client/client.h"
+#include <QVector>
 
 struct _SmsConn;
 typedef struct _SmsConn *SmsConn;
