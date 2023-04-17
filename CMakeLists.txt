@@ -29,7 +29,6 @@ pkg_search_module(KIRAN_STYLE REQUIRED kiran-style-helper)
 
 configure_file(config.h.in ${PROJECT_BINARY_DIR}/config.h)
 
-add_subdirectory(translations)
 add_subdirectory(data)
 add_subdirectory(lib)
 add_subdirectory(src)
