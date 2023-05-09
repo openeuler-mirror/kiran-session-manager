@@ -22,9 +22,6 @@
 
 namespace Kiran
 {
-#define KSM_SCHEMA_ID "com.kylinsec.kiran.session-manager"
-#define KSM_SCHEMA_KEY_IDLE_DELAY "idleDelay"
-
 Presence::Presence(QObject *parent) : QObject(parent),
                                       m_idleMonitorProxy(nullptr),
                                       m_enabledIdleTimeout(true),

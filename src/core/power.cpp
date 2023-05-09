@@ -13,6 +13,7 @@
  */
 
 #include "src/core/power.h"
+#include <QGSettings>
 #include "lib/base/base.h"
 #include "lib/dbus/display-manager.h"
 #include "lib/dbus/screensaver.h"
@@ -22,6 +23,7 @@ namespace Kiran
 {
 Power::Power(QObject *parent) : QObject(parent)
 {
+    this->m_settings = new QGSettings(KSM_SCHEMA_ID, "", this);
 }
 
 void Power::init()
@@ -54,7 +56,7 @@ bool Power::canPowerAction(PowerAction powerAction)
 
 bool Power::doPowerAction(PowerAction powerAction)
 {
-    KLOG_DEBUG() << "Power action: " << powerAction;
+    KLOG_DEBUG() << "Do power action: " << this->powerActionEnum2Str(powerAction);
 
     switch (powerAction)
     {
@@ -84,20 +86,50 @@ bool Power::switchUser()
 
 bool Power::suspend()
 {
+    uint32_t throttle = 0;
+
     RETURN_VAL_IF_TRUE(!SystemdLogin1::getDefault()->canSuspend(), false);
 
-    // 这里忽略锁屏失败的情况
-    ScreenSaver::getDefault()->lock();
-    return SystemdLogin1::getDefault()->suspend();
+    // 挂起之前判断是否锁定屏幕
+    auto lockscreen = this->m_settings->get(KSM_SCHEMA_KEY_SCREEN_LOCKED_WHEN_SUSPEND).toBool();
+    if (lockscreen)
+    {
+        throttle = ScreenSaver::getDefault()->lockAndThrottle("suspend");
+    }
+
+    auto retval = SystemdLogin1::getDefault()->suspend();
+
+    ScreenSaver::getDefault()->poke();
+    if (throttle)
+    {
+        ScreenSaver::getDefault()->removeThrottle(throttle);
+    }
+
+    return retval;
 }
 
 bool Power::hibernate()
 {
+    uint32_t throttle = 0;
+
     RETURN_VAL_IF_TRUE(!SystemdLogin1::getDefault()->canHibernate(), false);
 
-    // 这里忽略锁屏失败的情况
-    ScreenSaver::getDefault()->lock();
-    return SystemdLogin1::getDefault()->hibernate();
+    // 休眠之前判断是否锁定屏幕
+    auto lockscreen = this->m_settings->get(KSM_SCHEMA_KEY_SCREEN_LOCKED_WHEN_HIBERNATE).toBool();
+    if (lockscreen)
+    {
+        throttle = ScreenSaver::getDefault()->lockAndThrottle("hibernate");
+    }
+
+    auto retval = SystemdLogin1::getDefault()->hibernate();
+
+    ScreenSaver::getDefault()->poke();
+    if (throttle)
+    {
+        ScreenSaver::getDefault()->removeThrottle(throttle);
+    }
+
+    return retval;
 }
 
 bool Power::shutdown()
@@ -110,6 +142,28 @@ bool Power::reboot()
 {
     RETURN_VAL_IF_TRUE(!SystemdLogin1::getDefault()->canReboot(), false);
     return SystemdLogin1::getDefault()->reboot();
+}
+
+QString Power::powerActionEnum2Str(PowerAction powerAction)
+{
+    switch (powerAction)
+    {
+    case PowerAction::POWER_ACTION_SWITCH_USER:
+        return "switch user";
+    case PowerAction::POWER_ACTION_LOGOUT:
+        return "logout";
+    case PowerAction::POWER_ACTION_SUSPEND:
+        return "suspend";
+    case PowerAction::POWER_ACTION_HIBERNATE:
+        return "hibernate";
+    case PowerAction::POWER_ACTION_SHUTDOWN:
+        return "shutdown";
+    case PowerAction::POWER_ACTION_REBOOT:
+        return "reboot";
+    default:
+        break;
+    }
+    return "unknown";
 }
 
 }  // namespace Kiran

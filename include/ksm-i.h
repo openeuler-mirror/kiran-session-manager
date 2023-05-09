@@ -21,6 +21,8 @@ extern "C"
 
 #define DESKTOP_ENVIRONMENT "KIRAN"
 
+/* 为了保持跟第三方应用(firefox、pluma等)兼容，暂时还是使用gnome名字。
+   但后续版本有可能更名，所以最好使用宏定义，不要直接使用字符串常量。*/
 #define KSM_DBUS_NAME "org.gnome.SessionManager"
 #define KSM_DBUS_OBJECT_PATH "/org/gnome/SessionManager"
 #define KSM_DBUS_INTERFACE_NAME "org.gnome.SessionManager"
@@ -34,10 +36,12 @@ extern "C"
 #define KSM_IDLE_DBUS_OBJECT_PATH "/com/kylinsec/Kiran/SessionManager/IdleMonitor"
 
 #define KSM_SCHEMA_ID "com.kylinsec.kiran.session-manager"
-#define KSM_SCHEMA_KEY_SESSION_DAEMONS "session-daemons"
-#define KSM_SCHEMA_KEY_WINDOW_MANAGER "window-manager"
-#define KSM_SCHEMA_KEY_PANEL "panel"
-#define KSM_SCHEMA_KEY_FILE_MANAGER "file-manager"
+// 计算机多久未操作视为空闲
+#define KSM_SCHEMA_KEY_IDLE_DELAY "idle-delay"
+// 待机时是否锁定屏幕
+#define KSM_SCHEMA_KEY_SCREEN_LOCKED_WHEN_SUSPEND "screen-locked-when-suspend"
+// 休眠时是否锁定屏幕
+#define KSM_SCHEMA_KEY_SCREEN_LOCKED_WHEN_HIBERNATE "screen-locked-when-hibernate"
 
 // JK: json key
 #define KSM_INHIBITOR_JK_COOKIE "cookie"
