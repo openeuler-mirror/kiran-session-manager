@@ -17,6 +17,8 @@
 #include <QObject>
 #include "ksm-i.h"
 
+class QGSettings;
+
 namespace Kiran
 {
 class Power : public QObject
@@ -44,5 +46,10 @@ private:
     bool shutdown();
     // 重启
     bool reboot();
+
+    QString powerActionEnum2Str(PowerAction powerAction);
+
+private:
+    QGSettings *m_settings;
 };
 }  // namespace Kiran

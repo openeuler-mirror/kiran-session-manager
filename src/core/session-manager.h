@@ -40,6 +40,9 @@ class SessionManager : public QObject,
                        protected QDBusContext
 {
     Q_OBJECT
+
+    Q_PROPERTY(bool ScreenLockedWhenHibernate READ screenLockedWhenHibernate WRITE setScreenLockedWhenHibernate)
+    Q_PROPERTY(bool ScreenLockedWhenSuspend READ screenLockedWhenSuspend WRITE setScreenLockedWhenSuspend)
 public:
     SessionManager(AppManager *appManager,
                    ClientManager *clientManager,
@@ -57,13 +60,22 @@ public:
     // 会话开始
     void start();
 
+    bool screenLockedWhenHibernate();
+    void setScreenLockedWhenHibernate(bool screenLockedWhenHibernate);
+
+    bool screenLockedWhenSuspend();
+    void setScreenLockedWhenSuspend(bool screenLockedWhenSuspend);
+
 public Q_SLOTS:  // METHODS
+    bool CanHibernate();
     bool CanLogout();
     bool CanReboot();
     bool CanShutdown();
+    bool CanSuspend();
     // 获取抑制器
     QString GetInhibitor(uint cookie);
     QString GetInhibitors();
+    void Hibernate();
     // 添加抑制器
     uint Inhibit(const QString &appID, uint toplevelXID, const QString &reason, uint flags);
     // 判断指定flags的抑制器是否存在
@@ -76,12 +88,15 @@ public Q_SLOTS:  // METHODS
     // 添加会话程序的环境变量
     void Setenv(const QString &name, const QString &value);
     void Shutdown();
+    void Suspend();
     // 删除抑制器
     void Uninhibit(uint inhibitCookie);
 Q_SIGNALS:  // SIGNALS
     void InhibitorAdded(uint cookie);
     void InhibitorRemoved(uint cookie);
     void PhaseChanged(int phase);
+    void ScreenLockedWhenHibernateChanged(bool screen_locked_when_hibernate);
+    void ScreenLockedWhenSuspendChanged(bool screen_locked_when_suspend);
 
 public Q_SLOTS:
     // 应用启动超时
