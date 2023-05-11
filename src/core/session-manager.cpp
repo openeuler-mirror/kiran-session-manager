@@ -73,6 +73,39 @@ void SessionManager::start()
     this->processPhase();
 }
 
+bool SessionManager::screenLockedWhenHibernate()
+{
+    return this->m_settings->get(KSM_SCHEMA_KEY_SCREEN_LOCKED_WHEN_HIBERNATE).toBool();
+}
+
+void SessionManager::setScreenLockedWhenHibernate(bool screenLockedWhenHibernate)
+{
+    if (screenLockedWhenHibernate != this->screenLockedWhenHibernate())
+    {
+        this->m_settings->set(KSM_SCHEMA_KEY_SCREEN_LOCKED_WHEN_HIBERNATE, screenLockedWhenHibernate);
+        Q_EMIT this->ScreenLockedWhenHibernateChanged(screenLockedWhenHibernate);
+    }
+}
+
+bool SessionManager::screenLockedWhenSuspend()
+{
+    return this->m_settings->get(KSM_SCHEMA_KEY_SCREEN_LOCKED_WHEN_SUSPEND).toBool();
+}
+
+void SessionManager::setScreenLockedWhenSuspend(bool screenLockedWhenSuspend)
+{
+    if (screenLockedWhenSuspend != this->screenLockedWhenSuspend())
+    {
+        this->m_settings->set(KSM_SCHEMA_KEY_SCREEN_LOCKED_WHEN_SUSPEND, screenLockedWhenSuspend);
+        Q_EMIT this->ScreenLockedWhenSuspendChanged(screenLockedWhenSuspend);
+    }
+}
+
+bool SessionManager::CanHibernate()
+{
+    return this->m_power->canPowerAction(PowerAction::POWER_ACTION_HIBERNATE);
+}
+
 bool SessionManager::CanLogout()
 {
     return true;
@@ -86,6 +119,11 @@ bool SessionManager::CanReboot()
 bool SessionManager::CanShutdown()
 {
     return this->m_power->canPowerAction(PowerAction::POWER_ACTION_SHUTDOWN);
+}
+
+bool SessionManager::CanSuspend()
+{
+    return this->m_power->canPowerAction(PowerAction::POWER_ACTION_SUSPEND);
 }
 
 QString SessionManager::GetInhibitor(uint cookie)
@@ -131,6 +169,21 @@ QString SessionManager::GetInhibitors()
 
     jsonDoc.setArray(jsonArr);
     return QString(jsonDoc.toJson());
+}
+
+void SessionManager::Hibernate()
+{
+    if (this->m_currentPhase > KSMPhase::KSM_PHASE_RUNNING)
+    {
+        DBUS_ERROR_REPLY_AND_RET(QDBusError::InvalidArgs, KSMErrorCode::ERROR_MANAGER_PHASE_INVALID);
+    }
+
+    if (!this->m_power->canPowerAction(PowerAction::POWER_ACTION_HIBERNATE))
+    {
+        DBUS_ERROR_REPLY_AND_RET(QDBusError::AccessDenied, KSMErrorCode::ERROR_MANAGER_POWER_ACTION_UNSUPPORTED);
+    }
+
+    this->m_power->doPowerAction(PowerAction::POWER_ACTION_HIBERNATE);
 }
 
 uint SessionManager::SessionManager::Inhibit(const QString &appID,
@@ -244,6 +297,21 @@ void SessionManager::Shutdown()
 
     this->m_powerAction = PowerAction::POWER_ACTION_SHUTDOWN;
     this->startNextPhase();
+}
+
+void SessionManager::Suspend()
+{
+    if (this->m_currentPhase > KSMPhase::KSM_PHASE_RUNNING)
+    {
+        DBUS_ERROR_REPLY_AND_RET(QDBusError::InvalidArgs, KSMErrorCode::ERROR_MANAGER_PHASE_INVALID);
+    }
+
+    if (!this->m_power->canPowerAction(PowerAction::POWER_ACTION_SUSPEND))
+    {
+        DBUS_ERROR_REPLY_AND_RET(QDBusError::AccessDenied, KSMErrorCode::ERROR_MANAGER_POWER_ACTION_UNSUPPORTED);
+    }
+
+    this->m_power->doPowerAction(PowerAction::POWER_ACTION_SUSPEND);
 }
 
 void SessionManager::Uninhibit(uint inhibitCookie)

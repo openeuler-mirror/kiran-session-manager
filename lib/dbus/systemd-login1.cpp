@@ -188,6 +188,7 @@ bool SystemdLogin1::canDoMethod(const QString &methodName)
     auto canResult = replyMessage.arguments().takeFirst().toString();
 
     KLOG_DEBUG() << "Function " << methodName << " return " << canResult;
+    // TODO: 需要确认challenge状态是否可以执行电源动作
     return (canResult == "yes" || canResult == "challenge");
 }
 
