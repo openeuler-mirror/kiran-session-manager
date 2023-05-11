@@ -72,6 +72,28 @@
             <description>This gets a list of all the inhibitors that are currently known to the session manager.</description>
         </method>
 
+        <method name="Suspend">
+            <description>Suspend computer.</description>
+        </method>
+
+        <method name="CanSuspend">
+            <arg name="is_available" direction="out" type="b">
+                <summary>True if suspend is available to the user, false otherwise.</summary>
+            </arg>
+            <description>Whether the user can suspend.</description>
+        </method>
+
+        <method name="Hibernate">
+            <description>Hibernate computer.</description>
+        </method>
+
+        <method name="CanHibernate">
+            <arg name="is_available" direction="out" type="b">
+                <summary>True if hibernate is available to the user, false otherwise.</summary>
+            </arg>
+            <description>Whether the user can hibernate.</description>
+        </method>
+
         <method name="Shutdown">
             <description>Shutdown the system.</description>
         </method>
@@ -126,6 +148,14 @@
             <description>Adds the variable name to the application launch environment with the specified value.  May only be used during the Session Manager initialization phase.</description>
         </method>
 
+        <property name="ScreenLockedWhenSuspend" type="b" access="readwrite">
+            <description>Whether lock screen when the computer is suspend.</description>
+        </property>
+
+        <property name="ScreenLockedWhenHibernate" type="b" access="readwrite">
+            <description>Whether lock screen when the computer is hibernate.</description>
+        </property>
+
         <signal name="InhibitorAdded">
             <arg name="cookie" type="u">
                 <summary>The inhibitor cookie.</summary>
@@ -143,6 +173,16 @@
         <signal name="PhaseChanged">
             <arg name="phase" type="i" />
             <description>The stage where session manager is in.</description>
+        </signal>
+
+        <signal name="ScreenLockedWhenSuspendChanged">
+            <arg name="screen_locked_when_suspend" type="b" />
+            <description>Whether lock screen when the computer is suspend.</description>
+        </signal>
+
+        <signal name="ScreenLockedWhenHibernateChanged">
+            <arg name="screen_locked_when_hibernate" type="b" />
+            <description>Whether lock screen when the computer is hibernate.</description>
         </signal>
 
     </interface>

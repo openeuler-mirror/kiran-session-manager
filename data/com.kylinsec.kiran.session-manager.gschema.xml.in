@@ -5,6 +5,16 @@
             <summary>Time before session is considered idle</summary>
             <description>The number of minutes of inactivity before the session is considered idle</description>
         </key>
+
+        <key name="screen-locked-when-suspend" type="b">
+            <default>true</default>
+            <description>Whether lock screen when the computer is suspend.</description>
+        </key>
+
+        <key name="screen-locked-when-hibernate" type="b">
+            <default>true</default>
+            <description>Whether lock screen when the computer is hibernate.</description>
+        </key>
     </schema>
 
 </schemalist>
