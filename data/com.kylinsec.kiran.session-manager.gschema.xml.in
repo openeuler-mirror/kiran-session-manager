@@ -15,6 +15,10 @@
             <default>true</default>
             <description>Whether lock screen when the computer is hibernate.</description>
         </key>
-    </schema>
 
+        <key name="always-show-exit-window" type="b">
+            <default>false</default>
+            <description>Set whether to always show the exit window.</description>
+        </key>
+    </schema>
 </schemalist>
