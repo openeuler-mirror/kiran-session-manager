@@ -725,8 +725,9 @@ void SessionManager::queryEndSessionComplete()
     this->m_waitingClientsTimeoutID->disconnect();
     this->m_waitingClientsTimeoutID->stop();
 
+    auto showExitWindow = this->m_settings->get(KSM_SCHEMA_KEY_ALWAYS_SHOW_EXIT_WINDOW).toBool();
     // 如果不存在退出会话的抑制器，则直接进入下一个阶段
-    if (!this->m_inhibitorManager->hasInhibitor(KSMInhibitorFlag::KSM_INHIBITOR_FLAG_QUIT))
+    if (!showExitWindow && !this->m_inhibitorManager->hasInhibitor(KSMInhibitorFlag::KSM_INHIBITOR_FLAG_QUIT))
     {
         this->startNextPhase();
         return;

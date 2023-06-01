@@ -42,6 +42,8 @@ extern "C"
 #define KSM_SCHEMA_KEY_SCREEN_LOCKED_WHEN_SUSPEND "screen-locked-when-suspend"
 // 休眠时是否锁定屏幕
 #define KSM_SCHEMA_KEY_SCREEN_LOCKED_WHEN_HIBERNATE "screen-locked-when-hibernate"
+// 退出时是否显示退出窗口
+#define KSM_SCHEMA_KEY_ALWAYS_SHOW_EXIT_WINDOW "always-show-exit-window"
 
 // JK: json key
 #define KSM_INHIBITOR_JK_COOKIE "cookie"
