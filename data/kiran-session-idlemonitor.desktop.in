@@ -1,4 +1,5 @@
 [Desktop Entry]
+Type=Application
 Name=Kiran Session Idle Monitor
 Exec=/usr/bin/kiran-session-idlemonitor
 NoDisplay=true
