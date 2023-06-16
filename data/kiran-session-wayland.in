@@ -1,3 +1,6 @@
 #!/bin/sh
 
+export GDK_BACKEND=x11
+export QT_QPA_PLATFORM=xcb
+
 exec @CMAKE_INSTALL_FULL_BINDIR@/kiran-session-manager --session-type=kiran-wayland
