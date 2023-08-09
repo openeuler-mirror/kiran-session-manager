@@ -3,12 +3,12 @@ cmake_minimum_required(VERSION 3.0)
 file(GLOB_RECURSE SRC_H_FILES ./*.h)
 file(GLOB_RECURSE SRC_CPP_FILES ./*.cpp)
 
-qt_add_dbus_adaptor(
+qt5_add_dbus_adaptor(
   SESSION_MANAGER_SRCS ${CMAKE_SOURCE_DIR}/data/org.gnome.SessionManager.xml
   ${CMAKE_SOURCE_DIR}/src/core/session-manager.h Kiran::SessionManager
   session_manager_adaptor SessionManagerAdaptor)
 
-qt_add_dbus_adaptor(
+qt5_add_dbus_adaptor(
   CLIENT_PRIVATE_SRCS
   ${CMAKE_SOURCE_DIR}/data/org.gnome.SessionManager.ClientPrivate.xml
   ${CMAKE_SOURCE_DIR}/src/core/client/client-dbus.h
@@ -16,7 +16,7 @@ qt_add_dbus_adaptor(
   client_dbus_adaptor
   ClientDBusAdaptor)
 
-qt_add_dbus_adaptor(
+qt5_add_dbus_adaptor(
   PRESENCE_SRCS ${CMAKE_SOURCE_DIR}/data/org.gnome.SessionManager.Presence.xml
   ${CMAKE_SOURCE_DIR}/src/core/presence.h Kiran::Presence presence_adaptor
   PresenceAdaptor)
