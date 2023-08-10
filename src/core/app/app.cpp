@@ -24,6 +24,7 @@
 #include "src/core/app/app-manager.h"
 #include "src/core/app/app.h"
 #include "src/core/utils.h"
+#include <QUrl>
 
 namespace Kiran
 {
