@@ -28,6 +28,7 @@
 #include "src/core/session-manager.h"
 #include "src/core/utils.h"
 #include "src/core/xsmp-server.h"
+#include <unistd.h>
 
 using namespace Kiran;
 
