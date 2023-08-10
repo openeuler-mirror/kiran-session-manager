@@ -25,7 +25,7 @@ set_source_files_properties(
   ${CMAKE_SOURCE_DIR}/data/com.kylinsec.Kiran.SessionManager.IdleMonitor.xml
   PROPERTIES CLASSNAME IdleMonitorProxy NO_NAMESPACE true)
 
-qt_add_dbus_interface(
+qt5_add_dbus_interface(
   IDLE_MONITOR_SRCS
   ${CMAKE_SOURCE_DIR}/data/com.kylinsec.Kiran.SessionManager.IdleMonitor.xml
   idle_monitor_proxy)
@@ -33,7 +33,7 @@ qt_add_dbus_interface(
 set(TARGET_NAME kiran-session-manager)
 
 set(TS_FILES "${PROJECT_SOURCE_DIR}/translations/${TARGET_NAME}.zh_CN.ts")
-qt_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
+qt5_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
 
 add_executable(
   ${TARGET_NAME}
