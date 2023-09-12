@@ -129,9 +129,8 @@ void InhibitorManager::deleteInhibitorsWithStartupID()
 
 bool InhibitorManager::hasInhibitor(uint32_t flags)
 {
-    auto iter = std::find_if(this->m_inhibitors.begin(), this->m_inhibitors.end(), [flags](QSharedPointer<Inhibitor> iter) {
-        return ((flags & iter->flags) == flags);
-    });
+    auto iter = std::find_if(this->m_inhibitors.begin(), this->m_inhibitors.end(), [flags](QSharedPointer<Inhibitor> iter)
+                             { return ((flags & iter->flags) == flags); });
 
     return (iter != this->m_inhibitors.end());
 }
@@ -146,6 +145,14 @@ bool InhibitorManager::addInhibitor(QSharedPointer<Inhibitor> inhibitor)
     RETURN_VAL_IF_FALSE(inhibitor, false);
 
     KLOG_DEBUG() << "Cookie: " << inhibitor->cookie;
+
+    KLOG_DEBUG() << "Add a new inhibitor,"
+                 << " cookie: " << inhibitor->cookie
+                 << ", appid: " << inhibitor->appID
+                 << ", flags: " << inhibitor->flags
+                 << ", reason: " << inhibitor->reason
+                 << ", startupID: " << inhibitor->startupID
+                 << ", toplevelXID: " << inhibitor->toplevelXID;
 
     if (this->m_inhibitors.find(inhibitor->cookie) != this->m_inhibitors.end())
     {
