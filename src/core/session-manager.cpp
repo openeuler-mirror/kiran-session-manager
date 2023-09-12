@@ -418,9 +418,10 @@ void SessionManager::onInteractDone(Client *client)
 
 void SessionManager::onShutdownCanceled(Client *client)
 {
-    KLOG_DEBUG() << "Client: " << client->getID() << " cancels shutdown.";
-
-    this->cancelEndSession();
+    KLOG_WARNING() << "Client: " << client->getID() << " want to cancels shutdown. ignore the client request.";
+    /* 如果QT的窗口在closeEvent函数中调用event->ignore()来忽略窗口关闭事件，则桌面会话退出时会收到QT客户端发送的取消结束会话的事件，
+       用于响应客户端取消结束会话的事件不能通知到用户，会导致开始菜单->注销按钮功能不能正常使用，影响用户体验，因此暂时禁止处理该请求。*/
+    // this->cancelEndSession();
 }
 
 void SessionManager::onEndSessionPhase2Request(Client *client)
