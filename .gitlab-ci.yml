@@ -1,5 +1,5 @@
 variables:
-  RPM_BUILD_REQUIRES: 'cmake make gcc-c++ gettext kiran-log-gtk3-devel jsoncpp-devel gtest-devel fmt-devel libICE-devel libSM-devel libXext-devel gdbus-codegen-glibmm gtkmm30-devel'
+  RPM_BUILD_REQUIRES: 'cmake make gcc-c++ gettext kiran-log-gtk3-devel jsoncpp-devel gtest-devel fmt-devel libICE-devel libSM-devel libXext-devel gdbus-codegen-glibmm gtkmm30-devel qt5-qtbase-devel qt5-linguist kf5-kconfig-devel kf5-kio-devel kf5-kidletime-devel kiran-log-qt5 kiran-log-qt5-devel xorg-x11-xtrans-devel gsettings-qt-devel kiran-qt5-integration-devel'
 
 include:
   - project: 'os/gitlab-ci'

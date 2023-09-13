@@ -66,7 +66,7 @@ target_link_libraries(
           ${XTRANS_LIBRARIES}
           ${GSETTINGS_QT_LIBRARIES}
           Qt5::Core
-	  Qt5::DBus
+          Qt5::DBus
           KF5::ConfigCore
           KF5::KIOCore
           lib-base

@@ -1,17 +1,18 @@
 /**
- * Copyright (c) 2020 ~ 2021 KylinSec Co., Ltd. 
+ * Copyright (c) 2020 ~ 2021 KylinSec Co., Ltd.
  * kiran-session-manager is licensed under Mulan PSL v2.
- * You can use this software according to the terms and conditions of the Mulan PSL v2. 
+ * You can use this software according to the terms and conditions of the Mulan PSL v2.
  * You may obtain a copy of Mulan PSL v2 at:
- *          http://license.coscl.org.cn/MulanPSL2 
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, 
- * EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, 
- * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.  
- * See the Mulan PSL v2 for more details.  
- * 
+ *          http://license.coscl.org.cn/MulanPSL2
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
+ * EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
+ * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
+ * See the Mulan PSL v2 for more details.
+ *
  * Author:     tangjie02 <tangjie02@kylinos.com.cn>
  */
 
+#include <unistd.h>
 #include <QCommandLineParser>
 #include <QCoreApplication>
 #include <QFileInfo>
@@ -20,7 +21,6 @@
 #include <QTranslator>
 #include <QtGlobal>
 #include <iostream>
-#include <unistd.h>
 #include "config.h"
 #include "lib/base/base.h"
 #include "src/core/app/app-manager.h"
@@ -29,7 +29,6 @@
 #include "src/core/session-manager.h"
 #include "src/core/utils.h"
 #include "src/core/xsmp-server.h"
-#include <unistd.h>
 
 using namespace Kiran;
 
