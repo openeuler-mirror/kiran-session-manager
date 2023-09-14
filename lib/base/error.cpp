@@ -30,6 +30,7 @@ QString KSMError::getErrorDesc(KSMErrorCode error_code)
     {
     case KSMErrorCode::ERROR_MANAGER_PHASE_CANNOT_REGISTER:
         error_desc = QObject::tr("The phase cannot be register.");
+        break;
     case KSMErrorCode::ERROR_MANAGER_CLIENT_ALREADY_REGISTERED:
         error_desc = QObject::tr("The client %s already registered.");
         break;
