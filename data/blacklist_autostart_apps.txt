@@ -2,3 +2,4 @@ mate-screensaver.desktop
 mate-power-manager.desktop
 orca-autostart.desktop
 nm-applet.desktop
+mate-volume-control-status-icon.desktop
