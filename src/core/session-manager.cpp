@@ -34,7 +34,7 @@
 namespace Kiran
 {
 // 在一个阶段等待所有应用的最长时间(秒)
-#define KSM_PHASE_STARTUP_TIMEOUT 5
+#define KSM_PHASE_STARTUP_TIMEOUT 15
 
 SessionManager::SessionManager(AppManager *app_manager,
                                ClientManager *client_manager,
