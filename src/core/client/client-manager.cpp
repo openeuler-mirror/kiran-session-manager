@@ -41,7 +41,7 @@ static Status onRegisterClient(SmsConn smsConn, SmPointer managerData, char *pre
           2.2 如果previous_id为NULL，则使用会话管理生成的唯一id并需要向客户端发送"Save Yourself"消息，
           该消息携带的参数为type=Local, shutdown=False,interact-style=None, fast=False。*/
 
-    auto clientManager = (ClientManager *)(managerData);
+    auto clientManager = static_cast<ClientManager *>(managerData);
     auto newPreviousID = POINTER_TO_STRING(previousID);
 
     SCOPE_EXIT(
@@ -70,7 +70,7 @@ static void onInteractRequest(SmsConn smsConn, SmPointer managerData, int dialog
 {
     KLOG_DEBUG() << "Receive interact request message.";
 
-    auto clientManager = (ClientManager *)(managerData);
+    auto clientManager = static_cast<ClientManager *>(managerData);
     auto client = clientManager->getClientBySmsConn(smsConn);
     RETURN_IF_FALSE(client);
 
@@ -84,7 +84,7 @@ static void onInteractDone(SmsConn smsConn, SmPointer managerData, Bool cancelSh
 {
     KLOG_DEBUG() << "Receive interact done message.";
 
-    auto clientManager = (ClientManager *)(managerData);
+    auto clientManager = static_cast<ClientManager *>(managerData);
     auto client = clientManager->getClientBySmsConn(smsConn);
     RETURN_IF_FALSE(client);
 
@@ -107,7 +107,7 @@ static void onSaveYourselfRequest(SmsConn smsConn, SmPointer managerData, int sa
        则会话管理应该向所有客户端发送"Save Yourself"消息。当global为True时，我们只在shutdown为True
        的情况向所有客户端发送"Save Yourself"消息，对应的shutdown设置为True，其他情况忽略处理*/
 
-    auto clientManager = (ClientManager *)(managerData);
+    auto clientManager = static_cast<ClientManager *>(managerData);
     auto client = clientManager->getClientBySmsConn(smsConn);
     RETURN_IF_FALSE(client);
 
@@ -129,7 +129,7 @@ static void onSaveYourselfPhase2Request(SmsConn smsConn, SmPointer managerData)
 {
     KLOG_DEBUG() << "Receive save yourself phase2 request message.";
 
-    auto clientManager = (ClientManager *)(managerData);
+    auto clientManager = static_cast<ClientManager *>(managerData);
     auto client = clientManager->getClientBySmsConn(smsConn);
     RETURN_IF_FALSE(client);
     Q_EMIT clientManager->endSessionPhase2Requesting(client);
@@ -137,7 +137,7 @@ static void onSaveYourselfPhase2Request(SmsConn smsConn, SmPointer managerData)
 
 static void onSaveYourselfDone(SmsConn smsConn, SmPointer managerData, Bool success)
 {
-    auto clientManager = (ClientManager *)(managerData);
+    auto clientManager = static_cast<ClientManager *>(managerData);
     auto client = clientManager->getClientBySmsConn(smsConn);
     RETURN_IF_FALSE(client);
 
@@ -152,7 +152,7 @@ static void onCloseConnection(SmsConn smsConn,
                               int count,
                               char **reasonMsgs)
 {
-    auto clientManager = (ClientManager *)(managerData);
+    auto clientManager = static_cast<ClientManager *>(managerData);
     auto client = clientManager->getClientBySmsConn(smsConn);
     RETURN_IF_FALSE(client);
 
@@ -171,7 +171,7 @@ static void onSetProperties(SmsConn smsConn,
                             int numProps,
                             SmProp **props)
 {
-    auto clientManager = (ClientManager *)(managerData);
+    auto clientManager = static_cast<ClientManager *>(managerData);
     auto client = clientManager->getClientBySmsConn(smsConn);
     RETURN_IF_FALSE(client);
 
@@ -189,7 +189,7 @@ static void onDeleteProperties(SmsConn smsConn,
                                int numProps,
                                char **propNames)
 {
-    auto clientManager = (ClientManager *)(managerData);
+    auto clientManager = static_cast<ClientManager *>(managerData);
     auto client = clientManager->getClientBySmsConn(smsConn);
     RETURN_IF_FALSE(client);
 
@@ -205,12 +205,12 @@ static void onDeleteProperties(SmsConn smsConn,
 
 static void onGetProperties(SmsConn smsConn, SmPointer managerData)
 {
-    auto clientManager = (ClientManager *)(managerData);
+    auto clientManager = static_cast<ClientManager *>(managerData);
     auto client = clientManager->getClientBySmsConn(smsConn);
     RETURN_IF_FALSE(client);
 
     auto props = client->get_properties();
-    SmsReturnProperties(smsConn, props.length(), (SmProp **)props.data());
+    SmsReturnProperties(smsConn, props.length(), reinterpret_cast<SmProp **>(props.data()));
 }
 
 ClientManager::ClientManager(XsmpServer *xsmp_server) : m_xsmpServer(xsmp_server)
@@ -230,7 +230,7 @@ ClientDBus *ClientManager::getClientByDBusName(const QString &dbusName)
     for (auto iter : this->m_clients)
     {
         CONTINUE_IF_TRUE(iter->getType() != CLIENT_TYPE_DBUS);
-        auto dbus_client = (ClientDBus *)iter;
+        auto dbus_client = dynamic_cast<ClientDBus *>(iter);
         RETURN_VAL_IF_TRUE(dbus_client->getDBusName() == dbusName, dbus_client);
     }
     return nullptr;
@@ -342,7 +342,7 @@ ClientXsmp *ClientManager::getClientByIceConn(IceConn iceConn)
     for (auto iter : this->m_clients)
     {
         CONTINUE_IF_TRUE(iter->getType() != ClientType::CLIENT_TYPE_XSMP);
-        auto xsmp_client = (ClientXsmp *)iter;
+        auto xsmp_client = static_cast<ClientXsmp *>(iter);
 
         if (SmsGetIceConnection(xsmp_client->get_sms_connection()) == iceConn)
         {
@@ -364,7 +364,7 @@ void ClientManager::onNameLost(const QString &dbusName)
 
 void ClientManager::onNewXsmpClientConnected(unsigned long *mask_ret, void *callbacks)
 {
-    SmsCallbacks *callbacks_ret = (SmsCallbacks *)callbacks;
+    SmsCallbacks *callbacks_ret = static_cast<SmsCallbacks *>(callbacks);
 
     *mask_ret = 0;
 

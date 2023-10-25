@@ -35,7 +35,7 @@ ClientXsmp::~ClientXsmp()
 {
     for (auto props : this->m_props)
     {
-        SmFreeProperty((SmProp *)props);
+        SmFreeProperty(static_cast<SmProp *>(props));
     }
 }
 
@@ -90,7 +90,7 @@ bool ClientXsmp::stop()
 void ClientXsmp::updateProperty(void *property)
 {
     RETURN_IF_FALSE(property != NULL);
-    SmProp *smProperty = (SmProp *)property;
+    SmProp *smProperty = static_cast<SmProp *>(property);
     KLOG_DEBUG("property name: %s.", smProperty->name);
 
     this->deleteProperty(POINTER_TO_STRING(smProperty->name));
@@ -106,13 +106,13 @@ void ClientXsmp::updateProperty(void *property)
     }
     case CONNECT(SmProcessID, _hash):
     {
-        auto procesID = POINTER_TO_STRING((const char *)smProperty->vals[0].value).toULong();
+        auto procesID = POINTER_TO_STRING(static_cast<const char *>(smProperty->vals[0].value)).toULong();
         KLOG_DEBUG() << "Property value: " << procesID;
         break;
     }
     case CONNECT(SmProgram, _hash):
     {
-        auto programName = QString::fromUtf8((const char *)smProperty->vals[0].value, smProperty->vals[0].length);
+        auto programName = QString::fromUtf8(static_cast<const char *>(smProperty->vals[0].value), smProperty->vals[0].length);
         KLOG_DEBUG() << "Property value: " << programName;
         break;
     }
@@ -124,7 +124,7 @@ void ClientXsmp::updateProperty(void *property)
     }
     case CONNECT(SmRestartStyleHint, _hash):
     {
-        auto restartStyleHint = ((unsigned char *)smProperty->vals[0].value)[0];
+        auto restartStyleHint = (static_cast<unsigned char *>(smProperty->vals[0].value))[0];
         KLOG_DEBUG() << "Property value: " << restartStyleHint;
         break;
     }
@@ -140,7 +140,7 @@ void ClientXsmp::deleteProperty(const QString &propertyName)
     auto index = this->getPropertyIndex(propertyName);
     if (index >= 0)
     {
-        SmFreeProperty((SmProp *)this->m_props[index]);
+        SmFreeProperty(static_cast<SmProp *>(this->m_props[index]));
         this->m_props.remove(index);
     }
 }
@@ -156,15 +156,15 @@ QString ClientXsmp::getProgramName()
 {
     auto property = this->getProperty(SmProgram);
     RETURN_VAL_IF_TRUE(property == NULL, QString());
-    SmProp *sm_property = (SmProp *)property;
-    return QString::fromUtf8((const char *)sm_property->vals[0].value, sm_property->vals[0].length);
+    SmProp *sm_property = static_cast<SmProp *>(property);
+    return QString::fromUtf8(static_cast<const char *>(sm_property->vals[0].value), sm_property->vals[0].length);
 }
 
 int32_t ClientXsmp::getPropertyIndex(const QString &propertyName)
 {
     for (int32_t i = 0; i < this->m_props.size(); ++i)
     {
-        auto prop = (SmProp *)(this->m_props[i]);
+        auto prop = static_cast<SmProp *>(this->m_props[i]);
 
         RETURN_VAL_IF_TRUE(propertyName == POINTER_TO_STRING(prop->name), i);
     }
@@ -174,11 +174,11 @@ int32_t ClientXsmp::getPropertyIndex(const QString &propertyName)
 QString ClientXsmp::propToCommand(void *property)
 {
     QString retval;
-    SmProp *sm_property = (SmProp *)property;
+    SmProp *sm_property = static_cast<SmProp *>(property);
 
     for (int32_t i = 0; i < sm_property->num_vals; i++)
     {
-        const char *str = (char *)sm_property->vals[i].value;
+        const char *str = static_cast<char *>(sm_property->vals[i].value);
         int32_t strlen = sm_property->vals[i].length;
 
         auto need_quotes = false;
@@ -203,7 +203,7 @@ QString ClientXsmp::propToCommand(void *property)
         else
         {
             retval.push_back('\'');
-            while (str < (char *)sm_property->vals[i].value + strlen)
+            while (str < static_cast<char *>(sm_property->vals[i].value) + strlen)
             {
                 if (*str == '\'')
                 {

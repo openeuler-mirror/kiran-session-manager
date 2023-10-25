@@ -41,10 +41,10 @@ void startDBusSession(int argc, char **argv)
     RETURN_IF_TRUE(!qgetenv("DBUS_SESSION_BUS_ADDRESS").isEmpty());
     RETURN_IF_TRUE(QString(argv[0]).startsWith(DBUS_LAUNCH_COMMAND));
 
-    char **new_argv = (char **)g_malloc(argc + 3 * sizeof(*argv));
+    char **new_argv = static_cast<char **>(g_malloc(argc + 3 * sizeof(*argv)));
 
-    new_argv[0] = (char *)DBUS_LAUNCH_COMMAND;
-    new_argv[1] = (char *)"--exit-with-session";
+    new_argv[0] = const_cast<char *>(DBUS_LAUNCH_COMMAND);
+    new_argv[1] = const_cast<char *>("--exit-with-session");
 
     for (i = 0; i < argc; i++)
     {
