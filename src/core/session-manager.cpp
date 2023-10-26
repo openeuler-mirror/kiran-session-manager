@@ -153,7 +153,6 @@ QString SessionManager::GetInhibitors()
     QJsonDocument jsonDoc;
     QJsonArray jsonArr;
 
-    int32_t i = 0;
     for (auto inhibitor : this->m_inhibitorManager->getInhibitors())
     {
         QJsonObject jsonObj{

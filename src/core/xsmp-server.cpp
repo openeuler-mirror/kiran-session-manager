@@ -87,13 +87,13 @@ static Status onNewClientConnection(SmsConn smsConn,
                                     SmsCallbacks *callbacksRet,
                                     char **failureReasonRet)
 {
-    XsmpServer *server = (XsmpServer *)(managerData);
+    XsmpServer *server = static_cast<XsmpServer *>(managerData);
     auto iceConn = SmsGetIceConnection(smsConn);
 
     KLOG_DEBUG("New client connection: %p.", iceConn);
 
     // 如果连接成功，则取消超时检测
-    auto watch = (ConnectionWatch *)(iceConn->context);
+    auto watch = static_cast<ConnectionWatch *>(iceConn->context);
     watch->protocolTimeout.stop();
 
     Q_EMIT server->newClientConnected(maskRet, callbacksRet);
@@ -124,7 +124,7 @@ static bool onIceProtocolTimeout(IceConn ice_conn)
 {
     KLOG_DEBUG("Ice protocol timeout.");
 
-    auto watch = (ConnectionWatch *)(ice_conn->context);
+    auto watch = static_cast<ConnectionWatch *>(ice_conn->context);
     freeConnectionWatch(watch);
     disconnectIceConnection(ice_conn);
     return false;
@@ -310,8 +310,8 @@ void XsmpServer::updateIceAuthority()
 
     for (int32_t i = 0; i < this->m_numLocalListenSockets; i++)
     {
-        authEntries.push_back((IceAuthFileEntry *)this->createAndStoreAuthEntry("ICE", networkIds[i]));
-        authEntries.push_back((IceAuthFileEntry *)this->createAndStoreAuthEntry("XSMP", networkIds[i]));
+        authEntries.push_back(static_cast<IceAuthFileEntry *>(this->createAndStoreAuthEntry("ICE", networkIds[i])));
+        authEntries.push_back(static_cast<IceAuthFileEntry *>(this->createAndStoreAuthEntry("XSMP", networkIds[i])));
     }
 
     for (auto authEntry : authEntries)
@@ -324,7 +324,7 @@ void XsmpServer::updateIceAuthority()
 void *XsmpServer::createAndStoreAuthEntry(const std::string &protocolName,
                                           const std::string &networkID)
 {
-    IceAuthFileEntry *fileEntry = (IceAuthFileEntry *)malloc(sizeof(IceAuthFileEntry));
+    IceAuthFileEntry *fileEntry = static_cast<IceAuthFileEntry *>(malloc(sizeof(IceAuthFileEntry)));
     fileEntry->protocol_name = strdup(protocolName.c_str());
     fileEntry->protocol_data = NULL;
     fileEntry->protocol_data_length = 0;
@@ -382,7 +382,7 @@ gboolean XsmpServer::onAuthIochannelWatch(GIOChannel *source,
                                           gpointer userData)
 {
     auto iceConn = (IceConn)(userData);
-    auto watch = (ConnectionWatch *)(iceConn->context);
+    auto watch = static_cast<ConnectionWatch *>(iceConn->context);
 
     auto status = IceProcessMessages(iceConn, NULL, NULL);
     RETURN_VAL_IF_TRUE(status == IceProcessMessagesSuccess, TRUE);
