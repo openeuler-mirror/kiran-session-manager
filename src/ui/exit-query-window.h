@@ -37,11 +37,14 @@ public:
     ExitQueryWindow(int32_t powerAction, QWidget *parent = nullptr);
     virtual ~ExitQueryWindow(){};
 
+    // 获取应用/InhibitorRow数量
+    int32_t getAppCount();
+
 private:
     void initUI();
     void initInhibitors();
 
-    void onResultClicked(bool checked, const QString &result);
+    void quit(const QString &result);
 
 private:
     // virtual void resizeEvent(QResizeEvent *event) override;
