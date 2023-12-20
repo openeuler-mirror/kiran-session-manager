@@ -275,10 +275,6 @@ void SessionManager::Setenv(const QString &name, const QString &value)
 {
     KLOG_DEBUG() << "Set environment variable. name: " << name << ", value: " << value;
 
-    if (this->m_currentPhase > KSMPhase::KSM_PHASE_INITIALIZATION)
-    {
-        DBUS_ERROR_REPLY_AND_RET(QDBusError::InvalidArgs, KSMErrorCode::ERROR_MANAGER_PHASE_INVALID);
-    }
     Utils::getDefault()->setEnv(name, value);
 }
 
