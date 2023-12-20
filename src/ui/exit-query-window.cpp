@@ -23,6 +23,7 @@
 #include <QPainter>
 #include <QResizeEvent>
 #include <QScreen>
+#include <QTimer>
 #include <iostream>
 #include "lib/base/base.h"
 #include "src/ui/inhibitor-row.h"
@@ -67,8 +68,11 @@ void ExitQueryWindow::initUI()
 
     connect(primaryScreen, SIGNAL(virtualGeometryChanged(const QRect &)), this, SLOT(onVirtualGeometryChanged(const QRect &)));
 
-    connect(this->m_ui->m_ok, &QPushButton::clicked, std::bind(&ExitQueryWindow::onResultClicked, this, std::placeholders::_1, "ok"));
-    connect(this->m_ui->m_cancel, &QPushButton::clicked, std::bind(&ExitQueryWindow::onResultClicked, this, std::placeholders::_1, "cancel"));
+    connect(this->m_ui->m_ok, &QPushButton::clicked, [this](bool)
+            { this->quit("ok"); });
+
+    connect(this->m_ui->m_cancel, &QPushButton::clicked, [this](bool)
+            { this->quit("cancel"); });
 }
 
 void ExitQueryWindow::initInhibitors()
@@ -96,6 +100,13 @@ void ExitQueryWindow::initInhibitors()
     auto jsonRoot = jsonDoc.array();
     this->m_ui->m_title->setText(tr("Closing %1 apps").arg(jsonRoot.size()));
     this->m_ui->m_titleDesc->setText(tr("If you want to go back and save your work, click 'cancel' and finish what you want to do"));
+
+    /* 大多数情况是不会出现为0的情况。出现这种情况的原因是在启动当前进程的过程中，会话管理进程收到了客户端响应信息并删除掉了客户端的抑制器，导致此时获取的数量为0。
+       主要原因是因为在启动当前进程时有一个延时差，因此这里再做一次判断，如果抑制器数量为0，就之前退出当前进程了。*/
+    if (jsonRoot.size() == 0)
+    {
+        QTimer::singleShot(0, std::bind(&ExitQueryWindow::quit, this, "ok"));
+    }
 
     for (auto iter : jsonRoot)
     {
@@ -126,7 +137,7 @@ void ExitQueryWindow::initInhibitors()
     }
 }
 
-void ExitQueryWindow::onResultClicked(bool checked, const QString &result)
+void ExitQueryWindow::quit(const QString &result)
 {
     QJsonObject jsonObj;
     jsonObj.insert("response_id", result);
