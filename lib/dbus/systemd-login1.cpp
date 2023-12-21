@@ -57,6 +57,13 @@ namespace Kiran
 #define LOGIN1_DBUS_OBJECT_PATH "/org/freedesktop/login1"
 #define LOGIN1_MANAGER_DBUS_INTERFACE "org.freedesktop.login1.Manager"
 #define LOGIN1_SESSION_DBUS_INTERFACE "org.freedesktop.login1.Session"
+/**
+ * 执行重启的过程中，会先退出会话，如果是当前账户的最后一个会话，会重启会话中的dbus服务，以杀死会话下的所有进程，退出会话
+ * 然后调用Logind的CanReboot，再调用Reboot实现重启
+ * 在调用CanReboot的过程中，如果等待dbus消息超时的时间为300ms，等待时间太短，如果超时则不会继续执行Reboot，从而导致重启功能失效
+ * 因此，将等待超时时间改为10000ms
+*/
+#define LOGIN1_DBUS_METHOD_TIMEOUT_MS 10000
 
 SystemdLogin1::SystemdLogin1()
 {
@@ -178,7 +185,7 @@ bool SystemdLogin1::canDoMethod(const QString &methodName)
                                                       LOGIN1_MANAGER_DBUS_INTERFACE,
                                                       methodName);
 
-    auto replyMessage = QDBusConnection::systemBus().call(sendMessage, QDBus::Block, DBUS_TIMEOUT_MS);
+    auto replyMessage = QDBusConnection::systemBus().call(sendMessage, QDBus::Block, LOGIN1_DBUS_METHOD_TIMEOUT_MS);
     if (replyMessage.type() == QDBusMessage::ErrorMessage)
     {
         KLOG_WARNING() << "Call " << methodName << " failed: " << replyMessage.errorMessage();
@@ -201,7 +208,7 @@ bool SystemdLogin1::doMethod(const QString &methodName)
                                                       methodName);
 
     sendMessage << false;
-    auto replyMessage = QDBusConnection::systemBus().call(sendMessage, QDBus::Block, DBUS_TIMEOUT_MS);
+    auto replyMessage = QDBusConnection::systemBus().call(sendMessage, QDBus::Block, LOGIN1_DBUS_METHOD_TIMEOUT_MS);
     if (replyMessage.type() == QDBusMessage::ErrorMessage)
     {
         KLOG_WARNING() << "Call " << methodName << " failed: " << replyMessage.errorMessage();
