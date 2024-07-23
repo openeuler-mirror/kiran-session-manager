@@ -13,22 +13,22 @@
  */
 
 #include <unistd.h>
-#include <QCommandLineParser>
 #include <QApplication>
+#include <QCommandLineParser>
 #include <QFileInfo>
 #include <QProcessEnvironment>
 #include <QRegularExpression>
 #include <QTranslator>
 #include <QtGlobal>
 #include <iostream>
+#include "app/app-manager.h"
+#include "client/client-manager.h"
 #include "config.h"
+#include "inhibitor-manager.h"
 #include "lib/base/base.h"
-#include "src/core/app/app-manager.h"
-#include "src/core/client/client-manager.h"
-#include "src/core/inhibitor-manager.h"
-#include "src/core/session-manager.h"
-#include "src/core/utils.h"
-#include "src/core/xsmp-server.h"
+#include "session-manager.h"
+#include "utils.h"
+#include "xsmp-server.h"
 
 using namespace Kiran;
 
