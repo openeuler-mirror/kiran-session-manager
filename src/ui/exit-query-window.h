@@ -46,7 +46,7 @@ private:
 
     void quit(const QString &result);
 
-private:
+    private:
     // virtual void resizeEvent(QResizeEvent *event) override;
     virtual void paintEvent(QPaintEvent *event) override;
 
@@ -58,6 +58,6 @@ private:
     SessionManagerProxy *m_sessionManagerProxy;
     int32_t m_powerAction;
     QPixmap m_backgroundPixmap;
-};
+    };
 
 }  // namespace Kiran

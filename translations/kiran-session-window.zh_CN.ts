@@ -4,27 +4,27 @@
 <context>
     <name>ExitQueryWindow</name>
     <message>
-        <location filename="../src/ui/exit-query-window.ui" line="14"/>
+        <location filename="../src/ui/exit-query-window.ui" line="20"/>
         <source>MainWindow</source>
-        <translation>主窗口</translation>
+        <translation></translation>
     </message>
     <message>
-        <location filename="../src/ui/exit-query-window.ui" line="73"/>
+        <location filename="../src/ui/exit-query-window.ui" line="147"/>
         <source>Closing apps</source>
-        <translation>正在关闭应用</translation>
+        <translation></translation>
     </message>
     <message>
-        <location filename="../src/ui/exit-query-window.ui" line="86"/>
+        <location filename="../src/ui/exit-query-window.ui" line="160"/>
         <source>If you want to go back and save your work, click &apos;cancel&apos; and finish what you want to do</source>
-        <translation>如果想要返回并保存你的工作，可单击&apos;取消&apos;，然后完成你要执行的操作</translation>
+        <translation>如果想要返回并保存你的工作，可单击&quot;取消&quot;，然后完成你要执行的操作</translation>
     </message>
     <message>
-        <location filename="../src/ui/exit-query-window.ui" line="132"/>
+        <location filename="../src/ui/exit-query-window.ui" line="256"/>
         <source>Forced shutdown</source>
-        <translation>强制关机</translation>
+        <translation></translation>
     </message>
     <message>
-        <location filename="../src/ui/exit-query-window.ui" line="145"/>
+        <location filename="../src/ui/exit-query-window.ui" line="275"/>
         <source>Cancel</source>
         <translation>取消</translation>
     </message>
@@ -32,58 +32,59 @@
 <context>
     <name>InhibitorRow</name>
     <message>
-        <location filename="../src/ui/inhibitor-row.ui" line="14"/>
+        <location filename="../src/ui/inhibitor-row.ui" line="32"/>
         <source>Form</source>
-        <translation>Form</translation>
+        <translation></translation>
     </message>
     <message>
-        <location filename="../src/ui/inhibitor-row.ui" line="29"/>
-        <source>PushButton</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/ui/inhibitor-row.ui" line="44"/>
-        <location filename="../src/ui/inhibitor-row.ui" line="51"/>
+        <location filename="../src/ui/inhibitor-row.ui" line="89"/>
+        <location filename="../src/ui/inhibitor-row.ui" line="96"/>
         <source>TextLabel</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Unknown application</source>
-        <translation type="obsolete">未知应用</translation>
+        <translation></translation>
     </message>
 </context>
 <context>
     <name>Kiran::ExitQueryWindow</name>
     <message>
-        <location filename="../src/ui/exit-query-window.cpp" line="92"/>
-        <source>Closing %1 apps</source>
-        <translation>正在关闭%1个应用程序</translation>
-    </message>
-    <message>
-        <location filename="../src/ui/exit-query-window.cpp" line="93"/>
+        <location filename="../src/ui/exit-query-window.cpp" line="101"/>
         <source>If you want to go back and save your work, click &apos;cancel&apos; and finish what you want to do</source>
-        <translation>如果想要返回并保存你的工作，可单击&apos;取消&apos;，然后完成你要执行的操作</translation>
-    </message>
-    <message>
-        <location filename="../src/ui/exit-query-window.cpp" line="108"/>
-        <source>Forced logout</source>
-        <translation>强制注销</translation>
+        <translation>如果想要返回并保存你的工作，可单击&quot;取消&quot;，然后完成你要执行的操作</translation>
     </message>
     <message>
         <location filename="../src/ui/exit-query-window.cpp" line="111"/>
-        <source>Forced shutdown</source>
-        <translation>强制关机</translation>
+        <source>The current user is being logged out</source>
+        <translation>正在注销当前用户</translation>
     </message>
     <message>
-        <location filename="../src/ui/exit-query-window.cpp" line="114"/>
-        <source>Forced reboot</source>
-        <translation>强制重启</translation>
+        <location filename="../src/ui/exit-query-window.cpp" line="117"/>
+        <source>Shutting down the system</source>
+        <translation>正在关闭系统</translation>
+    </message>
+    <message>
+        <location filename="../src/ui/exit-query-window.cpp" line="123"/>
+        <source>Restarting the system</source>
+        <translation>正在重启系统</translation>
+    </message>
+    <message>
+        <location filename="../src/ui/exit-query-window.cpp" line="110"/>
+        <source>Logout</source>
+        <translation>注销</translation>
+    </message>
+    <message>
+        <location filename="../src/ui/exit-query-window.cpp" line="116"/>
+        <source>Shutdown</source>
+        <translation>关机</translation>
+    </message>
+    <message>
+        <location filename="../src/ui/exit-query-window.cpp" line="122"/>
+        <source>Reboot</source>
+        <translation>重启</translation>
     </message>
 </context>
 <context>
     <name>Kiran::InhibitorRow</name>
     <message>
-        <location filename="../src/ui/inhibitor-row.cpp" line="45"/>
+        <location filename="../src/ui/inhibitor-row.cpp" line="57"/>
         <source>Unknown application</source>
         <translation>未知应用</translation>
     </message>
@@ -91,67 +92,60 @@
 <context>
     <name>QObject</name>
     <message>
+        <location filename="../lib/base/error.cpp" line="32"/>
         <source>The phase cannot be register.</source>
-        <translation type="vanished">该阶段不允许注册。</translation>
+        <translation>该阶段不允许注册。</translation>
     </message>
     <message>
+        <location filename="../lib/base/error.cpp" line="34"/>
         <source>The client %s already registered.</source>
-        <translation type="vanished">客户端 %s 已经注册。</translation>
+        <translation>客户端 %s 已经注册。</translation>
     </message>
     <message>
+        <location filename="../lib/base/error.cpp" line="37"/>
         <source>Failed to generate unique cookie.</source>
-        <translation type="vanished">生成cookie失败。</translation>
+        <translation>生成cookie失败。</translation>
     </message>
     <message>
+        <location filename="../lib/base/error.cpp" line="40"/>
         <source>The inhibitor is not found.</source>
-        <translation type="vanished">抑制器未发现。</translation>
+        <translation>抑制器未发现。</translation>
     </message>
     <message>
-        <source>Internal error.</source>
-        <translation type="vanished">内部错误。</translation>
-    </message>
-    <message>
+        <location filename="../lib/base/error.cpp" line="43"/>
         <source>The status is invalid.</source>
-        <translation type="vanished">状态不合法。</translation>
+        <translation>状态不合法。</translation>
     </message>
     <message>
+        <location filename="../lib/base/error.cpp" line="46"/>
         <source>The action is not supported.</source>
-        <translation type="vanished">操作不支持。</translation>
+        <translation>操作不支持。</translation>
     </message>
     <message>
+        <location filename="../lib/base/error.cpp" line="49"/>
+        <source>Internal error.</source>
+        <translation>内部错误。</translation>
+    </message>
+    <message>
+        <location filename="../lib/base/error.cpp" line="52"/>
         <source>Unknown error.</source>
-        <translation type="vanished">未知错误。</translation>
+        <translation>未知错误。</translation>
     </message>
     <message>
+        <location filename="../lib/base/error.cpp" line="57"/>
         <source> (error code: 0x%x)</source>
-        <translation type="vanished"> (错误码: 0x%x)</translation>
+        <translation> (错误码: 0x%x)</translation>
     </message>
 </context>
 <context>
     <name>main</name>
     <message>
-        <source>Output version information and exit.</source>
-        <translation type="vanished">输出版本信息并退出。</translation>
-    </message>
-    <message>
-        <source>Specify a session type that contains required components.</source>
-        <translation type="vanished">指定一个会话类型，该会话类型包含需要加载的组件列表。</translation>
-    </message>
-    <message>
-        <source>session type</source>
-        <translation type="obsolete">会话类型</translation>
-    </message>
-    <message>
-        <source>Specify a session that contains required components.</source>
-        <translation type="vanished">指定一个会话，该会话包含需要加载的组件列表。</translation>
-    </message>
-    <message>
-        <location filename="../src/ui/main.cpp" line="55"/>
+        <location filename="../src/ui/main.cpp" line="67"/>
         <source>Power action.</source>
-        <translation>电源动作</translation>
+        <translation>电源动作.</translation>
     </message>
     <message>
-        <location filename="../src/ui/main.cpp" line="56"/>
+        <location filename="../src/ui/main.cpp" line="68"/>
         <source>power action</source>
         <translation>电源动作</translation>
     </message>

@@ -32,8 +32,14 @@ qt5_add_dbus_interface(
 
 set(TARGET_NAME kiran-session-manager)
 
+
 set(TS_FILES "${PROJECT_SOURCE_DIR}/translations/${TARGET_NAME}.zh_CN.ts")
-qt5_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
+execute_process(
+  COMMAND
+    lupdate-qt5 -no-obsolete ${PROJECT_SOURCE_DIR}/lib ${SRC_H_FILES}
+    ${SRC_CPP_FILES} -ts ${TS_FILES})
+
+qt5_add_translation(QM_FILES ${TS_FILES})
 
 add_executable(
   ${TARGET_NAME}
