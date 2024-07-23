@@ -4,12 +4,12 @@
 <context>
     <name>Kiran::SessionManager</name>
     <message>
-        <location filename="../src/core/session-manager.cpp" line="295"/>
+        <location filename="../src/core/session-manager.cpp" line="361"/>
         <source>This program is not responding</source>
         <translation>程序未响应</translation>
     </message>
     <message>
-        <location filename="../src/core/session-manager.cpp" line="393"/>
+        <location filename="../src/core/session-manager.cpp" line="468"/>
         <source>This program is blocking exit</source>
         <translation>程序正在阻止退出</translation>
     </message>
@@ -65,14 +65,24 @@
 <context>
     <name>main</name>
     <message>
-        <location filename="../src/core/main.cpp" line="125"/>
+        <location filename="../src/core/main.cpp" line="127"/>
         <source>Specify a session type that contains required components.</source>
         <translation>指定一个会话类型，该会话类型包含需要加载的组件列表。</translation>
     </message>
     <message>
-        <location filename="../src/core/main.cpp" line="126"/>
-        <source>session type</source>
-        <translation>会话类型</translation>
+        <location filename="../src/core/main.cpp" line="128"/>
+        <source>SESSION_NAME</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/core/main.cpp" line="132"/>
+        <source>Override standard autostart directories.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/core/main.cpp" line="133"/>
+        <source>AUTOSTART_DIRS</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 </TS>
