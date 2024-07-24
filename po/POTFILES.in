@@ -7,3 +7,4 @@ src/main.cpp
 src/ui/exit-query-window.cpp
 src/session-manager.cpp
 src/ui/inhibitor-row.cpp
+tool/quit/main.cpp
