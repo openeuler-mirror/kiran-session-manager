@@ -1,18 +1,18 @@
 /**
- * Copyright (c) 2020 ~ 2021 KylinSec Co., Ltd. 
+ * Copyright (c) 2020 ~ 2021 KylinSec Co., Ltd.
  * kiran-session-manager is licensed under Mulan PSL v2.
- * You can use this software according to the terms and conditions of the Mulan PSL v2. 
+ * You can use this software according to the terms and conditions of the Mulan PSL v2.
  * You may obtain a copy of Mulan PSL v2 at:
- *          http://license.coscl.org.cn/MulanPSL2 
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, 
- * EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, 
- * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.  
- * See the Mulan PSL v2 for more details.  
- * 
+ *          http://license.coscl.org.cn/MulanPSL2
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
+ * EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
+ * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
+ * See the Mulan PSL v2 for more details.
+ *
  * Author:     tangjie02 <tangjie02@kylinos.com.cn>
  */
 
-#include "src/ui/exit-query-window.h"
+#include "exit-query-window.h"
 #include <style-property.h>
 #include <KDesktopFile>
 #include <QApplication>
@@ -25,10 +25,10 @@
 #include <QScreen>
 #include <QTimer>
 #include <iostream>
+#include "inhibitor-row.h"
 #include "lib/base/base.h"
-#include "src/ui/inhibitor-row.h"
-#include "src/ui/session_manager_interface.h"
-#include "src/ui/ui_exit-query-window.h"
+#include "session_manager_interface.h"
+#include "ui_exit-query-window.h"
 
 QT_BEGIN_NAMESPACE
 Q_WIDGETS_EXPORT void qt_blurImage(QImage &blurImage, qreal radius, bool quality, int transposed = 0);
@@ -98,42 +98,56 @@ void ExitQueryWindow::initInhibitors()
     }
 
     auto jsonRoot = jsonDoc.array();
-    this->m_ui->m_title->setText(tr("Closing %1 apps").arg(jsonRoot.size()));
     this->m_ui->m_titleDesc->setText(tr("If you want to go back and save your work, click 'cancel' and finish what you want to do"));
 
     /* 大多数情况是不会出现为0的情况。出现这种情况的原因是在启动当前进程的过程中，会话管理进程收到了客户端响应信息并删除掉了客户端的抑制器，导致此时获取的数量为0。
        主要原因是因为在启动当前进程时有一个延时差，因此这里再做一次判断，如果抑制器数量为0，就之前退出当前进程了。*/
-    if (jsonRoot.size() == 0)
-    {
-        QTimer::singleShot(0, std::bind(&ExitQueryWindow::quit, this, "ok"));
-    }
-
-    for (auto iter : jsonRoot)
-    {
-        auto jsonInhibitor = iter.toObject();
-        if (jsonInhibitor.contains(KSM_INHIBITOR_JK_FLAGS) &&
-            jsonInhibitor.take(KSM_INHIBITOR_JK_FLAGS).toInt() == KSMInhibitorFlag::KSM_INHIBITOR_FLAG_QUIT)
-        {
-            this->m_ui->m_inhibitorsLayout->addWidget(new InhibitorRow(jsonInhibitor));
-        }
-    }
-
-    this->m_ui->m_inhibitorsLayout->addStretch();
 
     switch (this->m_powerAction)
     {
     case PowerAction::POWER_ACTION_LOGOUT:
-        this->m_ui->m_ok->setText(tr("Forced logout"));
+    {
+        this->m_ui->m_ok->setText(tr("Logout"));
+        this->m_ui->m_title->setText(tr("The current user is being logged out"));
         break;
+    }
     case PowerAction::POWER_ACTION_SHUTDOWN:
-        this->m_ui->m_ok->setText(tr("Forced shutdown"));
+    {
+        this->m_ui->m_ok->setText(tr("Shutdown"));
+        this->m_ui->m_title->setText(tr("Shutting down the system"));
         break;
+    }
     case PowerAction::POWER_ACTION_REBOOT:
-        this->m_ui->m_ok->setText(tr("Forced reboot"));
+    {
+        this->m_ui->m_ok->setText(tr("Reboot"));
+        this->m_ui->m_title->setText(tr("Restarting the system"));
         break;
+    }
     default:
+    {
         KLOG_WARNING() << "The power action is unsupported. action: " << this->m_powerAction;
         break;
+    }
+    }
+    if (jsonRoot.size() == 0)
+    {
+        this->m_ui->m_inhibitorsScrollArea->hide();
+        this->m_ui->m_content->setFixedSize(400, 180);
+    }
+    else
+    {
+        this->m_ui->m_content->setFixedSize(600, 400);
+        for (auto iter : jsonRoot)
+        {
+            auto jsonInhibitor = iter.toObject();
+            if (jsonInhibitor.contains(KSM_INHIBITOR_JK_FLAGS) &&
+                jsonInhibitor.take(KSM_INHIBITOR_JK_FLAGS).toInt() == KSMInhibitorFlag::KSM_INHIBITOR_FLAG_QUIT)
+            {
+                this->m_ui->m_inhibitorsLayout->addWidget(new InhibitorRow(jsonInhibitor));
+            }
+        }
+
+        this->m_ui->m_inhibitorsLayout->addStretch();
     }
 }
 
