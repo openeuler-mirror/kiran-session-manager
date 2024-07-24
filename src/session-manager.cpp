@@ -1,14 +1,14 @@
 /**
- * Copyright (c) 2020 ~ 2021 KylinSec Co., Ltd. 
+ * Copyright (c) 2020 ~ 2021 KylinSec Co., Ltd.
  * kiran-session-manager is licensed under Mulan PSL v2.
- * You can use this software according to the terms and conditions of the Mulan PSL v2. 
+ * You can use this software according to the terms and conditions of the Mulan PSL v2.
  * You may obtain a copy of Mulan PSL v2 at:
- *          http://license.coscl.org.cn/MulanPSL2 
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, 
- * EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, 
- * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.  
- * See the Mulan PSL v2 for more details.  
- * 
+ *          http://license.coscl.org.cn/MulanPSL2
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
+ * EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
+ * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
+ * See the Mulan PSL v2 for more details.
+ *
  * Author:     tangjie02 <tangjie02@kylinos.com.cn>
  */
 
@@ -421,13 +421,6 @@ void SessionManager::query_end_session_complete()
     this->waiting_clients_.clear();
     this->waiting_clients_timeout_id_.disconnect();
 
-    // 如果不存在退出会话的抑制器，则直接进入下一个阶段
-    if (!this->inhibitor_manager_->has_inhibitor(KSMInhibitorFlag::KSM_INHIBITOR_FLAG_QUIT))
-    {
-        this->start_next_phase();
-        return;
-    }
-
     if (this->exit_query_window_)
     {
         this->exit_query_window_->present();
@@ -619,7 +612,8 @@ void SessionManager::on_app_startup_finished(std::shared_ptr<App> app)
 
     auto iter = std::remove_if(this->waiting_apps_.begin(),
                                this->waiting_apps_.end(),
-                               [app](std::shared_ptr<App> item) -> bool {
+                               [app](std::shared_ptr<App> item) -> bool
+                               {
                                    return item->get_app_id() == app->get_app_id();
                                });
 
@@ -722,9 +716,8 @@ void SessionManager::on_client_added_cb(std::shared_ptr<Client> client)
     KLOG_DEBUG("The new client %s match the app %s.", client->get_id().c_str(), app->get_app_id().c_str());
 
     // 此时说明kiran-session-daemon已经关闭掉与mate-settings-daemon冲突的插件，这时可以运行mate-settings-daemon
-    auto iter = std::find_if(this->waiting_apps_.begin(), this->waiting_apps_.end(), [](std::shared_ptr<App> app) {
-        return app->get_app_id() == "mate-settings-daemon.desktop";
-    });
+    auto iter = std::find_if(this->waiting_apps_.begin(), this->waiting_apps_.end(), [](std::shared_ptr<App> app)
+                             { return app->get_app_id() == "mate-settings-daemon.desktop"; });
     if (app->get_app_id() == "kiran-session-daemon.desktop" &&
         iter != this->waiting_apps_.end())
     {
@@ -748,9 +741,8 @@ void SessionManager::on_client_deleted_cb(std::shared_ptr<Client> client)
         if (app && app->get_auto_restart())
         {
             auto idle = Glib::MainContext::get_default()->signal_idle();
-            idle.connect_once([app]() {
-                app->restart();
-            });
+            idle.connect_once([app]()
+                              { app->restart(); });
         }
     }
 }
@@ -803,7 +795,8 @@ void SessionManager::on_end_session_response_cb(std::shared_ptr<Client> client)
 
     auto iter = std::remove_if(this->waiting_clients_.begin(),
                                this->waiting_clients_.end(),
-                               [client](std::shared_ptr<Client> item) {
+                               [client](std::shared_ptr<Client> item)
+                               {
                                    return client->get_id() == item->get_id();
                                });
     this->waiting_clients_.erase(iter, this->waiting_clients_.end());
