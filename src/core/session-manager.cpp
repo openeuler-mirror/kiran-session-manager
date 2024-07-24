@@ -1,14 +1,14 @@
 /**
- * Copyright (c) 2020 ~ 2021 KylinSec Co., Ltd. 
+ * Copyright (c) 2020 ~ 2021 KylinSec Co., Ltd.
  * kiran-session-manager is licensed under Mulan PSL v2.
- * You can use this software according to the terms and conditions of the Mulan PSL v2. 
+ * You can use this software according to the terms and conditions of the Mulan PSL v2.
  * You may obtain a copy of Mulan PSL v2 at:
- *          http://license.coscl.org.cn/MulanPSL2 
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, 
- * EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, 
- * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.  
- * See the Mulan PSL v2 for more details.  
- * 
+ *          http://license.coscl.org.cn/MulanPSL2
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
+ * EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
+ * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
+ * See the Mulan PSL v2 for more details.
+ *
  * Author:     tangjie02 <tangjie02@kylinos.com.cn>
  */
 
@@ -378,7 +378,7 @@ void SessionManager::onClientDeleted(Client *client)
         }
 
         /* 这里不调用restart而是start的原因是因为存在如下情况：
-           当已经存在一个caja进程时，再次运行caja，caja会重新发送一个新的clientID（正常逻辑应该是发送第一次启动caja时的ClientID） 
+           当已经存在一个caja进程时，再次运行caja，caja会重新发送一个新的clientID（正常逻辑应该是发送第一次启动caja时的ClientID）
            而这个新发送的ClientID在稍后又被caja给关闭了，这样就会触发ClientDeleted信号，而且会触发两次，
            第一次是通过dbus协议发送(监听name lost信号)，第二次是通过x协议发送，在第二次时getAppID会查找到第一个clientID，
            这样就导致app被重启（而实际上caja并未退出），然后caja又会循环这样的操作，导致caja一直无法拉起 */
@@ -653,13 +653,6 @@ void SessionManager::queryEndSessionComplete()
     this->m_waitingClients.clear();
     this->m_waitingClientsTimeoutID->disconnect();
     this->m_waitingClientsTimeoutID->stop();
-
-    // 如果不存在退出会话的抑制器，则直接进入下一个阶段
-    if (!this->m_inhibitorManager->hasInhibitor(KSMInhibitorFlag::KSM_INHIBITOR_FLAG_QUIT))
-    {
-        this->startNextPhase();
-        return;
-    }
 
     if (this->m_process->state() != QProcess::Running)
     {
