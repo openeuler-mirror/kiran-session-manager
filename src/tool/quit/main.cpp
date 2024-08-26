@@ -92,7 +92,12 @@ int main(int argc, char *argv[])
     }
     else
     {
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
+        // QTextStream提供的endl方法于5.14后才加上Qt命名空间
         cerr << parser.helpText() << Qt::endl;
+#else
+        cerr << parser.helpText() << endl;
+#endif
         delete sessionManagerProxy;
         return 1;
     }
