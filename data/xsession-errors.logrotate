@@ -1,0 +1,12 @@
+#/home/*/.xsession-errors
+#/home/*/.xsession-errors.old
+#/root/.xsession-errors
+#/root/.xsession-errors.old
+#{
+#    missingok
+#    notifempty
+#    dateext
+#    rotate 0
+#    copytruncate
+#    size 10M
+#}
