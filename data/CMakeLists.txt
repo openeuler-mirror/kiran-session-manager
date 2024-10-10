@@ -43,3 +43,10 @@ install(
         ${CMAKE_CURRENT_SOURCE_DIR}/sessions/kiran-greeter.session
         ${CMAKE_CURRENT_SOURCE_DIR}/sessions/kiran-wayland.session
   DESTINATION "${KSM_INSTALL_DATADIR}/sessions/")
+
+# xsession-errors logrotate conf
+install(
+  FILES ${CMAKE_CURRENT_SOURCE_DIR}/xsession-errors.logrotate
+  DESTINATION "${SYSCONFDIR}/logrotate.d/"
+  RENAME "xsession-errors"
+)
