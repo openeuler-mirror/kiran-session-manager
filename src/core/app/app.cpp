@@ -48,6 +48,7 @@ App::App(const QString &filePath, QObject *parent = nullptr) : QObject(parent),
                                                                m_process(new QProcess(this))
 {
     this->m_appInfo = QSharedPointer<KDesktopFile>(new KDesktopFile(filePath));
+    m_process->setProcessChannelMode(QProcess::ForwardedErrorChannel);
     connect(this->m_process, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(onFinished(int, QProcess::ExitStatus)));
     this->loadAppInfo();
 }
