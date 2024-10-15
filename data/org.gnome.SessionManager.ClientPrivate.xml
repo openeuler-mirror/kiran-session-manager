@@ -4,7 +4,7 @@
     <interface name="org.gnome.SessionManager.ClientPrivate">
         <method name="EndSessionResponse">
             <arg name="is_ok" type="b" direction="in">
-                <summary>Whether or not it is OK to preceed</summary>
+                <summary>Whether or not it is OK to proceed</summary>
             </arg>
             <arg name="reason" type="s" direction="in">
                 <summary>The reason string</summary>
@@ -35,7 +35,7 @@
             </arg>
             <description>This signal is used to inform the client that the session is about to end.  The client must respond by
             calling EndSessionResponse within ten seconds of the signal emission. The client must not attempt to interact with
-            the user in response to this signal. The application will be given a maxium of ten seconds to perform any actions required
+            the user in response to this signal. The application will be given a maximum of ten seconds to perform any actions required
             for a clean shutdown.</description>
         </signal>
 
