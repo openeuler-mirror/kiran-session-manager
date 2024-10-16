@@ -37,13 +37,13 @@ extern "C"
 
 #define KSM_SCHEMA_ID "com.kylinsec.kiran.session-manager"
 // 计算机多久未操作视为空闲
-#define KSM_SCHEMA_KEY_IDLE_DELAY "idle-delay"
+#define KSM_SCHEMA_KEY_IDLE_DELAY "idleDelay"
 // 待机时是否锁定屏幕
-#define KSM_SCHEMA_KEY_SCREEN_LOCKED_WHEN_SUSPEND "screen-locked-when-suspend"
+#define KSM_SCHEMA_KEY_SCREEN_LOCKED_WHEN_SUSPEND "screenLockedWhenSuspend"
 // 休眠时是否锁定屏幕
-#define KSM_SCHEMA_KEY_SCREEN_LOCKED_WHEN_HIBERNATE "screen-locked-when-hibernate"
+#define KSM_SCHEMA_KEY_SCREEN_LOCKED_WHEN_HIBERNATE "screenLockedWhenHibernate"
 // 退出时是否显示退出窗口
-#define KSM_SCHEMA_KEY_ALWAYS_SHOW_EXIT_WINDOW "always-show-exit-window"
+#define KSM_SCHEMA_KEY_ALWAYS_SHOW_EXIT_WINDOW "alwaysShowExitWindow"
 
 // JK: json key
 #define KSM_INHIBITOR_JK_COOKIE "cookie"
