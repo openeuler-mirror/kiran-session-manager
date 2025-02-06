@@ -13,7 +13,6 @@
  */
 
 #include "exit-query-window.h"
-#include <style-property.h>
 #include <KDesktopFile>
 #include <QApplication>
 #include <QDesktopWidget>
@@ -25,6 +24,7 @@
 #include <QScreen>
 #include <QTimer>
 #include <iostream>
+#include <kiran-push-button.h>
 #include "inhibitor-row.h"
 #include "lib/base/base.h"
 #include "session_manager_interface.h"
@@ -61,7 +61,7 @@ void ExitQueryWindow::initUI()
     this->m_ui->m_inhibitorsScrollArea->setStyleSheet("QScrollArea {background-color:transparent;}");
     this->m_ui->m_inhibitorsScrollArea->setFrameStyle(QFrame::NoFrame);
     this->m_ui->m_inhibitorsScrollArea->viewport()->setStyleSheet("background-color:transparent;");
-    StylePropertyHelper::setButtonType(this->m_ui->m_ok, Kiran::ButtonType::BUTTON_Default);
+    KiranPushButton::setButtonType(this->m_ui->m_ok, KiranPushButton::BUTTON_Default);
 
     this->initInhibitors();
     this->onVirtualGeometryChanged(desktopRect);

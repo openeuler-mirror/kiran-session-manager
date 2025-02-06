@@ -25,7 +25,7 @@ pkg_search_module(XEXT REQUIRED xext)
 pkg_search_module(XTRANS REQUIRED xtrans)
 pkg_search_module(GSETTINGS_QT REQUIRED gsettings-qt)
 pkg_search_module(GLIB2 REQUIRED glib-2.0)
-pkg_search_module(KIRAN_STYLE REQUIRED kiran-style-helper)
+pkg_search_module(KIRAN_WIDGETS REQUIRED kiranwidgets-qt5)
 
 configure_file(config.h.in ${PROJECT_BINARY_DIR}/config.h)
 

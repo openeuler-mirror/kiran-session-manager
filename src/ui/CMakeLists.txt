@@ -30,10 +30,10 @@ target_include_directories(
   ${TARGET_NAME}
   PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${PROJECT_BINARY_DIR}
           ${PROJECT_SOURCE_DIR} ${PROJECT_SOURCE_DIR}/include
-          ${KIRAN_STYLE_INCLUDE_DIRS})
+          ${KIRAN_WIDGETS_INCLUDE_DIRS})
 
 target_link_libraries(
-  ${TARGET_NAME} PRIVATE ${KIRAN_STYLE_LIBRARIES} Qt5::Widgets Qt5::DBus
+  ${TARGET_NAME} PRIVATE ${KIRAN_WIDGETS_LIBRARIES} Qt5::Widgets Qt5::DBus
                          KF5::ConfigCore lib-base)
 
 install(FILES ${QM_FILES} DESTINATION ${KSM_INSTALL_TRANSLATIONDIR})
