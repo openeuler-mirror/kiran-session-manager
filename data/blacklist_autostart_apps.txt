@@ -4,3 +4,4 @@ orca-autostart.desktop
 nm-applet.desktop
 mate-volume-control-status-icon.desktop
 polkit-mate-authentication-agent-1.desktop
+mate-settings-daemon.desktop
