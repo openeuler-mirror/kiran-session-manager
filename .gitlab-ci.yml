@@ -1,8 +1,17 @@
 variables:
-  RPM_BUILD_REQUIRES: 'cmake make gcc-c++ gettext kiran-log-gtk3-devel jsoncpp-devel gtest-devel fmt-devel libICE-devel libSM-devel libXext-devel gdbus-codegen-glibmm gtkmm30-devel qt5-qtbase-devel qt5-linguist kf5-kconfig-devel kf5-kio-devel kf5-kidletime-devel kiran-log-qt5 kiran-log-qt5-devel xorg-x11-xtrans-devel gsettings-qt-devel kiran-qt5-integration-devel'
+  EXTRA_DNF_REPOS: |
+                   [KylinSec_3.5.2_Customize_Kiran2.7]
+                   name=Kiran2.7(standard_x86_64)
+                   type=rpm-md
+                   baseurl=http://build.kylinsec.com.cn:82/KylinSec:/3.5.2:/Customize:/Kiran2.7/standard_x86_64/
+                   gpgcheck=1
+                   gpgkey=http://build.kylinsec.com.cn:82/KylinSec:/3.5.2:/Customize:/Kiran2.7/standard_x86_64/repodata/repomd.xml.key
+                   enabled=1
+  DEFAULT_IMAGE: kylinsec-3.5.2
+  RPM_BUILD_REQUIRES: 'cmake make gcc-c++ gettext kiran-log-gtk3-devel jsoncpp-devel gtest-devel fmt-devel libICE-devel libSM-devel libXext-devel gdbus-codegen-glibmm gtkmm30-devel qt5-qtbase-devel qt5-linguist kf5-kconfig-devel kf5-kio-devel kf5-kidletime-devel kiran-log-qt5 kiran-log-qt5-devel xorg-x11-xtrans-devel gsettings-qt-devel kiran-qt5-integration-devel kiran-widgets-qt5-devel'
 
 include:
-  - project: 'os/gitlab-ci'
+  - project: 'os/ks-devops'
     ref: main
-    file: '/cmake/cxx.gitlab-ci.yml'
+    file: '/entrypoint/develop/cmake.yml'
 
