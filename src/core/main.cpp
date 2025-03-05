@@ -89,6 +89,12 @@ void initEnv()
     {
         Utils::getDefault()->setEnv("XDG_CURRENT_DESKTOP", "KIRAN");
     }
+
+    if (qgetenv("XDG_MENU_PREFIX").isEmpty())
+    {
+        // 用于支持开始菜单自定义分类
+        Utils::getDefault()->setEnv("XDG_MENU_PREFIX", "kiran-");
+    }
 }
 
 int main(int argc, char *argv[])
