@@ -59,6 +59,8 @@ void startDBusSession(int argc, char **argv)
     {
         KLOG_WARNING("No session bus and could not exec dbus-launch: %s", g_strerror(errno));
     }
+
+    g_free(new_argv);
 }
 
 void initEnv()

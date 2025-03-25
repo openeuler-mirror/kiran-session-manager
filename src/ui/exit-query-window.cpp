@@ -13,6 +13,7 @@
  */
 
 #include "exit-query-window.h"
+#include <kiran-push-button.h>
 #include <KDesktopFile>
 #include <QApplication>
 #include <QDesktopWidget>
@@ -24,7 +25,6 @@
 #include <QScreen>
 #include <QTimer>
 #include <iostream>
-#include <kiran-push-button.h>
 #include "inhibitor-row.h"
 #include "lib/base/base.h"
 #include "session_manager_interface.h"
