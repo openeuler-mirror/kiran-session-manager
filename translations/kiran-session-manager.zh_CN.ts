@@ -65,22 +65,22 @@
 <context>
     <name>main</name>
     <message>
-        <location filename="../src/core/main.cpp" line="126"/>
+        <location filename="../src/core/main.cpp" line="132"/>
         <source>Specify a session type that contains required components.</source>
         <translation>指定一个会话类型，该会话类型包含需要加载的组件列表。</translation>
     </message>
     <message>
-        <location filename="../src/core/main.cpp" line="127"/>
+        <location filename="../src/core/main.cpp" line="133"/>
         <source>SESSION_NAME</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/core/main.cpp" line="131"/>
+        <location filename="../src/core/main.cpp" line="137"/>
         <source>Override standard autostart directories.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/core/main.cpp" line="132"/>
+        <location filename="../src/core/main.cpp" line="138"/>
         <source>AUTOSTART_DIRS</source>
         <translation type="unfinished"></translation>
     </message>

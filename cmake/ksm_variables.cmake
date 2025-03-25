@@ -4,7 +4,9 @@ set(KSM_INSTALL_DATADIR ${CMAKE_INSTALL_FULL_DATADIR}/${PROJECT_NAME})
 set(KSM_INSTALL_INCLUDE ${CMAKE_INSTALL_FULL_INCLUDEDIR}/${PROJECT_NAME})
 set(KSM_INSTALL_TRANSLATIONDIR ${KSM_INSTALL_DATADIR}/translations)
 set(GETTEXT_PACKAGE ${PROJECT_NAME})
-set(SYSCONFDIR "/etc" CACHE PATH "Installation directory for configurations")
+set(SYSCONFDIR
+    "/etc"
+    CACHE PATH "Installation directory for configurations")
 
 list(APPEND KSM_COMPILER_FLAGS -Wno-parentheses # Disable parentheses warning
 )
