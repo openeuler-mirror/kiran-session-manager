@@ -48,5 +48,4 @@ install(
 install(
   FILES ${CMAKE_CURRENT_SOURCE_DIR}/xsession-errors.logrotate
   DESTINATION "${SYSCONFDIR}/logrotate.d/"
-  RENAME "xsession-errors"
-)
+  RENAME "xsession-errors")
