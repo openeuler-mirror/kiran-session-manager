@@ -896,13 +896,13 @@ void SessionManager::startNextPhase()
 
 void SessionManager::processPhaseApplicationEnd()
 {
-    connect(SignalHandler::get_default(),
+    connect(SignalHandler::getDefault(),
             &SignalHandler::signalReceived,
             QCoreApplication::instance(),
             std::bind(&SessionManager::onSystemSignal, this, std::placeholders::_1));
     /* 需要监听SIGTERM信号，否则在maybeRestartUserBus函数中重置dbus.service时会发送SIGTERM信号，
        导致程序直接退出进入登录界面，如果此时是重启请求，则重启功能失效。*/
-    SignalHandler::get_default()->addSignal(SIGTERM);
+    SignalHandler::getDefault()->addSignal(SIGTERM);
 }
 
 void SessionManager::quitSession()

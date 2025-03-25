@@ -1,14 +1,14 @@
 /**
- * Copyright (c) 2020 ~ 2021 KylinSec Co., Ltd. 
+ * Copyright (c) 2020 ~ 2021 KylinSec Co., Ltd.
  * kiran-session-manager is licensed under Mulan PSL v2.
- * You can use this software according to the terms and conditions of the Mulan PSL v2. 
+ * You can use this software according to the terms and conditions of the Mulan PSL v2.
  * You may obtain a copy of Mulan PSL v2 at:
- *          http://license.coscl.org.cn/MulanPSL2 
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, 
- * EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, 
- * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.  
- * See the Mulan PSL v2 for more details.  
- * 
+ *          http://license.coscl.org.cn/MulanPSL2
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
+ * EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
+ * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
+ * See the Mulan PSL v2 for more details.
+ *
  * Author:     tangjie02 <tangjie02@kylinos.com.cn>
  */
 
@@ -45,7 +45,7 @@ SignalHandler::~SignalHandler()
 }
 
 SignalHandler* SignalHandler::m_instance = nullptr;
-SignalHandler* SignalHandler::get_default()
+SignalHandler* SignalHandler::getDefault()
 {
     if (!m_instance)
     {
@@ -62,7 +62,10 @@ void SignalHandler::addSignal(int signalToTrack)
 
 void SignalHandler::signalHandler(int signal)
 {
-    ::write(signalFD[0], &signal, sizeof(signal));
+    if (::write(signalFD[0], &signal, sizeof(signal)) < 0)
+    {
+        KLOG_WARNING() << "Couldn't write to file description" << signalFD[0] << "which errno is" << errno;
+    }
 }
 
 void SignalHandler::handleSignal()
@@ -70,8 +73,14 @@ void SignalHandler::handleSignal()
     int signal = 0;
 
     this->m_handler->setEnabled(false);
-    ::read(signalFD[1], &signal, sizeof(signal));
+    auto readn = ::read(signalFD[1], &signal, sizeof(signal));
     this->m_handler->setEnabled(true);
+
+    if (readn != sizeof(signal))
+    {
+        KLOG_WARNING() << "the number of bytes read(" << readn << ") isn't equal to" << sizeof(signal);
+        return;
+    }
 
     Q_EMIT signalReceived(signal);
 }
