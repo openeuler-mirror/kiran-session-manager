@@ -72,17 +72,17 @@
     <message>
         <location filename="../src/core/main.cpp" line="128"/>
         <source>SESSION_NAME</source>
-        <translation type="unfinished"></translation>
+        <translation>SESSION_NAME</translation>
     </message>
     <message>
         <location filename="../src/core/main.cpp" line="132"/>
         <source>Override standard autostart directories.</source>
-        <translation type="unfinished"></translation>
+        <translation>替代默认的自启动目录。</translation>
     </message>
     <message>
         <location filename="../src/core/main.cpp" line="133"/>
         <source>AUTOSTART_DIRS</source>
-        <translation type="unfinished"></translation>
+        <translation>AUTOSTART_DIRS</translation>
     </message>
 </context>
 </TS>
