@@ -15,16 +15,14 @@ qt5_add_dbus_interface(
 set(TARGET_NAME kiran-session-window)
 
 set(TS_FILES "${PROJECT_SOURCE_DIR}/translations/${TARGET_NAME}.zh_CN.ts")
-execute_process(
-  COMMAND
-    lupdate-qt5 -no-obsolete ${PROJECT_SOURCE_DIR}/lib ${H_FILES} ${CPP_FILES} ${UI_FILES} -ts ${TS_FILES})
+execute_process(COMMAND lupdate-qt5 -no-obsolete ${PROJECT_SOURCE_DIR}/lib
+                        ${H_FILES} ${CPP_FILES} ${UI_FILES} -ts ${TS_FILES})
 
 qt5_add_translation(QM_FILES ${TS_FILES})
 
 add_executable(
-  ${TARGET_NAME}
-  ${H_FILES} ${CPP_FILES} ${UI_FILES} ${SESSION_MANAGER_SRCS} ${QM_FILES}
-  "${PROJECT_SOURCE_DIR}/resources/resources.qrc")
+  ${TARGET_NAME} ${H_FILES} ${CPP_FILES} ${UI_FILES} ${SESSION_MANAGER_SRCS}
+                 ${QM_FILES} "${PROJECT_SOURCE_DIR}/resources/resources.qrc")
 
 target_include_directories(
   ${TARGET_NAME}

@@ -67,12 +67,7 @@ QSharedPointer<Inhibitor> InhibitorManager::addInhibitor(const QString &appID,
 
     RETURN_VAL_IF_TRUE(i == COOKIE_MAX_RETRY_COUNT, nullptr);
 
-    auto inhibitor = QSharedPointer<Inhibitor>(new Inhibitor{.cookie = cookie,
-                                                             .appID = appID,
-                                                             .toplevelXID = toplevelXID,
-                                                             .reason = reason,
-                                                             .flags = flags,
-                                                             .startupID = startupID});
+    auto inhibitor = QSharedPointer<Inhibitor>(new Inhibitor(cookie, appID, toplevelXID, reason, flags, startupID));
 
     RETURN_VAL_IF_FALSE(this->addInhibitor(inhibitor), nullptr);
     return inhibitor;
