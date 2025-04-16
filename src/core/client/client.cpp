@@ -24,7 +24,7 @@ Client::Client(const QString &id, QObject *parent) : QObject(parent),
 
 QString Client::getAppID()
 {
-    auto app = AppManager::getInstance()->getAppByStartupID(this->m_id);
+    auto app = AppManager::getInstance()->getAppByStartupID(m_id);
     return app ? app->getAppID() : QString();
 }
 }  // namespace Kiran

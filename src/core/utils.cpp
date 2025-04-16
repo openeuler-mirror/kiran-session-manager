@@ -91,15 +91,15 @@ QString Utils::generateStartupID()
 
 void Utils::setAutostartDirs(const QString &autostartDirs)
 {
-    this->m_customAutostartDirs = autostartDirs.split(';');
-    this->m_useCustomAutostartDirs = true;
+    m_customAutostartDirs = autostartDirs.split(';');
+    m_useCustomAutostartDirs = true;
 }
 
 QStringList Utils::getAutostartDirs()
 {
-    if (this->m_useCustomAutostartDirs)
+    if (m_useCustomAutostartDirs)
     {
-        return this->m_customAutostartDirs;
+        return m_customAutostartDirs;
     }
 
     QStringList autostartDirs;
@@ -120,7 +120,7 @@ void Utils::setEnv(const QString &name, const QString &value)
     qputenv(name.toStdString().c_str(), value.toUtf8());
 
     QMap<QString, QString> envs{{name, value}};
-    this->setEnvs(envs);
+    setEnvs(envs);
 }
 
 void Utils::setEnvs(const QMap<QString, QString> &envs)

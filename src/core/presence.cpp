@@ -29,18 +29,18 @@ Presence::Presence(QObject *parent) : QObject(parent),
                                       m_idleTimeoutIdentifier(0),
                                       m_status(KSMPresenceStatus::KSM_PRESENCE_STATUS_AVAILABLE)
 {
-    this->m_settings = new QGSettings(KSM_SCHEMA_ID, "", this);
-    this->m_dbusAdaptor = new PresenceAdaptor(this);
-    this->m_serviceWatcher = new QDBusServiceWatcher(this);
+    m_settings = new QGSettings(KSM_SCHEMA_ID, "", this);
+    m_dbusAdaptor = new PresenceAdaptor(this);
+    m_serviceWatcher = new QDBusServiceWatcher(this);
 }
 
 void Presence::init()
 {
-    this->m_idleTimeout = this->m_settings->get(KSM_SCHEMA_KEY_IDLE_DELAY).toInt();
+    m_idleTimeout = m_settings->get(KSM_SCHEMA_KEY_IDLE_DELAY).toInt();
 
-    this->updateIdleXlarm();
+    updateIdleXlarm();
 
-    if (!connect(this->m_settings, SIGNAL(changed(const QString &)), this, SLOT(onSettingsChanged(const QString &))))
+    if (!connect(m_settings, SIGNAL(changed(const QString &)), this, SLOT(onSettingsChanged(const QString &))))
     {
         KLOG_WARNING() << "Can't connect session manager settings changed signal";
     }
@@ -51,38 +51,38 @@ void Presence::init()
         KLOG_WARNING() << "Can't register object:" << sessionConnection.lastError();
     }
 
-    this->m_serviceWatcher->setConnection(sessionConnection);
-    this->m_serviceWatcher->setWatchedServices(QStringList(KSM_IDLE_DBUS_NAME));
-    this->m_serviceWatcher->setWatchMode(QDBusServiceWatcher::WatchForRegistration | QDBusServiceWatcher::WatchForUnregistration);
+    m_serviceWatcher->setConnection(sessionConnection);
+    m_serviceWatcher->setWatchedServices(QStringList(KSM_IDLE_DBUS_NAME));
+    m_serviceWatcher->setWatchMode(QDBusServiceWatcher::WatchForRegistration | QDBusServiceWatcher::WatchForUnregistration);
 
-    connect(this->m_serviceWatcher, SIGNAL(serviceRegistered(const QString &)), this, SLOT(onNameAcquired(const QString &)));
-    connect(this->m_serviceWatcher, SIGNAL(serviceUnregistered(const QString &)), this, SLOT(onNameLost(const QString &)));
+    connect(m_serviceWatcher, SIGNAL(serviceRegistered(const QString &)), this, SLOT(onNameAcquired(const QString &)));
+    connect(m_serviceWatcher, SIGNAL(serviceUnregistered(const QString &)), this, SLOT(onNameLost(const QString &)));
 }
 
 void Presence::enableIdleTimeout(bool enabled)
 {
     KLOG_DEBUG() << "Enabled/Disable idle time: " << enabled;
 
-    RETURN_IF_TRUE(this->m_enabledIdleTimeout == enabled);
-    this->m_enabledIdleTimeout = enabled;
-    this->updateIdleXlarm();
+    RETURN_IF_TRUE(m_enabledIdleTimeout == enabled);
+    m_enabledIdleTimeout = enabled;
+    updateIdleXlarm();
 }
 
 void Presence::setStatus(uint status)
 {
-    RETURN_IF_TRUE(this->m_status == status);
-    this->m_status = status;
-    Q_EMIT this->statusChanged();
-    Q_EMIT this->StatusChanged(this->m_status);
+    RETURN_IF_TRUE(m_status == status);
+    m_status = status;
+    Q_EMIT statusChanged();
+    Q_EMIT StatusChanged(m_status);
 }
 
 void Presence::setStatusText(const QString &statusText)
 {
-    RETURN_IF_TRUE(this->m_statusText == statusText);
+    RETURN_IF_TRUE(m_statusText == statusText);
 
-    this->m_statusText = statusText;
-    Q_EMIT this->statusTextChanged();
-    Q_EMIT this->StatusTextChanged(this->m_statusText);
+    m_statusText = statusText;
+    Q_EMIT statusTextChanged();
+    Q_EMIT StatusTextChanged(m_statusText);
 }
 
 void Presence::SetStatus(uint status)
@@ -91,34 +91,34 @@ void Presence::SetStatus(uint status)
     {
         DBUS_ERROR_REPLY_AND_RET(QDBusError::InvalidArgs, KSMErrorCode::ERROR_PRESENCE_STATUS_INVALID);
     }
-    this->setStatus(status);
+    setStatus(status);
 }
 
 void Presence::SetStatusText(const QString &status_text)
 {
-    this->setStatusText(status_text);
+    setStatusText(status_text);
 }
 
 void Presence::updateIdleXlarm()
 {
-    KLOG_DEBUG() << "Enabled: " << this->m_enabledIdleTimeout << ", idle timeout: " << this->m_idleTimeout;
+    KLOG_DEBUG() << "Enabled: " << m_enabledIdleTimeout << ", idle timeout: " << m_idleTimeout;
 
-    if (!this->m_idleMonitorProxy)
+    if (!m_idleMonitorProxy)
     {
         KLOG_DEBUG() << "The idle monitor proxy hasn't exist.";
         return;
     }
 
-    if (this->m_idleTimeoutIdentifier > 0)
+    if (m_idleTimeoutIdentifier > 0)
     {
-        auto reply = this->m_idleMonitorProxy->RemoveIdleTimeout(this->m_idleTimeoutIdentifier);
+        auto reply = m_idleMonitorProxy->RemoveIdleTimeout(m_idleTimeoutIdentifier);
         reply.waitForFinished();
-        this->m_idleTimeoutIdentifier = 0;
+        m_idleTimeoutIdentifier = 0;
     }
 
-    if (this->m_idleTimeout > 0)
+    if (m_idleTimeout > 0)
     {
-        auto reply = this->m_idleMonitorProxy->AddIdleTimeout(this->m_idleTimeout * 60000);
+        auto reply = m_idleMonitorProxy->AddIdleTimeout(m_idleTimeout * 60000);
         reply.waitForFinished();
         if (reply.isError())
         {
@@ -126,7 +126,7 @@ void Presence::updateIdleXlarm()
         }
         else
         {
-            this->m_idleTimeoutIdentifier = reply.value();
+            m_idleTimeoutIdentifier = reply.value();
         }
     }
 }
@@ -135,11 +135,11 @@ void Presence::onSettingsChanged(const QString &key)
 {
     if (key == KSM_SCHEMA_KEY_IDLE_DELAY)
     {
-        auto idleTimeout = this->m_settings->get(key).toInt();
-        if (idleTimeout != this->m_idleTimeout)
+        auto idleTimeout = m_settings->get(key).toInt();
+        if (idleTimeout != m_idleTimeout)
         {
-            this->m_idleTimeout = idleTimeout;
-            this->updateIdleXlarm();
+            m_idleTimeout = idleTimeout;
+            updateIdleXlarm();
         }
     }
 }
@@ -148,40 +148,40 @@ void Presence::onNameAcquired(const QString &dbusName)
 {
     KLOG_DEBUG() << "Receive name acquired: " << dbusName;
 
-    this->m_idleMonitorProxy = new IdleMonitorProxy(KSM_IDLE_DBUS_NAME,
-                                                    KSM_IDLE_DBUS_OBJECT_PATH,
-                                                    QDBusConnection::sessionBus(),
-                                                    this);
+    m_idleMonitorProxy = new IdleMonitorProxy(KSM_IDLE_DBUS_NAME,
+                                              KSM_IDLE_DBUS_OBJECT_PATH,
+                                              QDBusConnection::sessionBus(),
+                                              this);
 
-    connect(this->m_idleMonitorProxy, SIGNAL(ResumingFromIdle()), this, SLOT(onResumingFromIdle()));
-    connect(this->m_idleMonitorProxy, SIGNAL(TimeoutReached(int, qulonglong)), this, SLOT(onTimeoutReached(int, qulonglong)));
-    this->updateIdleXlarm();
+    connect(m_idleMonitorProxy, SIGNAL(ResumingFromIdle()), this, SLOT(onResumingFromIdle()));
+    connect(m_idleMonitorProxy, SIGNAL(TimeoutReached(int, qulonglong)), this, SLOT(onTimeoutReached(int, qulonglong)));
+    updateIdleXlarm();
 }
 
 void Presence::onNameLost(const QString &dbusName)
 {
     KLOG_DEBUG() << "Receive name lost: " << dbusName;
 
-    if (this->m_idleMonitorProxy)
+    if (m_idleMonitorProxy)
     {
-        delete this->m_idleMonitorProxy;
-        this->m_idleMonitorProxy = nullptr;
+        delete m_idleMonitorProxy;
+        m_idleMonitorProxy = nullptr;
     }
 }
 
 void Presence::onResumingFromIdle()
 {
     KLOG_DEBUG() << "Receive alarm signal.";
-    this->setStatus(KSMPresenceStatus::KSM_PRESENCE_STATUS_AVAILABLE);
+    setStatus(KSMPresenceStatus::KSM_PRESENCE_STATUS_AVAILABLE);
 }
 
 void Presence::onTimeoutReached(int id, qulonglong interval)
 {
     KLOG_DEBUG() << "Receive alarm triggered signal.";
 
-    if (id == this->m_idleTimeoutIdentifier)
+    if (id == m_idleTimeoutIdentifier)
     {
-        this->setStatus(KSMPresenceStatus::KSM_PRESENCE_STATUS_IDLE);
+        setStatus(KSMPresenceStatus::KSM_PRESENCE_STATUS_IDLE);
     }
 }
 

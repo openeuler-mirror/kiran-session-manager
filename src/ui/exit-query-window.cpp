@@ -43,14 +43,14 @@ ExitQueryWindow::ExitQueryWindow(int32_t powerAction,
                                                     m_ui(new Ui::ExitQueryWindow),
                                                     m_powerAction(powerAction)
 {
-    this->m_ui->setupUi(this);
+    m_ui->setupUi(this);
 
-    this->m_sessionManagerProxy = new SessionManagerProxy(KSM_DBUS_NAME,
-                                                          KSM_DBUS_OBJECT_PATH,
-                                                          QDBusConnection::sessionBus(),
-                                                          this);
+    m_sessionManagerProxy = new SessionManagerProxy(KSM_DBUS_NAME,
+                                                    KSM_DBUS_OBJECT_PATH,
+                                                    QDBusConnection::sessionBus(),
+                                                    this);
 
-    this->initUI();
+    initUI();
 }
 
 void ExitQueryWindow::initUI()
@@ -58,20 +58,20 @@ void ExitQueryWindow::initUI()
     auto primaryScreen = QApplication::primaryScreen();
     auto desktopRect = primaryScreen->virtualGeometry();
 
-    this->m_ui->m_inhibitorsScrollArea->setStyleSheet("QScrollArea {background-color:transparent;}");
-    this->m_ui->m_inhibitorsScrollArea->setFrameStyle(QFrame::NoFrame);
-    this->m_ui->m_inhibitorsScrollArea->viewport()->setStyleSheet("background-color:transparent;");
-    KiranPushButton::setButtonType(this->m_ui->m_ok, KiranPushButton::BUTTON_Default);
+    m_ui->m_inhibitorsScrollArea->setStyleSheet("QScrollArea {background-color:transparent;}");
+    m_ui->m_inhibitorsScrollArea->setFrameStyle(QFrame::NoFrame);
+    m_ui->m_inhibitorsScrollArea->viewport()->setStyleSheet("background-color:transparent;");
+    KiranPushButton::setButtonType(m_ui->m_ok, KiranPushButton::BUTTON_Default);
 
-    this->initInhibitors();
-    this->onVirtualGeometryChanged(desktopRect);
+    initInhibitors();
+    onVirtualGeometryChanged(desktopRect);
 
     connect(primaryScreen, SIGNAL(virtualGeometryChanged(const QRect &)), this, SLOT(onVirtualGeometryChanged(const QRect &)));
 
-    connect(this->m_ui->m_ok, &QPushButton::clicked, [this](bool)
+    connect(m_ui->m_ok, &QPushButton::clicked, [this](bool)
             { this->quit("ok"); });
 
-    connect(this->m_ui->m_cancel, &QPushButton::clicked, [this](bool)
+    connect(m_ui->m_cancel, &QPushButton::clicked, [this](bool)
             { this->quit("cancel"); });
 }
 
@@ -79,7 +79,7 @@ void ExitQueryWindow::initInhibitors()
 {
     QJsonParseError jsonError;
 
-    auto reply = this->m_sessionManagerProxy->GetInhibitors();
+    auto reply = m_sessionManagerProxy->GetInhibitors();
     reply.waitForFinished();
 
     if (reply.isError())
@@ -98,56 +98,56 @@ void ExitQueryWindow::initInhibitors()
     }
 
     auto jsonRoot = jsonDoc.array();
-    this->m_ui->m_titleDesc->setText(tr("If you want to go back and save your work, click 'cancel' and finish what you want to do"));
+    m_ui->m_titleDesc->setText(tr("If you want to go back and save your work, click 'cancel' and finish what you want to do"));
 
     /* 大多数情况是不会出现为0的情况。出现这种情况的原因是在启动当前进程的过程中，会话管理进程收到了客户端响应信息并删除掉了客户端的抑制器，导致此时获取的数量为0。
        主要原因是因为在启动当前进程时有一个延时差，因此这里再做一次判断，如果抑制器数量为0，就之前退出当前进程了。*/
 
-    switch (this->m_powerAction)
+    switch (m_powerAction)
     {
     case PowerAction::POWER_ACTION_LOGOUT:
     {
-        this->m_ui->m_ok->setText(tr("Logout"));
-        this->m_ui->m_title->setText(tr("The current user is being logged out"));
+        m_ui->m_ok->setText(tr("Logout"));
+        m_ui->m_title->setText(tr("The current user is being logged out"));
         break;
     }
     case PowerAction::POWER_ACTION_SHUTDOWN:
     {
-        this->m_ui->m_ok->setText(tr("Shutdown"));
-        this->m_ui->m_title->setText(tr("Shutting down the system"));
+        m_ui->m_ok->setText(tr("Shutdown"));
+        m_ui->m_title->setText(tr("Shutting down the system"));
         break;
     }
     case PowerAction::POWER_ACTION_REBOOT:
     {
-        this->m_ui->m_ok->setText(tr("Reboot"));
-        this->m_ui->m_title->setText(tr("Restarting the system"));
+        m_ui->m_ok->setText(tr("Reboot"));
+        m_ui->m_title->setText(tr("Restarting the system"));
         break;
     }
     default:
     {
-        KLOG_WARNING() << "The power action is unsupported. action: " << this->m_powerAction;
+        KLOG_WARNING() << "The power action is unsupported. action: " << m_powerAction;
         break;
     }
     }
     if (jsonRoot.size() == 0)
     {
-        this->m_ui->m_inhibitorsScrollArea->hide();
-        this->m_ui->m_content->setFixedSize(400, 180);
+        m_ui->m_inhibitorsScrollArea->hide();
+        m_ui->m_content->setFixedSize(400, 180);
     }
     else
     {
-        this->m_ui->m_content->setFixedSize(600, 400);
+        m_ui->m_content->setFixedSize(600, 400);
         for (auto iter : jsonRoot)
         {
             auto jsonInhibitor = iter.toObject();
             if (jsonInhibitor.contains(KSM_INHIBITOR_JK_FLAGS) &&
                 jsonInhibitor.take(KSM_INHIBITOR_JK_FLAGS).toInt() == KSMInhibitorFlag::KSM_INHIBITOR_FLAG_QUIT)
             {
-                this->m_ui->m_inhibitorsLayout->addWidget(new InhibitorRow(jsonInhibitor));
+                m_ui->m_inhibitorsLayout->addWidget(new InhibitorRow(jsonInhibitor));
             }
         }
 
-        this->m_ui->m_inhibitorsLayout->addStretch();
+        m_ui->m_inhibitorsLayout->addStretch();
     }
 }
 
@@ -173,7 +173,7 @@ void ExitQueryWindow::paintEvent(QPaintEvent *event)
     auto desktopRect = screen->virtualGeometry();
 
     // 只加载一次
-    if (this->m_backgroundPixmap.isNull())
+    if (m_backgroundPixmap.isNull())
     {
         auto image = screen->grabWindow(QApplication::desktop()->winId(),
                                         desktopRect.x(),
@@ -182,26 +182,26 @@ void ExitQueryWindow::paintEvent(QPaintEvent *event)
                                         desktopRect.height())
                          .toImage();
         qt_blurImage(image, BLUR_RADIUS, true);
-        this->m_backgroundPixmap = QPixmap::fromImage(image);
+        m_backgroundPixmap = QPixmap::fromImage(image);
     }
-    painter.drawPixmap(desktopRect.x(), desktopRect.y(), this->m_backgroundPixmap);
+    painter.drawPixmap(desktopRect.x(), desktopRect.y(), m_backgroundPixmap);
 
     QWidget::paintEvent(event);
 }
 
 void ExitQueryWindow::onVirtualGeometryChanged(const QRect &rect)
 {
-    this->move(rect.topLeft());
-    this->resize(QSize(rect.width(), rect.height()));
+    move(rect.topLeft());
+    resize(QSize(rect.width(), rect.height()));
 
     auto primaryScreen = QApplication::primaryScreen();
     auto primaryRect = primaryScreen->geometry();
 
-    auto x = primaryRect.x() + (primaryRect.width() - this->m_ui->m_content->width()) / 2;
-    auto y = primaryRect.y() + (primaryRect.height() - this->m_ui->m_content->height()) / 2;
+    auto x = primaryRect.x() + (primaryRect.width() - m_ui->m_content->width()) / 2;
+    auto y = primaryRect.y() + (primaryRect.height() - m_ui->m_content->height()) / 2;
 
-    this->m_ui->m_leftSpacer->changeSize(x, 1);
-    this->m_ui->m_topSpacer->changeSize(1, y);
+    m_ui->m_leftSpacer->changeSize(x, 1);
+    m_ui->m_topSpacer->changeSize(1, y);
 }
 
 }  // namespace Kiran

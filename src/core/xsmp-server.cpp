@@ -169,7 +169,7 @@ void XsmpServer::init()
         return;
     }
 
-    this->listenSocket();
+    listenSocket();
 }
 
 void XsmpServer::listenSocket()
@@ -186,8 +186,8 @@ void XsmpServer::listenSocket()
     auto savedUmask = umask(0);
     umask(savedUmask);
     // 监听网络连接，该函数会对每种socket类型(例如：unix/tcp/DECnet)返回一个地址
-    if (!IceListenForConnections(&this->m_numListenSockets,
-                                 &this->m_listenSockets,
+    if (!IceListenForConnections(&m_numListenSockets,
+                                 &m_listenSockets,
                                  BUFSIZ,
                                  errorString))
     {
@@ -197,44 +197,44 @@ void XsmpServer::listenSocket()
     umask(savedUmask);
 
     // 仅支持本机客户端连接
-    for (int i = 0; i < this->m_numListenSockets; i++)
+    for (int i = 0; i < m_numListenSockets; i++)
     {
-        auto pSocketAddr = IceGetListenConnectionString(this->m_listenSockets[i]);
+        auto pSocketAddr = IceGetListenConnectionString(m_listenSockets[i]);
         CONTINUE_IF_FALSE(pSocketAddr);
 
         auto socketAddr = QString(pSocketAddr);
 
         if (socketAddr.startsWith("local/") || socketAddr.startsWith("unix/"))
         {
-            std::swap(this->m_listenSockets[i], this->m_listenSockets[this->m_numLocalListenSockets]);
-            ++this->m_numLocalListenSockets;
+            std::swap(m_listenSockets[i], m_listenSockets[m_numLocalListenSockets]);
+            ++m_numLocalListenSockets;
         }
 
         free(pSocketAddr);
     }
 
-    if (this->m_numLocalListenSockets <= 0)
+    if (m_numLocalListenSockets <= 0)
     {
         KLOG_WARNING("Not exists local listen socket.");
         return;
     }
 
     // 更新认证文件
-    this->updateIceAuthority();
+    updateIceAuthority();
 
     // 如果客户端未设置socket地址，则会从SESSION_MANAGER环境变量中读取。所以这里将服务器监听的地址写入该环境变量中
-    auto networkIds = IceComposeNetworkIdList(this->m_numLocalListenSockets,
-                                              this->m_listenSockets);
+    auto networkIds = IceComposeNetworkIdList(m_numLocalListenSockets,
+                                              m_listenSockets);
     Utils::getDefault()->setEnv("SESSION_MANAGER", networkIds);
     free(networkIds);
 
-    for (int32_t i = 0; i < this->m_numLocalListenSockets; i++)
+    for (int32_t i = 0; i < m_numLocalListenSockets; i++)
     {
-        auto channel = g_io_channel_unix_new(IceGetListenConnectionNumber(this->m_listenSockets[i]));
+        auto channel = g_io_channel_unix_new(IceGetListenConnectionNumber(m_listenSockets[i]));
         g_io_add_watch(channel,
                        GIOCondition(G_IO_IN | G_IO_HUP | G_IO_ERR),
                        &XsmpServer::onAcceptIceConnection,
-                       this->m_listenSockets[i]);
+                       m_listenSockets[i]);
         g_io_channel_unref(channel);
     }
 }
@@ -259,9 +259,9 @@ void XsmpServer::updateIceAuthority()
 
     std::vector<std::string> networkIds;
 
-    for (int32_t i = 0; i < this->m_numLocalListenSockets; i++)
+    for (int32_t i = 0; i < m_numLocalListenSockets; i++)
     {
-        auto networkID = IceGetListenConnectionString(this->m_listenSockets[i]);
+        auto networkID = IceGetListenConnectionString(m_listenSockets[i]);
         networkIds.push_back(networkID);
         free(networkID);
     }
@@ -308,10 +308,10 @@ void XsmpServer::updateIceAuthority()
         }
     }
 
-    for (int32_t i = 0; i < this->m_numLocalListenSockets; i++)
+    for (int32_t i = 0; i < m_numLocalListenSockets; i++)
     {
-        authEntries.push_back(static_cast<IceAuthFileEntry *>(this->createAndStoreAuthEntry("ICE", networkIds[i])));
-        authEntries.push_back(static_cast<IceAuthFileEntry *>(this->createAndStoreAuthEntry("XSMP", networkIds[i])));
+        authEntries.push_back(static_cast<IceAuthFileEntry *>(createAndStoreAuthEntry("ICE", networkIds[i])));
+        authEntries.push_back(static_cast<IceAuthFileEntry *>(createAndStoreAuthEntry("XSMP", networkIds[i])));
     }
 
     for (auto authEntry : authEntries)

@@ -23,7 +23,7 @@ namespace Kiran
 {
 IdleMonitor::IdleMonitor(QObject* parent) : QObject(parent)
 {
-    this->m_dbusAdaptor = new IdleMonitorAdaptor(this);
+    m_dbusAdaptor = new IdleMonitorAdaptor(this);
 }
 
 void IdleMonitor::init()

@@ -215,7 +215,7 @@ static void onGetProperties(SmsConn smsConn, SmPointer managerData)
 
 ClientManager::ClientManager(XsmpServer *xsmp_server) : m_xsmpServer(xsmp_server)
 {
-    this->m_serviceWatcher = new QDBusServiceWatcher(this);
+    m_serviceWatcher = new QDBusServiceWatcher(this);
 }
 
 ClientManager *ClientManager::m_instance = nullptr;
@@ -227,7 +227,7 @@ void ClientManager::globalInit(XsmpServer *xsmp_server)
 
 ClientDBus *ClientManager::getClientByDBusName(const QString &dbusName)
 {
-    for (auto iter : this->m_clients)
+    for (auto iter : m_clients)
     {
         CONTINUE_IF_TRUE(iter->getType() != CLIENT_TYPE_DBUS);
         auto dbus_client = dynamic_cast<ClientDBus *>(iter);
@@ -240,12 +240,12 @@ void ClientManager::init()
 {
     KLOG_DEBUG() << "Init client manager.";
 
-    this->m_serviceWatcher->setConnection(QDBusConnection::sessionBus());
-    this->m_serviceWatcher->setWatchMode(QDBusServiceWatcher::WatchForUnregistration);
+    m_serviceWatcher->setConnection(QDBusConnection::sessionBus());
+    m_serviceWatcher->setWatchMode(QDBusServiceWatcher::WatchForUnregistration);
 
-    connect(this->m_serviceWatcher, SIGNAL(serviceUnregistered(const QString &)), this, SLOT(onNameLost(const QString &)));
-    connect(this->m_xsmpServer, SIGNAL(newClientConnected(unsigned long *, void *)), this, SLOT(onNewXsmpClientConnected(unsigned long *, void *)));
-    connect(this->m_xsmpServer, SIGNAL(iceConnStatusChanged(int32_t, IceConn)), this, SLOT(onIceConnStatusChanged(int32_t, IceConn)));
+    connect(m_serviceWatcher, SIGNAL(serviceUnregistered(const QString &)), this, SLOT(onNameLost(const QString &)));
+    connect(m_xsmpServer, SIGNAL(newClientConnected(unsigned long *, void *)), this, SLOT(onNewXsmpClientConnected(unsigned long *, void *)));
+    connect(m_xsmpServer, SIGNAL(iceConnStatusChanged(int32_t, IceConn)), this, SLOT(onIceConnStatusChanged(int32_t, IceConn)));
 }
 
 ClientXsmp *ClientManager::addClientXsmp(const QString &startupID, SmsConn smsConn)
@@ -258,7 +258,7 @@ ClientXsmp *ClientManager::addClientXsmp(const QString &startupID, SmsConn smsCo
 
     auto client = new ClientXsmp(newStartupID, smsConn, this);
 
-    if (!this->addClient(client))
+    if (!addClient(client))
     {
         delete client;
         return nullptr;
@@ -279,24 +279,24 @@ ClientDBus *ClientManager::addClientDBus(const QString &startupID, const QString
 
     auto client = new ClientDBus(newStartupID, dbusName, appID, this);
 
-    if (!this->addClient(client))
+    if (!addClient(client))
     {
         delete client;
         return nullptr;
     }
 
-    this->m_serviceWatcher->addWatchedService(dbusName);
+    m_serviceWatcher->addWatchedService(dbusName);
     connect(client, &ClientDBus::endSessionResponse, this, std::bind(&ClientManager::onDBusClientEndSessionResponse, this, std::placeholders::_1, client->getID()));
     return client;
 }
 
 bool ClientManager::deleteClient(const QString &startupID)
 {
-    auto client = this->getClient(startupID);
+    auto client = getClient(startupID);
     RETURN_VAL_IF_FALSE(client, false);
 
-    this->m_clients.remove(startupID);
-    Q_EMIT this->clientDeleted(client);
+    m_clients.remove(startupID);
+    Q_EMIT clientDeleted(client);
     return true;
 }
 
@@ -304,15 +304,15 @@ bool ClientManager::addClient(Client *client)
 {
     RETURN_VAL_IF_FALSE(client, false);
 
-    if (this->m_clients.find(client->getID()) != this->m_clients.end())
+    if (m_clients.find(client->getID()) != m_clients.end())
     {
         KLOG_WARNING() << "The client " << client->getID() << " already exist.";
         return false;
     }
     else
     {
-        this->m_clients.insert(client->getID(), client);
-        Q_EMIT this->clientAdded(client);
+        m_clients.insert(client->getID(), client);
+        Q_EMIT clientAdded(client);
     }
 
     return true;
@@ -321,7 +321,7 @@ bool ClientManager::addClient(Client *client)
 ClientXsmp *ClientManager::getClientBySmsConn(SmsConn smsConn)
 {
     auto id = SmsClientID(smsConn);
-    auto client = this->getClient(POINTER_TO_STRING(id));
+    auto client = getClient(POINTER_TO_STRING(id));
 
     if (!client)
     {
@@ -339,7 +339,7 @@ ClientXsmp *ClientManager::getClientBySmsConn(SmsConn smsConn)
 
 ClientXsmp *ClientManager::getClientByIceConn(IceConn iceConn)
 {
-    for (auto iter : this->m_clients)
+    for (auto iter : m_clients)
     {
         CONTINUE_IF_TRUE(iter->getType() != ClientType::CLIENT_TYPE_XSMP);
         auto xsmp_client = static_cast<ClientXsmp *>(iter);
@@ -354,11 +354,11 @@ ClientXsmp *ClientManager::getClientByIceConn(IceConn iceConn)
 
 void ClientManager::onNameLost(const QString &dbusName)
 {
-    auto dbusClient = this->getClientByDBusName(dbusName);
+    auto dbusClient = getClientByDBusName(dbusName);
     if (dbusClient)
     {
         KLOG_DEBUG() << "Remove client " << dbusClient->getID() << " which dbus name is " << dbusName;
-        this->deleteClient(dbusClient->getID());
+        deleteClient(dbusClient->getID());
     }
 }
 
@@ -411,14 +411,14 @@ void ClientManager::onNewXsmpClientConnected(unsigned long *mask_ret, void *call
 
 void ClientManager::onIceConnStatusChanged(int32_t status, IceConn iceConn)
 {
-    auto client = this->getClientByIceConn(iceConn);
+    auto client = getClientByIceConn(iceConn);
     RETURN_IF_FALSE(client);
 
     switch (IceProcessMessagesStatus(status))
     {
     case IceProcessMessagesIOError:
         KLOG_WARNING() << "The client " << client->getID() << " Receive IceProcessMessagesIOError message. program name: " << client->getProgramName();
-        this->deleteClient(client->getID());
+        deleteClient(client->getID());
         break;
     case IceProcessMessagesConnectionClosed:
         KLOG_DEBUG() << "The client " << client->getID() << " Receive IceProcessMessagesConnectionClosed message. program name: " << client->getProgramName();
@@ -430,12 +430,12 @@ void ClientManager::onIceConnStatusChanged(int32_t status, IceConn iceConn)
 
 void ClientManager::onDBusClientEndSessionResponse(bool isOK, QString startupID)
 {
-    auto client = this->getClient(startupID);
+    auto client = getClient(startupID);
     RETURN_IF_FALSE(client);
 
     if (isOK)
     {
-        Q_EMIT this->endSessionResponse(client);
+        Q_EMIT endSessionResponse(client);
     }
     else
     {

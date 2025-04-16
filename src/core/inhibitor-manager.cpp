@@ -22,7 +22,7 @@ namespace Kiran
 {
 InhibitorManager::InhibitorManager() : QObject(nullptr)
 {
-    this->m_presence = new Presence(this);
+    m_presence = new Presence(this);
 }
 
 InhibitorManager *InhibitorManager::m_instance = nullptr;
@@ -35,7 +35,7 @@ void InhibitorManager::globalInit()
 KSMInhibitorVec InhibitorManager::getInhibitorsByFlag(KSMInhibitorFlag flag)
 {
     KSMInhibitorVec inhibitors;
-    for (auto &iter : this->m_inhibitors)
+    for (auto &iter : m_inhibitors)
     {
         if ((iter->flags & flag) == flag)
         {
@@ -58,7 +58,7 @@ QSharedPointer<Inhibitor> InhibitorManager::addInhibitor(const QString &appID,
     for (i = 0; i < COOKIE_MAX_RETRY_COUNT; ++i)
     {
         cookie = Utils::getDefault()->generateCookie();
-        auto inhibitor = this->getInhibitor(cookie);
+        auto inhibitor = getInhibitor(cookie);
         if (!inhibitor)
         {
             break;
@@ -69,7 +69,7 @@ QSharedPointer<Inhibitor> InhibitorManager::addInhibitor(const QString &appID,
 
     auto inhibitor = QSharedPointer<Inhibitor>(new Inhibitor(cookie, appID, toplevelXID, reason, flags, startupID));
 
-    RETURN_VAL_IF_FALSE(this->addInhibitor(inhibitor), nullptr);
+    RETURN_VAL_IF_FALSE(addInhibitor(inhibitor), nullptr);
     return inhibitor;
 }
 
@@ -77,21 +77,21 @@ void InhibitorManager::deleteInhibitor(uint32_t cookie)
 {
     KLOG_DEBUG("cookie: %d.", cookie);
 
-    auto iter = this->m_inhibitors.find(cookie);
-    if (iter != this->m_inhibitors.end())
+    auto iter = m_inhibitors.find(cookie);
+    if (iter != m_inhibitors.end())
     {
         auto inhibitor = iter.value();
 
-        this->m_inhibitors.erase(iter);
-        this->updatePresence();
-        Q_EMIT this->inhibitorDeleted(inhibitor);
+        m_inhibitors.erase(iter);
+        updatePresence();
+        Q_EMIT inhibitorDeleted(inhibitor);
     }
 }
 
 void InhibitorManager::deleteInhibitorByStartupID(const QString &startupID)
 {
     std::vector<uint32_t> deletedCookies;
-    for (const auto &iter : this->m_inhibitors)
+    for (const auto &iter : m_inhibitors)
     {
         if (iter->startupID == startupID)
         {
@@ -101,14 +101,14 @@ void InhibitorManager::deleteInhibitorByStartupID(const QString &startupID)
 
     for (auto deletedCookie : deletedCookies)
     {
-        this->deleteInhibitor(deletedCookie);
+        deleteInhibitor(deletedCookie);
     }
 }
 
 void InhibitorManager::deleteInhibitorsWithStartupID()
 {
     std::vector<uint32_t> deletedCookies;
-    for (const auto &iter : this->m_inhibitors)
+    for (const auto &iter : m_inhibitors)
     {
         if (!iter->startupID.isEmpty())
         {
@@ -118,21 +118,21 @@ void InhibitorManager::deleteInhibitorsWithStartupID()
 
     for (auto deleted_cookie : deletedCookies)
     {
-        this->deleteInhibitor(deleted_cookie);
+        deleteInhibitor(deleted_cookie);
     }
 }
 
 bool InhibitorManager::hasInhibitor(uint32_t flags)
 {
-    auto iter = std::find_if(this->m_inhibitors.begin(), this->m_inhibitors.end(), [flags](QSharedPointer<Inhibitor> iter)
+    auto iter = std::find_if(m_inhibitors.begin(), m_inhibitors.end(), [flags](QSharedPointer<Inhibitor> iter)
                              { return ((flags & iter->flags) == flags); });
 
-    return (iter != this->m_inhibitors.end());
+    return (iter != m_inhibitors.end());
 }
 
 void InhibitorManager::init()
 {
-    this->m_presence->init();
+    m_presence->init();
 }
 
 bool InhibitorManager::addInhibitor(QSharedPointer<Inhibitor> inhibitor)
@@ -149,28 +149,28 @@ bool InhibitorManager::addInhibitor(QSharedPointer<Inhibitor> inhibitor)
                  << ", startupID: " << inhibitor->startupID
                  << ", toplevelXID: " << inhibitor->toplevelXID;
 
-    if (this->m_inhibitors.find(inhibitor->cookie) != this->m_inhibitors.end())
+    if (m_inhibitors.find(inhibitor->cookie) != m_inhibitors.end())
     {
         KLOG_WARNING() << "The inhibitor " << inhibitor->cookie << " already exist.";
         return false;
     }
 
-    this->m_inhibitors.insert(inhibitor->cookie, inhibitor);
-    this->updatePresence();
+    m_inhibitors.insert(inhibitor->cookie, inhibitor);
+    updatePresence();
 
-    Q_EMIT this->inhibitorAdded(inhibitor);
+    Q_EMIT inhibitorAdded(inhibitor);
     return true;
 }
 
 void InhibitorManager::updatePresence()
 {
-    if (this->hasInhibitor(KSMInhibitorFlag::KSM_INHIBITOR_FLAG_IDLE))
+    if (hasInhibitor(KSMInhibitorFlag::KSM_INHIBITOR_FLAG_IDLE))
     {
-        this->m_presence->enableIdleTimeout(false);
+        m_presence->enableIdleTimeout(false);
     }
     else
     {
-        this->m_presence->enableIdleTimeout(true);
+        m_presence->enableIdleTimeout(true);
     }
 }
 }  // namespace Kiran
