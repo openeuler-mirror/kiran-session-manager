@@ -23,7 +23,7 @@ namespace Kiran
 {
 Power::Power(QObject *parent) : QObject(parent)
 {
-    this->m_settings = new QGSettings(KSM_SCHEMA_ID, "", this);
+    m_settings = new QGSettings(KSM_SCHEMA_ID, "", this);
 }
 
 void Power::init()
@@ -56,22 +56,22 @@ bool Power::canPowerAction(PowerAction powerAction)
 
 bool Power::doPowerAction(PowerAction powerAction)
 {
-    KLOG_DEBUG() << "Do power action: " << this->powerActionEnum2Str(powerAction);
+    KLOG_DEBUG() << "Do power action: " << powerActionEnum2Str(powerAction);
 
     switch (powerAction)
     {
     case PowerAction::POWER_ACTION_SWITCH_USER:
-        return this->switchUser();
+        return switchUser();
     case PowerAction::POWER_ACTION_LOGOUT:
         break;
     case PowerAction::POWER_ACTION_SUSPEND:
-        return this->suspend();
+        return suspend();
     case PowerAction::POWER_ACTION_HIBERNATE:
-        return this->hibernate();
+        return hibernate();
     case PowerAction::POWER_ACTION_SHUTDOWN:
-        return this->shutdown();
+        return shutdown();
     case PowerAction::POWER_ACTION_REBOOT:
-        return this->reboot();
+        return reboot();
     default:
         break;
     }
@@ -91,7 +91,7 @@ bool Power::suspend()
     RETURN_VAL_IF_TRUE(!SystemdLogin1::getDefault()->canSuspend(), false);
 
     // 挂起之前判断是否锁定屏幕
-    auto lockscreen = this->m_settings->get(KSM_SCHEMA_KEY_SCREEN_LOCKED_WHEN_SUSPEND).toBool();
+    auto lockscreen = m_settings->get(KSM_SCHEMA_KEY_SCREEN_LOCKED_WHEN_SUSPEND).toBool();
     if (lockscreen)
     {
         throttle = ScreenSaver::getDefault()->lockAndThrottle("suspend");
@@ -115,7 +115,7 @@ bool Power::hibernate()
     RETURN_VAL_IF_TRUE(!SystemdLogin1::getDefault()->canHibernate(), false);
 
     // 休眠之前判断是否锁定屏幕
-    auto lockscreen = this->m_settings->get(KSM_SCHEMA_KEY_SCREEN_LOCKED_WHEN_HIBERNATE).toBool();
+    auto lockscreen = m_settings->get(KSM_SCHEMA_KEY_SCREEN_LOCKED_WHEN_HIBERNATE).toBool();
     if (lockscreen)
     {
         throttle = ScreenSaver::getDefault()->lockAndThrottle("hibernate");

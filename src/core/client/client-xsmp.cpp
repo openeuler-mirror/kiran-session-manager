@@ -33,7 +33,7 @@ ClientXsmp::ClientXsmp(const QString &startupID,
 
 ClientXsmp::~ClientXsmp()
 {
-    for (auto props : this->m_props)
+    for (auto props : m_props)
     {
         SmFreeProperty(static_cast<SmProp *>(props));
     }
@@ -41,22 +41,22 @@ ClientXsmp::~ClientXsmp()
 
 QString ClientXsmp::getAppID()
 {
-    auto appID = this->Client::getAppID();
+    auto appID = Client::getAppID();
     RETURN_VAL_IF_TRUE(appID.length() > 0, appID);
 
-    return QFileInfo(this->getProgramName()).fileName() + ".desktop";
+    return QFileInfo(getProgramName()).fileName() + ".desktop";
 }
 
 bool ClientXsmp::cancelEndSession()
 {
-    SmsShutdownCancelled(this->m_smsConnection);
+    SmsShutdownCancelled(m_smsConnection);
     return true;
 }
 
 bool ClientXsmp::queryEndSession(bool interact)
 {
     /* SmsConn/SaveType/shutdown/interact style/fast */
-    SmsSaveYourself(this->m_smsConnection,
+    SmsSaveYourself(m_smsConnection,
                     SmSaveGlobal,
                     True,
                     interact ? SmInteractStyleAny : SmInteractStyleNone,
@@ -67,7 +67,7 @@ bool ClientXsmp::queryEndSession(bool interact)
 
 bool ClientXsmp::endSession(bool saveData)
 {
-    SmsSaveYourself(this->m_smsConnection,
+    SmsSaveYourself(m_smsConnection,
                     saveData ? SmSaveBoth : SmSaveGlobal,
                     True,
                     SmInteractStyleNone,
@@ -77,13 +77,13 @@ bool ClientXsmp::endSession(bool saveData)
 
 bool ClientXsmp::endSessionPhase2()
 {
-    SmsSaveYourselfPhase2(this->m_smsConnection);
+    SmsSaveYourselfPhase2(m_smsConnection);
     return true;
 }
 
 bool ClientXsmp::stop()
 {
-    SmsDie(this->m_smsConnection);
+    SmsDie(m_smsConnection);
     return true;
 }
 
@@ -93,14 +93,14 @@ void ClientXsmp::updateProperty(void *property)
     SmProp *smProperty = static_cast<SmProp *>(property);
     KLOG_DEBUG("property name: %s.", smProperty->name);
 
-    this->deleteProperty(POINTER_TO_STRING(smProperty->name));
-    this->m_props.push_back(property);
+    deleteProperty(POINTER_TO_STRING(smProperty->name));
+    m_props.push_back(property);
 
     switch (shash(smProperty->name))
     {
     case CONNECT(SmDiscardCommand, _hash):
     {
-        auto discardCommand = this->propToCommand(smProperty);
+        auto discardCommand = propToCommand(smProperty);
         KLOG_DEBUG() << "Property value: " << discardCommand;
         break;
     }
@@ -118,7 +118,7 @@ void ClientXsmp::updateProperty(void *property)
     }
     case CONNECT(SmRestartCommand, _hash):
     {
-        auto restartCommand = this->propToCommand(smProperty);
+        auto restartCommand = propToCommand(smProperty);
         KLOG_DEBUG() << "Property value: " << restartCommand;
         break;
     }
@@ -137,24 +137,24 @@ void ClientXsmp::deleteProperty(const QString &propertyName)
 {
     KLOG_DEBUG() << "Delete Property " << propertyName;
 
-    auto index = this->getPropertyIndex(propertyName);
+    auto index = getPropertyIndex(propertyName);
     if (index >= 0)
     {
-        SmFreeProperty(static_cast<SmProp *>(this->m_props[index]));
-        this->m_props.remove(index);
+        SmFreeProperty(static_cast<SmProp *>(m_props[index]));
+        m_props.remove(index);
     }
 }
 
 void *ClientXsmp::getProperty(const QString &propertyName)
 {
-    auto index = this->getPropertyIndex(propertyName);
+    auto index = getPropertyIndex(propertyName);
     RETURN_VAL_IF_TRUE(index < 0, NULL);
-    return this->m_props[index];
+    return m_props[index];
 }
 
 QString ClientXsmp::getProgramName()
 {
-    auto property = this->getProperty(SmProgram);
+    auto property = getProperty(SmProgram);
     RETURN_VAL_IF_TRUE(property == NULL, QString());
     SmProp *sm_property = static_cast<SmProp *>(property);
     return QString::fromUtf8(static_cast<const char *>(sm_property->vals[0].value), sm_property->vals[0].length);
@@ -162,9 +162,9 @@ QString ClientXsmp::getProgramName()
 
 int32_t ClientXsmp::getPropertyIndex(const QString &propertyName)
 {
-    for (int32_t i = 0; i < this->m_props.size(); ++i)
+    for (int32_t i = 0; i < m_props.size(); ++i)
     {
-        auto prop = static_cast<SmProp *>(this->m_props[i]);
+        auto prop = static_cast<SmProp *>(m_props[i]);
 
         RETURN_VAL_IF_TRUE(propertyName == POINTER_TO_STRING(prop->name), i);
     }

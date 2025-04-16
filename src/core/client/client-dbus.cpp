@@ -30,17 +30,17 @@ ClientDBus::ClientDBus(const QString &startupID,
                                           m_dbusName(dbusName),
                                           m_appID(appID)
 {
-    this->m_objectPath = QDBusObjectPath(QString("%1/%2").arg(KSM_CLIENT_DBUS_OBJECT_PATH).arg(++ClientDBus::m_clientCount));
-    this->m_dbusAdaptor = new ClientDBusAdaptor(this);
+    m_objectPath = QDBusObjectPath(QString("%1/%2").arg(KSM_CLIENT_DBUS_OBJECT_PATH).arg(++ClientDBus::m_clientCount));
+    m_dbusAdaptor = new ClientDBusAdaptor(this);
 
-    if (!this->m_appID.endsWith(".desktop"))
+    if (!m_appID.endsWith(".desktop"))
     {
-        this->m_appID += ".desktop";
+        m_appID += ".desktop";
     }
 
     auto sessionConnection = QDBusConnection::sessionBus();
 
-    if (!sessionConnection.registerObject(this->m_objectPath.path(), KSM_CLIENT_DBUS_INTERFACE, this))
+    if (!sessionConnection.registerObject(m_objectPath.path(), KSM_CLIENT_DBUS_INTERFACE, this))
     {
         KLOG_ERROR() << "Can't register object:" << sessionConnection.lastError();
     }
@@ -48,30 +48,30 @@ ClientDBus::ClientDBus(const QString &startupID,
 
 ClientDBus::~ClientDBus()
 {
-    KLOG_DEBUG() << "client " << this->getID() << " is destroyed.";
+    KLOG_DEBUG() << "client " << getID() << " is destroyed.";
 }
 
 QString ClientDBus::getAppID()
 {
-    RETURN_VAL_IF_TRUE(this->m_appID.length() > 0, this->m_appID);
-    return this->Client::getAppID();
+    RETURN_VAL_IF_TRUE(m_appID.length() > 0, m_appID);
+    return Client::getAppID();
 }
 
 bool ClientDBus::cancelEndSession()
 {
-    Q_EMIT this->CancelEndSession(false);
+    Q_EMIT CancelEndSession(false);
     return true;
 }
 
 bool ClientDBus::queryEndSession(bool interact)
 {
-    Q_EMIT this->QueryEndSession(0);
+    Q_EMIT QueryEndSession(0);
     return true;
 }
 
 bool ClientDBus::endSession(bool save_data)
 {
-    Q_EMIT this->EndSession(0);
+    Q_EMIT EndSession(0);
     return true;
 }
 
@@ -88,7 +88,7 @@ bool ClientDBus::stop()
 
 void ClientDBus::EndSessionResponse(bool is_ok, const QString &reason)
 {
-    Q_EMIT this->endSessionResponse(is_ok);
+    Q_EMIT endSessionResponse(is_ok);
 }
 
 }  // namespace Kiran

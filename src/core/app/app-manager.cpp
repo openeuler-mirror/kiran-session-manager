@@ -45,7 +45,7 @@ App *AppManager::getAppByStartupID(const QString &startupID)
 {
     KLOG_DEBUG() << "Startup id: " << startupID;
 
-    for (auto iter : this->m_apps)
+    for (auto iter : m_apps)
     {
         if (iter->getStartupID() == startupID)
         {
@@ -59,7 +59,7 @@ QList<App *> AppManager::startApps(int32_t phase)
 {
     QList<App *> apps;
 
-    for (auto app : this->getAppsByPhase(phase))
+    for (auto app : getAppsByPhase(phase))
     {
         if (!app->canLaunched())
         {
@@ -92,19 +92,19 @@ QList<App *> AppManager::startApps(int32_t phase)
 
 void AppManager::init()
 {
-    this->loadApps();
+    loadApps();
 }
 
 void AppManager::loadApps()
 {
-    this->loadBlacklistAutostartApps();
-    this->loadAutostartApps();
-    this->loadRequiredApps();
+    loadBlacklistAutostartApps();
+    loadAutostartApps();
+    loadRequiredApps();
 }
 
 void AppManager::loadRequiredApps()
 {
-    auto sessionFilePath = QString("%1/%2.session").arg(SESSIONS_DIR).arg(this->m_sessionName);
+    auto sessionFilePath = QString("%1/%2.session").arg(SESSIONS_DIR).arg(m_sessionName);
 
     KConfig keyFile(sessionFilePath, KConfig::SimpleConfig);
 
@@ -115,14 +115,14 @@ void AppManager::loadRequiredApps()
 
     for (auto &iter : requiredComponents)
     {
-        this->addApp(iter + ".desktop");
+        addApp(iter + ".desktop");
     }
 }
 
 void AppManager::loadBlacklistAutostartApps()
 {
     static const int DESKTOP_ID_MAX_LEN = 256;
-    this->m_blacklistApps.clear();
+    m_blacklistApps.clear();
 
     std::ifstream ifs(BLACKLIST_APPS_PATH, std::ifstream::in);
     if (ifs.is_open())
@@ -131,7 +131,7 @@ void AppManager::loadBlacklistAutostartApps()
         {
             char desktop_id[DESKTOP_ID_MAX_LEN] = {0};
             ifs.getline(desktop_id, DESKTOP_ID_MAX_LEN);
-            this->m_blacklistApps.insert(desktop_id);
+            m_blacklistApps.insert(desktop_id);
         }
     }
 }
@@ -153,13 +153,13 @@ void AppManager::loadAutostartApps()
                 continue;
             }
 
-            if (this->m_blacklistApps.find(fileName) != this->m_blacklistApps.end())
+            if (m_blacklistApps.find(fileName) != m_blacklistApps.end())
             {
                 KLOG_DEBUG() << "The app " << fileName << " is in black list, so it isn't loaded.";
             }
             else
             {
-                this->addApp(filePath);
+                addApp(filePath);
             }
         }
     }
@@ -169,7 +169,7 @@ bool AppManager::addApp(const QString &fileName)
 {
     auto app = new App(fileName, this);
     auto appID = app->getAppID();
-    if (this->m_apps.find(appID) != this->m_apps.end())
+    if (m_apps.find(appID) != m_apps.end())
     {
         KLOG_DEBUG() << "The app " << appID << " already exist.";
         delete app;
@@ -177,7 +177,7 @@ bool AppManager::addApp(const QString &fileName)
     }
     KLOG_DEBUG() << "Add app " << appID << " with location " << fileName << " to AppManager.";
 
-    this->m_apps.insert(appID, app);
+    m_apps.insert(appID, app);
     connect(app, &App::AppExited, [this, app]()
             { emit this->AppExited(app); });
     return true;
@@ -186,7 +186,7 @@ bool AppManager::addApp(const QString &fileName)
 QList<App *> AppManager::getAppsByPhase(int32_t phase)
 {
     QList<App *> apps;
-    for (auto iter : this->m_apps)
+    for (auto iter : m_apps)
     {
         if (iter->getPhase() == phase)
         {
