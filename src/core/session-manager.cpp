@@ -386,16 +386,6 @@ void SessionManager::onClientAdded(Client *client)
     }
     KLOG_DEBUG() << "The new client " << client->getID() << " match the app " << app->getAppID();
 
-    // 此时说明kiran-session-daemon已经关闭掉与mate-settings-daemon冲突的插件，这时可以运行mate-settings-daemon
-    auto iter = std::find_if(this->m_waitingApps.begin(), this->m_waitingApps.end(), [](App *app)
-                             { return app->getAppID() == "mate-settings-daemon.desktop"; });
-    if (app->getAppID() == "kiran-session-daemon.desktop" &&
-        iter != this->m_waitingApps.end())
-    {
-        KLOG_DEBUG() << "Start to boot " << (*iter)->getAppID();
-        (*iter)->start();
-    }
-
     this->onAppStartupFinished(app);
 }
 
