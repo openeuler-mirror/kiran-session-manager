@@ -1,14 +1,14 @@
 /**
- * Copyright (c) 2020 ~ 2021 KylinSec Co., Ltd. 
+ * Copyright (c) 2020 ~ 2021 KylinSec Co., Ltd.
  * kiran-session-manager is licensed under Mulan PSL v2.
- * You can use this software according to the terms and conditions of the Mulan PSL v2. 
+ * You can use this software according to the terms and conditions of the Mulan PSL v2.
  * You may obtain a copy of Mulan PSL v2 at:
- *          http://license.coscl.org.cn/MulanPSL2 
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, 
- * EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, 
- * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.  
- * See the Mulan PSL v2 for more details.  
- * 
+ *          http://license.coscl.org.cn/MulanPSL2
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
+ * EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
+ * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
+ * See the Mulan PSL v2 for more details.
+ *
  * Author:     tangjie02 <tangjie02@kylinos.com.cn>
  */
 
@@ -70,18 +70,6 @@ QList<App *> AppManager::startApps(int32_t phase)
         // 如果应用由设置延时执行，则添加定时器延时启动应用
         auto delay = app->getDelay() * 1000;
 
-        /* 由于kiran-session-daemon和mate-session-daemon的部分插件不能同时启动，
-           因此需要等到kiran-session-daemon启动并调用RegisterClient接口后才能启动mate-settings-daemon，
-           在此阶段kiran-session-daemon会调用gsettings把与mate-session-daemon冲突的插件关闭掉，
-           当回话管理收到kiran-session-daemon的RegisterClient调用后再启动mate-settings-daemon*/
-        KLOG_DEBUG() << "DESKTOP ID: " << app->getAppID();
-        if (app->getAppID() == "mate-settings-daemon.desktop")
-        {
-            KLOG_DEBUG() << "The boot of mate-settings-daemon need be delayed until the kiran-session-daemon calls RegisterClient.";
-            apps.push_back(app);
-            continue;
-        }
-
         if (delay > 0)
         {
             QTimer::singleShot(delay, [app]()
@@ -89,8 +77,7 @@ QList<App *> AppManager::startApps(int32_t phase)
                                    if (app->canLaunched())
                                    {
                                        app->start();
-                                   }
-                               });
+                                   } });
             KLOG_DEBUG() << "The app " << app->getAppID() << " is scheduled to start after " << delay << " milliseconds.";
         }
         else
