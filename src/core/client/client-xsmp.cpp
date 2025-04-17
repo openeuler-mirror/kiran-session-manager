@@ -44,7 +44,13 @@ QString ClientXsmp::getAppID()
     auto appID = Client::getAppID();
     RETURN_VAL_IF_TRUE(appID.length() > 0, appID);
 
-    return QFileInfo(getProgramName()).fileName() + ".desktop";
+    auto fileName = QFileInfo(getProgramName()).fileName();
+    if (!fileName.isEmpty())
+    {
+        return fileName + ".desktop";
+    }
+
+    return QString();
 }
 
 bool ClientXsmp::cancelEndSession()
@@ -91,7 +97,6 @@ void ClientXsmp::updateProperty(void *property)
 {
     RETURN_IF_FALSE(property != NULL);
     SmProp *smProperty = static_cast<SmProp *>(property);
-    KLOG_DEBUG("property name: %s.", smProperty->name);
 
     deleteProperty(POINTER_TO_STRING(smProperty->name));
     m_props.push_back(property);
@@ -101,42 +106,46 @@ void ClientXsmp::updateProperty(void *property)
     case CONNECT(SmDiscardCommand, _hash):
     {
         auto discardCommand = propToCommand(smProperty);
-        KLOG_DEBUG() << "Property value: " << discardCommand;
+        KLOG_DEBUG() << "The DiscardCommand of client" << getID() << "is" << discardCommand;
         break;
     }
     case CONNECT(SmProcessID, _hash):
     {
         auto procesID = POINTER_TO_STRING(static_cast<const char *>(smProperty->vals[0].value)).toULong();
-        KLOG_DEBUG() << "Property value: " << procesID;
+        KLOG_DEBUG() << "The ProcessID of client" << getID() << "is" << procesID;
         break;
     }
     case CONNECT(SmProgram, _hash):
     {
         auto programName = QString::fromUtf8(static_cast<const char *>(smProperty->vals[0].value), smProperty->vals[0].length);
-        KLOG_DEBUG() << "Property value: " << programName;
+        KLOG_DEBUG() << "The Program of client" << getID() << "is" << programName;
         break;
     }
     case CONNECT(SmRestartCommand, _hash):
     {
         auto restartCommand = propToCommand(smProperty);
-        KLOG_DEBUG() << "Property value: " << restartCommand;
+        KLOG_DEBUG() << "The RestartCommand of client" << getID() << "is" << restartCommand;
         break;
     }
     case CONNECT(SmRestartStyleHint, _hash):
     {
         auto restartStyleHint = (static_cast<unsigned char *>(smProperty->vals[0].value))[0];
-        KLOG_DEBUG() << "Property value: " << restartStyleHint;
+        KLOG_DEBUG() << "The RestartStyleHint of client" << getID() << "is" << restartStyleHint;
         break;
     }
     default:
         break;
     }
+
+    // 如果client跟app关联成功，则打印日志，方便调试
+    if (strcmp(smProperty->name, SmProgram) == 0)
+    {
+        printAssociatedApp();
+    }
 }
 
 void ClientXsmp::deleteProperty(const QString &propertyName)
 {
-    KLOG_DEBUG() << "Delete Property " << propertyName;
-
     auto index = getPropertyIndex(propertyName);
     if (index >= 0)
     {

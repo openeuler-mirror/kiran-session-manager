@@ -80,13 +80,8 @@ Q_SIGNALS:
 private:
     void loadAppInfo();
 
-    // void startup_notification();
-
 private Q_SLOTS:
     void onFinished(int exitCode, QProcess::ExitStatus exitStatus);
-
-    // static void on_launch_cb(GDesktopAppInfo *appinfo, GPid pid, gpointer user_data);
-    // static void on_app_exited_cb(GPid pid, gint status, gpointer user_data);
 
 private:
     QString m_appID;
@@ -99,8 +94,6 @@ private:
 
     QSharedPointer<KDesktopFile> m_appInfo;
     QProcess *m_process;
-
-    // sigc::signal<void> m_appExited;
 };
 
 }  // namespace Kiran

@@ -75,8 +75,6 @@ QSharedPointer<Inhibitor> InhibitorManager::addInhibitor(const QString &appID,
 
 void InhibitorManager::deleteInhibitor(uint32_t cookie)
 {
-    KLOG_DEBUG("cookie: %d.", cookie);
-
     auto iter = m_inhibitors.find(cookie);
     if (iter != m_inhibitors.end())
     {
@@ -139,19 +137,18 @@ bool InhibitorManager::addInhibitor(QSharedPointer<Inhibitor> inhibitor)
 {
     RETURN_VAL_IF_FALSE(inhibitor, false);
 
-    KLOG_DEBUG() << "Cookie: " << inhibitor->cookie;
-
-    KLOG_DEBUG() << "Add a new inhibitor,"
-                 << " cookie: " << inhibitor->cookie
-                 << ", appid: " << inhibitor->appID
-                 << ", flags: " << inhibitor->flags
-                 << ", reason: " << inhibitor->reason
-                 << ", startupID: " << inhibitor->startupID
-                 << ", toplevelXID: " << inhibitor->toplevelXID;
+    KLOG_INFO() << "Add a new inhibitor:"
+                << QString("cookie=%1, appid=%2, flags=%3, reason=%4, startupID=%5, toplevelXID=%6")
+                       .arg(inhibitor->cookie)
+                       .arg(inhibitor->appID)
+                       .arg(inhibitor->flags)
+                       .arg(inhibitor->reason)
+                       .arg(inhibitor->startupID)
+                       .arg(inhibitor->toplevelXID);
 
     if (m_inhibitors.find(inhibitor->cookie) != m_inhibitors.end())
     {
-        KLOG_WARNING() << "The inhibitor " << inhibitor->cookie << " already exist.";
+        KLOG_WARNING() << "The inhibitor" << inhibitor->cookie << "already exist.";
         return false;
     }
 

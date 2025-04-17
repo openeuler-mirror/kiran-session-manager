@@ -115,8 +115,6 @@ QStringList Utils::getAutostartDirs()
 
 void Utils::setEnv(const QString &name, const QString &value)
 {
-    KLOG_DEBUG() << "Name: " << name << ", value: " << value;
-
     qputenv(name.toStdString().c_str(), value.toUtf8());
 
     QMap<QString, QString> envs{{name, value}};
@@ -132,7 +130,7 @@ void Utils::setEnvs(const QMap<QString, QString> &envs)
         listEnv.push_back(env);
     }
 
-    KLOG_DEBUG() << "Set environments: " << listEnv.join(QStringLiteral(";"));
+    KLOG_INFO() << "Set environments" << listEnv.join(QStringLiteral(";"));
 
     {
         auto sendMessage = QDBusMessage::createMethodCall(DAEMON_DBUS_NAME,

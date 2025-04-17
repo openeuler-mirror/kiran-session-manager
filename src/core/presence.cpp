@@ -61,9 +61,10 @@ void Presence::init()
 
 void Presence::enableIdleTimeout(bool enabled)
 {
-    KLOG_DEBUG() << "Enabled/Disable idle time: " << enabled;
-
     RETURN_IF_TRUE(m_enabledIdleTimeout == enabled);
+
+    KLOG_INFO() << (enabled ? "Enable" : "Disable") << "idle timeout.";
+
     m_enabledIdleTimeout = enabled;
     updateIdleXlarm();
 }
@@ -101,8 +102,6 @@ void Presence::SetStatusText(const QString &status_text)
 
 void Presence::updateIdleXlarm()
 {
-    KLOG_DEBUG() << "Enabled: " << m_enabledIdleTimeout << ", idle timeout: " << m_idleTimeout;
-
     if (!m_idleMonitorProxy)
     {
         KLOG_DEBUG() << "The idle monitor proxy hasn't exist.";
@@ -146,7 +145,7 @@ void Presence::onSettingsChanged(const QString &key)
 
 void Presence::onNameAcquired(const QString &dbusName)
 {
-    KLOG_DEBUG() << "Receive name acquired: " << dbusName;
+    KLOG_DEBUG() << "Receive dbus name" << dbusName << "acquired.";
 
     m_idleMonitorProxy = new IdleMonitorProxy(KSM_IDLE_DBUS_NAME,
                                               KSM_IDLE_DBUS_OBJECT_PATH,
@@ -160,7 +159,7 @@ void Presence::onNameAcquired(const QString &dbusName)
 
 void Presence::onNameLost(const QString &dbusName)
 {
-    KLOG_DEBUG() << "Receive name lost: " << dbusName;
+    KLOG_DEBUG() << "Receive dbus name" << dbusName << "lost.";
 
     if (m_idleMonitorProxy)
     {

@@ -13,12 +13,14 @@
  */
 
 #include "src/core/client/client.h"
+#include "lib/base/base.h"
 #include "src/core/app/app-manager.h"
 
 namespace Kiran
 {
 Client::Client(const QString &id, QObject *parent) : QObject(parent),
-                                                     m_id(id)
+                                                     m_id(id),
+                                                     m_printAssociatedApp(false)
 {
 }
 
@@ -26,5 +28,22 @@ QString Client::getAppID()
 {
     auto app = AppManager::getInstance()->getAppByStartupID(m_id);
     return app ? app->getAppID() : QString();
+}
+
+void Client::printAssociatedApp()
+{
+    auto appID = getAppID();
+    if (appID.isEmpty())
+    {
+        KLOG_INFO() << "The client" << getID() << "is currently not associated with applications.";
+        return;
+    }
+
+    // 只打印一次方便调试，避免日志输出过多
+    if (!m_printAssociatedApp)
+    {
+        KLOG_INFO() << "The AppID of client" << getID() << "is" << getAppID();
+        m_printAssociatedApp = true;
+    }
 }
 }  // namespace Kiran

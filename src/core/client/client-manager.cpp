@@ -256,6 +256,9 @@ ClientXsmp *ClientManager::addClientXsmp(const QString &startupID, SmsConn smsCo
         newStartupID = Utils::getDefault()->generateStartupID();
     }
 
+    auto iceConn = SmsGetIceConnection(smsConn);
+    KLOG_INFO() << "The client of ice connection" << iceConn << "is" << newStartupID;
+
     auto client = new ClientXsmp(newStartupID, smsConn, this);
 
     if (!addClient(client))
@@ -268,13 +271,15 @@ ClientXsmp *ClientManager::addClientXsmp(const QString &startupID, SmsConn smsCo
 
 ClientDBus *ClientManager::addClientDBus(const QString &startupID, const QString &dbusName, const QString &appID)
 {
-    KLOG_DEBUG() << "Add dbus client. StartupID: " << startupID
-                 << ", DBusName: " << dbusName << ", appID: " << appID;
-
     auto newStartupID = startupID;
     if (newStartupID.length() == 0)
     {
         newStartupID = Utils::getDefault()->generateStartupID();
+        /* 有些应用程序(例如at-api-dbus-launcher)属于GNOME组件，但kiran会话管理并不支持X-GNOME-Autostart-Phase字段，导致会话管理
+           没有自动拉起这些应用，但是这些应用可能会间接被其他应用（通过dbus调用）拉起来，此时startupID是为空的，这里新建一个startupID用
+           来关联此应用（应用程序进程已经无法再拿到此startupID了）。*/
+        KLOG_INFO() << "App" << appID << "is passive startup which is launched by other application"
+                    << "and isn't autostart application, generate a new startupID" << newStartupID << "for it.";
     }
 
     auto client = new ClientDBus(newStartupID, dbusName, appID, this);
@@ -306,11 +311,13 @@ bool ClientManager::addClient(Client *client)
 
     if (m_clients.find(client->getID()) != m_clients.end())
     {
-        KLOG_WARNING() << "The client " << client->getID() << " already exist.";
+        KLOG_WARNING() << "The client" << client->getID() << "already exist.";
         return false;
     }
     else
     {
+        client->printAssociatedApp();
+
         m_clients.insert(client->getID(), client);
         Q_EMIT clientAdded(client);
     }
@@ -417,11 +424,11 @@ void ClientManager::onIceConnStatusChanged(int32_t status, IceConn iceConn)
     switch (IceProcessMessagesStatus(status))
     {
     case IceProcessMessagesIOError:
-        KLOG_WARNING() << "The client " << client->getID() << " Receive IceProcessMessagesIOError message. program name: " << client->getProgramName();
+        KLOG_WARNING() << "The client" << client->getID() << "(ice connection:" << iceConn << ")receive IceProcessMessagesIOError message.";
         deleteClient(client->getID());
         break;
     case IceProcessMessagesConnectionClosed:
-        KLOG_DEBUG() << "The client " << client->getID() << " Receive IceProcessMessagesConnectionClosed message. program name: " << client->getProgramName();
+        KLOG_DEBUG() << "The client" << client->getID() << "(ice connection:" << iceConn << ")receive IceProcessMessagesConnectionClosed message.";
         break;
     default:
         break;

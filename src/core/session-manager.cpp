@@ -190,8 +190,6 @@ uint SessionManager::SessionManager::Inhibit(const QString &appID,
                                              const QString &reason,
                                              uint flags)
 {
-    KLOG_DEBUG() << "App id: " << appID << ", toplevel xid: " << toplevelXID << ", reason: " << reason << ", flags: " << flags;
-
     auto inhibitor = m_inhibitorManager->addInhibitor(appID, toplevelXID, reason, flags);
 
     if (!inhibitor)
@@ -242,7 +240,7 @@ void SessionManager::Reboot()
 
 QDBusObjectPath SessionManager::RegisterClient(const QString &appID, const QString &clientStartupID)
 {
-    KLOG_DEBUG() << "App id: " << appID << " , startup id:  " << clientStartupID;
+    KLOG_INFO() << "App" << appID << "request register which startupID is" << clientStartupID;
 
     if (m_currentPhase > KSMPhase::KSM_PHASE_RUNNING)
     {
@@ -346,7 +344,7 @@ void SessionManager::onPhaseStartupTimeout()
     startNextPhase();
 }
 
-void SessionManager::onWaitingSessionTimeout(std::function<void(void)> phase_complete_callback)
+void SessionManager::processWaitingSessionTimeout(std::function<void(void)> phase_complete_callback)
 {
     KLOG_WARNING() << "Wait session timeout.";
 
@@ -369,24 +367,21 @@ void SessionManager::onWaitingSessionTimeout(std::function<void(void)> phase_com
 
 void SessionManager::onAppExited(App *app)
 {
-    onAppStartupFinished(app);
+    removeWaitingApps(app);
 }
 
 void SessionManager::onClientAdded(Client *client)
 {
     RETURN_IF_FALSE(client);
 
-    KLOG_DEBUG() << "Client " << client->getID() << " added.";
-
     auto app = m_appManager->getAppByStartupID(client->getID());
     if (!app)
     {
-        KLOG_DEBUG() << "Not found app for the client " << client->getID();
+        KLOG_INFO() << "Not found app for the client" << client->getID() << ", ignore it.";
         return;
     }
-    KLOG_DEBUG() << "The new client " << client->getID() << " match the app " << app->getAppID();
 
-    onAppStartupFinished(app);
+    removeWaitingApps(app);
 }
 
 void SessionManager::onClientChanged(Client *client)
@@ -394,7 +389,7 @@ void SessionManager::onClientChanged(Client *client)
     RETURN_IF_FALSE(client);
 
     // 通过xsmp协议添加客户端时，还不能获取到客户端的属性信息，所以需要在属性变化时再次进行判断
-    KLOG_DEBUG() << "Client " << client->getID() << " changed.";
+    KLOG_DEBUG() << "Client" << client->getID() << "changed.";
 
     auto appID = client->getAppID();
     if (!appID.isEmpty())
@@ -402,18 +397,17 @@ void SessionManager::onClientChanged(Client *client)
         auto app = m_appManager->getApp(appID);
         if (!app)
         {
-            KLOG_DEBUG() << "Not found app by " << appID;
+            KLOG_INFO() << "The app" << appID << "isn't autostart application. ignore it.";
             return;
         }
-        KLOG_DEBUG() << "The client " << client->getID() << " match the app " << app->getAppID();
-        onAppStartupFinished(app);
+        removeWaitingApps(app);
     }
 }
 
 void SessionManager::onClientDeleted(Client *client)
 {
     RETURN_IF_FALSE(client);
-    KLOG_DEBUG() << "Client " << client->getID() << " deleted, AppID: " << client->getAppID();
+    KLOG_DEBUG() << "Client" << client->getID() << "is deleted.";
     // 客户端断开连接或者异常退出后无法再响应会话管理的请求，因此这里主动调用一次客户端响应回调函数来处理该客户端
     onEndSessionResponse(client);
 
@@ -471,7 +465,7 @@ void SessionManager::onInteractDone(Client *client)
 
 void SessionManager::onShutdownCanceled(Client *client)
 {
-    KLOG_WARNING() << "Client: " << client->getID() << " want to cancels shutdown. ignore the client request.";
+    KLOG_WARNING() << "Client" << client->getID() << "want to cancels shutdown. ignore the client request.";
     /* 如果QT的窗口在closeEvent函数中调用event->ignore()来忽略窗口关闭事件，则桌面会话退出时会收到QT客户端发送的取消结束会话的事件，
        用于响应客户端取消结束会话的事件不能通知到用户，会导致开始菜单->注销按钮功能不能正常使用，影响用户体验，因此暂时禁止处理该请求。*/
     // cancelEndSession();
@@ -479,7 +473,7 @@ void SessionManager::onShutdownCanceled(Client *client)
 
 void SessionManager::onEndSessionPhase2Request(Client *client)
 {
-    KLOG_DEBUG() << "Receive client: " << client->getID() << " phase2 request.";
+    KLOG_DEBUG() << "Receive client" << client->getID() << "phase2 request.";
 
     // 需要第一阶段结束的所有客户端响应后才能进入第二阶段，因此这里先缓存第二阶段请求的客户端
     phase2_request_clients_.push_back(client);
@@ -489,7 +483,7 @@ void SessionManager::onEndSessionResponse(Client *client)
 {
     RETURN_IF_FALSE(client);
 
-    KLOG_DEBUG() << "Receive client " << client->getID() << " end session response. phase: " << App::phaseEnum2str(m_currentPhase);
+    KLOG_DEBUG() << "Receive client" << client->getID() << "end session response. Phase is" << App::phaseEnum2str(m_currentPhase);
 
     RETURN_IF_TRUE(m_currentPhase < KSMPhase::KSM_PHASE_QUERY_END_SESSION);
 
@@ -606,7 +600,7 @@ void SessionManager::init()
 
 void SessionManager::processPhase()
 {
-    KLOG_DEBUG() << "Start phase: " << App::phaseEnum2str(m_currentPhase);
+    KLOG_INFO() << "Start phase" << App::phaseEnum2str(m_currentPhase);
 
     m_waitingApps.clear();
     m_waitingAppsTimeoutID->stop();
@@ -659,6 +653,7 @@ void SessionManager::processPhaseStartup()
     // 一些应用需要延时执行或者需要等待其启动完毕的信号
     if (m_waitingApps.size() > 0)
     {
+        KLOG_INFO() << "Waits applications" << AppManager::getDesktopIDs(m_waitingApps) << " to startup completed.";
         if (m_currentPhase < KSMPhase::KSM_PHASE_APPLICATION)
         {
             m_waitingAppsTimeoutID->start();
@@ -666,6 +661,7 @@ void SessionManager::processPhaseStartup()
     }
     else
     {
+        KLOG_INFO() << "No applications need to wait in current phase.";
         startNextPhase();
     }
 }
@@ -687,7 +683,7 @@ void SessionManager::processPhaseQueryEndSession()
     {
         connect(m_waitingClientsTimeoutID,
                 &QTimer::timeout, [this]() -> void
-                { this->onWaitingSessionTimeout(std::bind(&SessionManager::queryEndSessionComplete, this)); });
+                { this->processWaitingSessionTimeout(std::bind(&SessionManager::queryEndSessionComplete, this)); });
 
         m_waitingClientsTimeoutID->start(300);
     }
@@ -763,7 +759,7 @@ void SessionManager::processPhaseEndSessionPhase1()
     {
         connect(m_waitingClientsTimeoutID,
                 &QTimer::timeout, [this]() -> void
-                { this->onWaitingSessionTimeout(std::bind(&SessionManager::startNextPhase, this)); });
+                { this->processWaitingSessionTimeout(std::bind(&SessionManager::startNextPhase, this)); });
         m_waitingClientsTimeoutID->start(KSM_PHASE_STARTUP_TIMEOUT * 1000);
     }
     else
@@ -795,7 +791,7 @@ void SessionManager::processPhaseEndSessionPhase2()
     {
         connect(m_waitingClientsTimeoutID,
                 &QTimer::timeout, [this]() -> void
-                { this->onWaitingSessionTimeout(std::bind(&SessionManager::startNextPhase, this)); });
+                { this->processWaitingSessionTimeout(std::bind(&SessionManager::startNextPhase, this)); });
 
         m_waitingClientsTimeoutID->start(KSM_PHASE_STARTUP_TIMEOUT * 1000);
     }
@@ -874,13 +870,13 @@ void SessionManager::startNextPhase()
 
     if (start_next_phase)
     {
+        KLOG_INFO() << "End phase" << App::phaseEnum2str(m_currentPhase);
         m_currentPhase = (KSMPhase)(m_currentPhase + 1);
-        KLOG_DEBUG() << "Start next phase: " << App::phaseEnum2str(m_currentPhase);
         processPhase();
     }
     else
     {
-        KLOG_DEBUG() << "Keep current phase: " << App::phaseEnum2str(m_currentPhase);
+        KLOG_INFO() << "Keep current phase" << App::phaseEnum2str(m_currentPhase);
     }
 }
 
@@ -897,14 +893,14 @@ void SessionManager::processPhaseApplicationEnd()
 
 void SessionManager::quitSession()
 {
-    KLOG_DEBUG("Quit Session.");
+    KLOG_DEBUG() << "Quit Session.";
 
     m_power->doPowerAction(m_powerAction);
 
     QCoreApplication::instance()->quit();
 }
 
-void SessionManager::onAppStartupFinished(App *app)
+void SessionManager::removeWaitingApps(App *app)
 {
     RETURN_IF_FALSE(app);
 
@@ -915,7 +911,11 @@ void SessionManager::onAppStartupFinished(App *app)
                                    return item->getAppID() == app->getAppID();
                                });
 
+    RETURN_IF_TRUE(iter == m_waitingApps.end());
+
     m_waitingApps.erase(iter, m_waitingApps.end());
+
+    KLOG_INFO() << "App" << app->getAppID() << "is removed from waiting list. The number of remaining waiting apps is" << m_waitingApps.size();
 
     if (m_waitingApps.size() == 0 &&
         m_currentPhase < KSMPhase::KSM_PHASE_APPLICATION)

@@ -90,7 +90,7 @@ static Status onNewClientConnection(SmsConn smsConn,
     XsmpServer *server = static_cast<XsmpServer *>(managerData);
     auto iceConn = SmsGetIceConnection(smsConn);
 
-    KLOG_DEBUG("New client connection: %p.", iceConn);
+    KLOG_DEBUG("New client ice connection: %p.", iceConn);
 
     // 如果连接成功，则取消超时检测
     auto watch = static_cast<ConnectionWatch *>(iceConn->context);

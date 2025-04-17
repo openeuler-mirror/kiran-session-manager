@@ -32,8 +32,6 @@ void Power::init()
 
 bool Power::canPowerAction(PowerAction powerAction)
 {
-    KLOG_DEBUG() << "Power action: " << powerAction;
-
     switch (powerAction)
     {
     case PowerAction::POWER_ACTION_SWITCH_USER:
@@ -56,7 +54,7 @@ bool Power::canPowerAction(PowerAction powerAction)
 
 bool Power::doPowerAction(PowerAction powerAction)
 {
-    KLOG_DEBUG() << "Do power action: " << powerActionEnum2Str(powerAction);
+    KLOG_INFO() << "Do power action" << powerActionEnum2Str(powerAction);
 
     switch (powerAction)
     {

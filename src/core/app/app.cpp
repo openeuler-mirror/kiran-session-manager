@@ -63,8 +63,6 @@ bool App::start()
     /* DesktopAppInfo的接口不太完善，如果通过DBUS激活应用则拿不到进程ID，需要自己去DBUS总线获取，但是
        DesktopAppInfo又未暴露应用的dbus name，所以暂时先不支持DBUS启动。*/
 
-    KLOG_DEBUG() << "Start app " << m_appInfo->fileName();
-
     if (m_process->state() != QProcess::ProcessState::NotRunning)
     {
         KLOG_WARNING() << "The process already exists.";
@@ -92,13 +90,14 @@ bool App::start()
 
     auto program = arguments.takeFirst();
     m_process->start(program, arguments);
+    KLOG_INFO() << "Start app" << m_appID;
 
     return true;
 }
 
 bool App::restart()
 {
-    KLOG_DEBUG() << "Restart app " << m_appInfo->fileName();
+    KLOG_INFO() << "Restart app" << m_appID;
 
     stop();
     return start();
@@ -106,14 +105,13 @@ bool App::restart()
 
 bool App::stop()
 {
-    KLOG_DEBUG() << "Stop app " << m_appInfo->fileName();
-
     if (m_process->state() == QProcess::ProcessState::NotRunning)
     {
-        KLOG_WARNING() << "The app " << m_appInfo->fileName() << " is not running.";
+        KLOG_WARNING() << "The app" << m_appID << "is not running.";
         return false;
     }
 
+    KLOG_INFO() << "Stop app" << m_appID;
     m_process->terminate();
 
     return true;
@@ -123,19 +121,19 @@ bool App::canLaunched()
 {
     if (!m_appInfo->desktopGroup().readEntry(KSM_AUTOSTART_APP_ENABLED_KEY, true))
     {
-        KLOG_DEBUG() << "The app " << m_appInfo->fileName() << " is disabled.";
+        KLOG_DEBUG() << "The app" << m_appInfo->fileName() << "is disabled.";
         return false;
     }
 
     if (!m_appInfo->desktopGroup().readEntry(GSM_AUTOSTART_APP_ENABLED_KEY, true))
     {
-        KLOG_DEBUG() << "The app " << m_appInfo->fileName() << " is disabled.";
+        KLOG_DEBUG() << "The app" << m_appInfo->fileName() << "is disabled.";
         return false;
     }
 
     if (m_appInfo->desktopGroup().readEntry("Hidden", false))
     {
-        KLOG_DEBUG() << "The app " << m_appInfo->fileName() << " is hidden.";
+        KLOG_DEBUG() << "The app" << m_appInfo->fileName() << "is hidden.";
         return false;
     }
 
@@ -143,7 +141,7 @@ bool App::canLaunched()
 
     if (showList.length() > 0 && !showList.contains(DESKTOP_ENVIRONMENT) && !showList.contains("MATE"))
     {
-        KLOG_DEBUG() << "The app " << m_appInfo->fileName() << " doesn't display in the desktop environment.";
+        KLOG_DEBUG() << "The app" << m_appInfo->fileName() << "doesn't display in the desktop environment.";
         return false;
     }
 
@@ -264,10 +262,10 @@ void App::onFinished(int exitCode, QProcess::ExitStatus exitStatus)
     switch (exitStatus)
     {
     case QProcess::ExitStatus::NormalExit:
-        KLOG_DEBUG() << "The app " << m_appInfo->fileName() << " normal exits.";
+        KLOG_INFO() << "The app " << m_appInfo->fileName() << " normal exits.";
         break;
     case QProcess::ExitStatus::CrashExit:
-        KLOG_DEBUG() << "The app " << m_appInfo->fileName() << " abnormal normal exits, exit code " << exitCode;
+        KLOG_INFO() << "The app " << m_appInfo->fileName() << " abnormal normal exits, exit code " << exitCode;
         break;
     default:
         break;

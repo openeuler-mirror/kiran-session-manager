@@ -43,6 +43,7 @@ public:
     QString getID() { return this->m_id; };
 
     virtual QString getAppID();
+    void printAssociatedApp();
 
     virtual ClientType getType() = 0;
     virtual bool cancelEndSession() = 0;
@@ -53,6 +54,8 @@ public:
 
 private:
     QString m_id;
+    // 标记是否打印了client和app的关联日志
+    bool m_printAssociatedApp;
 };
 
 }  // namespace Kiran
