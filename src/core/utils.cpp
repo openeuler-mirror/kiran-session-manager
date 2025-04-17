@@ -1,14 +1,14 @@
 /**
- * Copyright (c) 2020 ~ 2021 KylinSec Co., Ltd. 
+ * Copyright (c) 2020 ~ 2021 KylinSec Co., Ltd.
  * kiran-session-manager is licensed under Mulan PSL v2.
- * You can use this software according to the terms and conditions of the Mulan PSL v2. 
+ * You can use this software according to the terms and conditions of the Mulan PSL v2.
  * You may obtain a copy of Mulan PSL v2 at:
- *          http://license.coscl.org.cn/MulanPSL2 
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, 
- * EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, 
- * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.  
- * See the Mulan PSL v2 for more details.  
- * 
+ *          http://license.coscl.org.cn/MulanPSL2
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
+ * EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
+ * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
+ * See the Mulan PSL v2 for more details.
+ *
  * Author:     tangjie02 <tangjie02@kylinos.com.cn>
  */
 
@@ -25,28 +25,28 @@
 namespace Kiran
 {
 /* The XSMP spec defines the ID as:
-*
-* Version: "1"
-* Address type and address:
-*   "1" + an IPv4 address as 8 hex digits
-*   "2" + a DECNET address as 12 hex digits
-*   "6" + an IPv6 address as 32 hex digits
-* Time stamp: milliseconds since UNIX epoch as 13 decimal digits
-* Process-ID type and process-ID:
-*   "1" + POSIX PID as 10 decimal digits
-* Sequence number as 4 decimal digits
-*
-* XSMP client IDs are supposed to be globally unique: if
-* SmsGenerateClientID() is unable to determine a network
-* address for the machine, it gives up and returns %NULL.
-* MATE and KDE have traditionally used a fourth address
-* format in this case:
-*   "0" + 16 random hex digits
-*
-* We don't even bother trying SmsGenerateClientID(), since the
-* user's IP address is probably "192.168.1.*" anyway, so a random
-* number is actually more likely to be globally unique.
-*/
+ *
+ * Version: "1"
+ * Address type and address:
+ *   "1" + an IPv4 address as 8 hex digits
+ *   "2" + a DECNET address as 12 hex digits
+ *   "6" + an IPv6 address as 32 hex digits
+ * Time stamp: milliseconds since UNIX epoch as 13 decimal digits
+ * Process-ID type and process-ID:
+ *   "1" + POSIX PID as 10 decimal digits
+ * Sequence number as 4 decimal digits
+ *
+ * XSMP client IDs are supposed to be globally unique: if
+ * SmsGenerateClientID() is unable to determine a network
+ * address for the machine, it gives up and returns %NULL.
+ * MATE and KDE have traditionally used a fourth address
+ * format in this case:
+ *   "0" + 16 random hex digits
+ *
+ * We don't even bother trying SmsGenerateClientID(), since the
+ * user's IP address is probably "192.168.1.*" anyway, so a random
+ * number is actually more likely to be globally unique.
+ */
 
 Utils::Utils() : m_useCustomAutostartDirs(false)
 {
@@ -91,15 +91,15 @@ QString Utils::generateStartupID()
 
 void Utils::setAutostartDirs(const QString &autostartDirs)
 {
-    this->m_customAutostartDirs = autostartDirs.split(';');
-    this->m_useCustomAutostartDirs = true;
+    m_customAutostartDirs = autostartDirs.split(';');
+    m_useCustomAutostartDirs = true;
 }
 
 QStringList Utils::getAutostartDirs()
 {
-    if (this->m_useCustomAutostartDirs)
+    if (m_useCustomAutostartDirs)
     {
-        return this->m_customAutostartDirs;
+        return m_customAutostartDirs;
     }
 
     QStringList autostartDirs;
@@ -115,12 +115,10 @@ QStringList Utils::getAutostartDirs()
 
 void Utils::setEnv(const QString &name, const QString &value)
 {
-    KLOG_DEBUG() << "Name: " << name << ", value: " << value;
-
     qputenv(name.toStdString().c_str(), value.toUtf8());
 
     QMap<QString, QString> envs{{name, value}};
-    this->setEnvs(envs);
+    setEnvs(envs);
 }
 
 void Utils::setEnvs(const QMap<QString, QString> &envs)
@@ -132,7 +130,7 @@ void Utils::setEnvs(const QMap<QString, QString> &envs)
         listEnv.push_back(env);
     }
 
-    KLOG_DEBUG() << "Set environments: " << listEnv.join(QStringLiteral(";"));
+    KLOG_INFO() << "Set environments" << listEnv.join(QStringLiteral(";"));
 
     {
         auto sendMessage = QDBusMessage::createMethodCall(DAEMON_DBUS_NAME,

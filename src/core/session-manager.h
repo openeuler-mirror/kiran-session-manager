@@ -154,9 +154,8 @@ private:
     // KSMLogoutAction logout_type2action(KSMPowerAction logout_type);
 
     /* ----------------- 以下为回调处理函数 ------------------- */
-    // 应用已启动完成回调
-    void onAppStartupFinished(App *app);
-    void onWaitingSessionTimeout(std::function<void(void)> phase_complete_callback);
+    void removeWaitingApps(App *app);
+    void processWaitingSessionTimeout(std::function<void(void)> phase_complete_callback);
 
 private:
     static SessionManager *m_instance;

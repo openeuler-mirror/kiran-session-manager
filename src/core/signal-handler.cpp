@@ -30,13 +30,13 @@ SignalHandler::SignalHandler() : m_handler(nullptr)
         return;
     }
 
-    this->m_handler = new QSocketNotifier(signalFD[1], QSocketNotifier::Read, this);
-    connect(this->m_handler, &QSocketNotifier::activated, this, &SignalHandler::handleSignal);
+    m_handler = new QSocketNotifier(signalFD[1], QSocketNotifier::Read, this);
+    connect(m_handler, &QSocketNotifier::activated, this, &SignalHandler::handleSignal);
 }
 
 SignalHandler::~SignalHandler()
 {
-    for (auto signo : this->m_signos)
+    for (auto signo : m_signos)
     {
         signal(signo, nullptr);
     }
@@ -56,7 +56,7 @@ SignalHandler* SignalHandler::getDefault()
 
 void SignalHandler::addSignal(int signalToTrack)
 {
-    this->m_signos.insert(signalToTrack);
+    m_signos.insert(signalToTrack);
     signal(signalToTrack, signalHandler);
 }
 
@@ -72,9 +72,9 @@ void SignalHandler::handleSignal()
 {
     int signal = 0;
 
-    this->m_handler->setEnabled(false);
+    m_handler->setEnabled(false);
     auto readn = ::read(signalFD[1], &signal, sizeof(signal));
-    this->m_handler->setEnabled(true);
+    m_handler->setEnabled(true);
 
     if (readn != sizeof(signal))
     {
