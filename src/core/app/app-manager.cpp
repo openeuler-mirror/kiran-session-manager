@@ -1,14 +1,14 @@
 /**
- * Copyright (c) 2020 ~ 2021 KylinSec Co., Ltd. 
+ * Copyright (c) 2020 ~ 2021 KylinSec Co., Ltd.
  * kiran-session-manager is licensed under Mulan PSL v2.
- * You can use this software according to the terms and conditions of the Mulan PSL v2. 
+ * You can use this software according to the terms and conditions of the Mulan PSL v2.
  * You may obtain a copy of Mulan PSL v2 at:
- *          http://license.coscl.org.cn/MulanPSL2 
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, 
- * EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, 
- * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.  
- * See the Mulan PSL v2 for more details.  
- * 
+ *          http://license.coscl.org.cn/MulanPSL2
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
+ * EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
+ * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
+ * See the Mulan PSL v2 for more details.
+ *
  * Author:     tangjie02 <tangjie02@kylinos.com.cn>
  */
 
@@ -43,9 +43,7 @@ void AppManager::globalInit(const QString &sessionName)
 
 App *AppManager::getAppByStartupID(const QString &startupID)
 {
-    KLOG_DEBUG() << "Startup id: " << startupID;
-
-    for (auto iter : this->m_apps)
+    for (auto iter : m_apps)
     {
         if (iter->getStartupID() == startupID)
         {
@@ -59,7 +57,7 @@ QList<App *> AppManager::startApps(int32_t phase)
 {
     QList<App *> apps;
 
-    for (auto app : this->getAppsByPhase(phase))
+    for (auto app : getAppsByPhase(phase))
     {
         if (!app->canLaunched())
         {
@@ -70,18 +68,6 @@ QList<App *> AppManager::startApps(int32_t phase)
         // 如果应用由设置延时执行，则添加定时器延时启动应用
         auto delay = app->getDelay() * 1000;
 
-        /* 由于kiran-session-daemon和mate-session-daemon的部分插件不能同时启动，
-           因此需要等到kiran-session-daemon启动并调用RegisterClient接口后才能启动mate-settings-daemon，
-           在此阶段kiran-session-daemon会调用gsettings把与mate-session-daemon冲突的插件关闭掉，
-           当回话管理收到kiran-session-daemon的RegisterClient调用后再启动mate-settings-daemon*/
-        KLOG_DEBUG() << "DESKTOP ID: " << app->getAppID();
-        if (app->getAppID() == "mate-settings-daemon.desktop")
-        {
-            KLOG_DEBUG() << "The boot of mate-settings-daemon need be delayed until the kiran-session-daemon calls RegisterClient.";
-            apps.push_back(app);
-            continue;
-        }
-
         if (delay > 0)
         {
             QTimer::singleShot(delay, [app]()
@@ -89,35 +75,52 @@ QList<App *> AppManager::startApps(int32_t phase)
                                    if (app->canLaunched())
                                    {
                                        app->start();
-                                   }
-                               });
+                                   } });
             KLOG_DEBUG() << "The app " << app->getAppID() << " is scheduled to start after " << delay << " milliseconds.";
         }
         else
         {
-            CONTINUE_IF_FALSE(app->start());
-            KLOG_DEBUG() << "The app " << app->getAppID() << " is started.";
+            if (!app->start())
+            {
+                KLOG_WARNING() << "The app " << app->getAppID() << "failed to start.";
+            }
+            else
+            {
+                KLOG_DEBUG() << "The app " << app->getAppID() << " is started.";
+            }
         }
         apps.push_back(app);
     }
     return apps;
 }
 
+QStringList AppManager::getDesktopIDs(QList<App *> apps)
+{
+    QStringList desktopIDs;
+
+    for (auto app : apps)
+    {
+        desktopIDs.push_back(app->getAppID());
+    }
+
+    return desktopIDs;
+}
+
 void AppManager::init()
 {
-    this->loadApps();
+    loadApps();
 }
 
 void AppManager::loadApps()
 {
-    this->loadBlacklistAutostartApps();
-    this->loadAutostartApps();
-    this->loadRequiredApps();
+    loadBlacklistAutostartApps();
+    loadAutostartApps();
+    loadRequiredApps();
 }
 
 void AppManager::loadRequiredApps()
 {
-    auto sessionFilePath = QString("%1/%2.session").arg(SESSIONS_DIR).arg(this->m_sessionName);
+    auto sessionFilePath = QString("%1/%2.session").arg(SESSIONS_DIR).arg(m_sessionName);
 
     KConfig keyFile(sessionFilePath, KConfig::SimpleConfig);
 
@@ -128,14 +131,14 @@ void AppManager::loadRequiredApps()
 
     for (auto &iter : requiredComponents)
     {
-        this->addApp(iter + ".desktop");
+        addApp(iter + ".desktop");
     }
 }
 
 void AppManager::loadBlacklistAutostartApps()
 {
     static const int DESKTOP_ID_MAX_LEN = 256;
-    this->m_blacklistApps.clear();
+    m_blacklistApps.clear();
 
     std::ifstream ifs(BLACKLIST_APPS_PATH, std::ifstream::in);
     if (ifs.is_open())
@@ -144,7 +147,7 @@ void AppManager::loadBlacklistAutostartApps()
         {
             char desktop_id[DESKTOP_ID_MAX_LEN] = {0};
             ifs.getline(desktop_id, DESKTOP_ID_MAX_LEN);
-            this->m_blacklistApps.insert(desktop_id);
+            m_blacklistApps.insert(desktop_id);
         }
     }
 }
@@ -166,13 +169,13 @@ void AppManager::loadAutostartApps()
                 continue;
             }
 
-            if (this->m_blacklistApps.find(fileName) != this->m_blacklistApps.end())
+            if (m_blacklistApps.find(fileName) != m_blacklistApps.end())
             {
                 KLOG_DEBUG() << "The app " << fileName << " is in black list, so it isn't loaded.";
             }
             else
             {
-                this->addApp(filePath);
+                addApp(filePath);
             }
         }
     }
@@ -182,7 +185,7 @@ bool AppManager::addApp(const QString &fileName)
 {
     auto app = new App(fileName, this);
     auto appID = app->getAppID();
-    if (this->m_apps.find(appID) != this->m_apps.end())
+    if (m_apps.find(appID) != m_apps.end())
     {
         KLOG_DEBUG() << "The app " << appID << " already exist.";
         delete app;
@@ -190,7 +193,7 @@ bool AppManager::addApp(const QString &fileName)
     }
     KLOG_DEBUG() << "Add app " << appID << " with location " << fileName << " to AppManager.";
 
-    this->m_apps.insert(appID, app);
+    m_apps.insert(appID, app);
     connect(app, &App::AppExited, [this, app]()
             { emit this->AppExited(app); });
     return true;
@@ -199,7 +202,7 @@ bool AppManager::addApp(const QString &fileName)
 QList<App *> AppManager::getAppsByPhase(int32_t phase)
 {
     QList<App *> apps;
-    for (auto iter : this->m_apps)
+    for (auto iter : m_apps)
     {
         if (iter->getPhase() == phase)
         {

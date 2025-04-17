@@ -53,7 +53,7 @@ void startDBusSession(int argc, char **argv)
 
     new_argv[i + 2] = NULL;
 
-    KLOG_DEBUG("Start session manager by dbus-launch.");
+    KLOG_INFO() << "Start session manager by dbus-launch.";
 
     if (!execvp(DBUS_LAUNCH_COMMAND, new_argv))
     {
@@ -78,11 +78,11 @@ void initEnv()
         if (key_regex.match(key).hasMatch() && value_regex.match(value).hasMatch())
         {
             envs.insert(key, value);
-            KLOG_DEBUG() << "Add environment: " << key << "=" << value;
+            KLOG_DEBUG() << "Add environment" << key << "=" << value;
         }
         else
         {
-            KLOG_WARNING() << "Filter environment: " << key << "=" << value;
+            KLOG_INFO() << "Filter environment" << key << "=" << value;
         }
     }
     Utils::getDefault()->setEnvs(envs);
@@ -144,7 +144,6 @@ int main(int argc, char *argv[])
     initEnv();
 
     auto sessionType = parser.value(QStringLiteral("session-type"));
-    KLOG_DEBUG() << "sessionType: " << sessionType;
 
     if (parser.isSet("autostart"))
     {

@@ -25,14 +25,14 @@ InhibitorRow::InhibitorRow(const QJsonObject &inhibitor,
                                               m_ui(new Ui::InhibitorRow),
                                               m_inhibitor(inhibitor)
 {
-    this->m_ui->setupUi(this);
-    this->initUI();
+    m_ui->setupUi(this);
+    initUI();
 }
 
 void InhibitorRow::initUI()
 {
-    auto appID = this->m_inhibitor.value(KSM_INHIBITOR_JK_APP_ID).toString();
-    auto reason = this->m_inhibitor.value(KSM_INHIBITOR_JK_REASON).toString();
+    auto appID = m_inhibitor.value(KSM_INHIBITOR_JK_APP_ID).toString();
+    auto reason = m_inhibitor.value(KSM_INHIBITOR_JK_REASON).toString();
 
     KLOG_DEBUG() << "Init inhibitor row for app: " << appID;
 
@@ -43,20 +43,20 @@ void InhibitorRow::initUI()
         auto appIcon = QIcon::fromTheme(desktopFile->readIcon());
         if (appIcon.isNull())
         {
-            this->m_ui->m_appIcon->setIcon(QIcon(":/app-missing.svg"));
+            m_ui->m_appIcon->setIcon(QIcon(":/app-missing.svg"));
         }
         else
         {
-            this->m_ui->m_appIcon->setIcon(appIcon);
+            m_ui->m_appIcon->setIcon(appIcon);
         }
-        this->m_ui->m_appName->setText(desktopFile->readName());
+        m_ui->m_appName->setText(desktopFile->readName());
     }
     else
     {
-        this->m_ui->m_appIcon->setIcon(QIcon(":/app-missing.svg"));
-        this->m_ui->m_appName->setText(tr("Unknown application"));
+        m_ui->m_appIcon->setIcon(QIcon(":/app-missing.svg"));
+        m_ui->m_appName->setText(tr("Unknown application"));
     }
-    this->m_ui->m_appDesc->setText(reason);
+    m_ui->m_appDesc->setText(reason);
 }
 
 }  // namespace Kiran

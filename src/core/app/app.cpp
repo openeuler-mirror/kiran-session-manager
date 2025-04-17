@@ -47,15 +47,15 @@ App::App(const QString &filePath, QObject *parent = nullptr) : QObject(parent),
                                                                m_delay(0),
                                                                m_process(new QProcess(this))
 {
-    this->m_appInfo = QSharedPointer<KDesktopFile>(new KDesktopFile(filePath));
+    m_appInfo = QSharedPointer<KDesktopFile>(new KDesktopFile(filePath));
     m_process->setProcessChannelMode(QProcess::ForwardedErrorChannel);
-    connect(this->m_process, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(onFinished(int, QProcess::ExitStatus)));
-    this->loadAppInfo();
+    connect(m_process, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(onFinished(int, QProcess::ExitStatus)));
+    loadAppInfo();
 }
 
 App::~App()
 {
-    KLOG_DEBUG() << "App " << this->m_appID << " is destroyed.";
+    KLOG_DEBUG() << "App " << m_appID << " is destroyed.";
 }
 
 bool App::start()
@@ -63,87 +63,85 @@ bool App::start()
     /* DesktopAppInfo的接口不太完善，如果通过DBUS激活应用则拿不到进程ID，需要自己去DBUS总线获取，但是
        DesktopAppInfo又未暴露应用的dbus name，所以暂时先不支持DBUS启动。*/
 
-    KLOG_DEBUG() << "Start app " << this->m_appInfo->fileName();
-
-    if (this->m_process->state() != QProcess::ProcessState::NotRunning)
+    if (m_process->state() != QProcess::ProcessState::NotRunning)
     {
         KLOG_WARNING() << "The process already exists.";
         return false;
     }
 
-    if (this->m_appInfo->desktopGroup().readEntry(DESKTOP_KEY_DBUS_ACTIVATABLE, false))
+    if (m_appInfo->desktopGroup().readEntry(DESKTOP_KEY_DBUS_ACTIVATABLE, false))
     {
         KLOG_WARNING() << "DBus startup mode is not supported at present.";
         return false;
     }
 
-    KService service(this->m_appInfo->fileName());
+    KService service(m_appInfo->fileName());
 
     auto arguments = KIO::DesktopExecParser(service, QList<QUrl>()).resultingArguments();
     if (arguments.isEmpty())
     {
-        KLOG_WARNING() << "Failed to parse arguments for " << this->m_appInfo->fileName();
+        KLOG_WARNING() << "Failed to parse arguments for " << m_appInfo->fileName();
         return false;
     }
 
     auto env = QProcessEnvironment::systemEnvironment();
-    env.insert("DESKTOP_AUTOSTART_ID", this->m_startupID);
-    this->m_process->setProcessEnvironment(env);
+    env.insert("DESKTOP_AUTOSTART_ID", m_startupID);
+    m_process->setProcessEnvironment(env);
 
     auto program = arguments.takeFirst();
-    this->m_process->start(program, arguments);
+    m_process->start(program, arguments);
+    KLOG_INFO() << "Start app" << m_appID;
 
     return true;
 }
 
 bool App::restart()
 {
-    KLOG_DEBUG() << "Restart app " << this->m_appInfo->fileName();
+    KLOG_INFO() << "Restart app" << m_appID;
 
-    this->stop();
-    return this->start();
+    stop();
+    return start();
 }
 
 bool App::stop()
 {
-    KLOG_DEBUG() << "Stop app " << this->m_appInfo->fileName();
-
-    if (this->m_process->state() == QProcess::ProcessState::NotRunning)
+    if (m_process->state() == QProcess::ProcessState::NotRunning)
     {
-        KLOG_WARNING() << "The app " << this->m_appInfo->fileName() << " is not running.";
+        KLOG_WARNING() << "The app" << m_appID << "is not running.";
         return false;
     }
 
-    this->m_process->terminate();
+    KLOG_INFO() << "Stop app" << m_appID;
+    m_process->terminate();
 
     return true;
 }
 
 bool App::canLaunched()
 {
-    if (!this->m_appInfo->desktopGroup().readEntry(KSM_AUTOSTART_APP_ENABLED_KEY, true))
+    if (!m_appInfo->desktopGroup().readEntry(KSM_AUTOSTART_APP_ENABLED_KEY, true))
     {
-        KLOG_DEBUG() << "The app " << this->m_appInfo->fileName() << " is disabled.";
+        KLOG_DEBUG() << "The app" << m_appInfo->fileName() << "is disabled.";
         return false;
     }
 
-    if (!this->m_appInfo->desktopGroup().readEntry(GSM_AUTOSTART_APP_ENABLED_KEY, true))
+    if (!m_appInfo->desktopGroup().readEntry(GSM_AUTOSTART_APP_ENABLED_KEY, true))
     {
-        KLOG_DEBUG() << "The app " << this->m_appInfo->fileName() << " is disabled.";
+        KLOG_DEBUG() << "The app" << m_appInfo->fileName() << "is disabled.";
         return false;
     }
 
-    if (this->m_appInfo->desktopGroup().readEntry("Hidden", false))
+    if (m_appInfo->desktopGroup().readEntry("Hidden", false))
     {
-        KLOG_DEBUG() << "The app " << this->m_appInfo->fileName() << " is hidden.";
+        KLOG_DEBUG() << "The app" << m_appInfo->fileName() << "is hidden.";
         return false;
     }
 
-    auto showList = this->m_appInfo->desktopGroup().readXdgListEntry("OnlyShowIn");
+    auto showList = m_appInfo->desktopGroup().readXdgListEntry("OnlyShowIn");
 
     if (showList.length() > 0 && !showList.contains(DESKTOP_ENVIRONMENT) && !showList.contains("MATE"))
     {
-        KLOG_DEBUG() << "The app " << this->m_appInfo->fileName() << " doesn't display in the desktop environment.";
+        KLOG_DEBUG() << "The app" << m_appInfo->fileName() << "doesn't display in the desktop environment.";
         return false;
     }
 
@@ -211,42 +209,42 @@ QString App::phaseEnum2str(int32_t phase)
 
 void App::loadAppInfo()
 {
-    RETURN_IF_FALSE(this->m_appInfo);
+    RETURN_IF_FALSE(m_appInfo);
 
-    this->m_startupID = Utils::getDefault()->generateStartupID();
+    m_startupID = Utils::getDefault()->generateStartupID();
 
     // Desktop ID
-    this->m_appID = QFileInfo(this->m_appInfo->fileName()).fileName();
+    m_appID = QFileInfo(m_appInfo->fileName()).fileName();
 
     // Phase
-    auto phase = this->m_appInfo->desktopGroup().readEntry(KSM_AUTOSTART_APP_PHASE_KEY);
+    auto phase = m_appInfo->desktopGroup().readEntry(KSM_AUTOSTART_APP_PHASE_KEY);
     if (phase.isEmpty())
     {
-        phase = this->m_appInfo->desktopGroup().readEntry(GSM_AUTOSTART_APP_PHASE_KEY);
+        phase = m_appInfo->desktopGroup().readEntry(GSM_AUTOSTART_APP_PHASE_KEY);
     }
-    this->m_phase = App::phaseStr2enum(phase);
+    m_phase = App::phaseStr2enum(phase);
 
     // Auto restart
-    if (this->m_appInfo->desktopGroup().hasKey(KSM_AUTOSTART_APP_AUTORESTART_KEY))
+    if (m_appInfo->desktopGroup().hasKey(KSM_AUTOSTART_APP_AUTORESTART_KEY))
     {
-        this->m_autoRestart = this->m_appInfo->desktopGroup().readEntry(KSM_AUTOSTART_APP_AUTORESTART_KEY, false);
+        m_autoRestart = m_appInfo->desktopGroup().readEntry(KSM_AUTOSTART_APP_AUTORESTART_KEY, false);
     }
     else
     {
-        this->m_autoRestart = this->m_appInfo->desktopGroup().readEntry(GSM_AUTOSTART_APP_AUTORESTART_KEY, false);
+        m_autoRestart = m_appInfo->desktopGroup().readEntry(GSM_AUTOSTART_APP_AUTORESTART_KEY, false);
     }
 
     // Delay
-    auto delay = this->m_appInfo->desktopGroup().readEntry(KSM_AUTOSTART_APP_DELAY_KEY);
+    auto delay = m_appInfo->desktopGroup().readEntry(KSM_AUTOSTART_APP_DELAY_KEY);
     if (!delay.isEmpty())
     {
         /* 由于在APPLICATION阶段之前会话管理会设置一个超时定时器在应用程序启动时等待一段时间，
         如果此时设置的延时启动时间大于这个定时器等待的时间，可能会发生一些不可预知的后果，
         因此在APPLICATION阶段之前启动的应用程序暂时不运行设置延时启动。如果一定要设置，那
         这个时间应该要小于会话管理设置的超时定时器的时间。*/
-        if (this->m_phase == KSMPhase::KSM_PHASE_APPLICATION)
+        if (m_phase == KSMPhase::KSM_PHASE_APPLICATION)
         {
-            this->m_delay = delay.toInt();
+            m_delay = delay.toInt();
         }
         else
         {
@@ -254,9 +252,9 @@ void App::loadAppInfo()
         }
     }
 
-    KLOG_DEBUG() << "The info of app " << this->m_appID << "is loaded. StartupID: "
-                 << this->m_startupID << ", Phase: " << App::phaseEnum2str(this->m_phase)
-                 << ", AutoRestart: " << this->m_autoRestart << ", Delay: " << this->m_delay;
+    KLOG_DEBUG() << "The info of app " << m_appID << "is loaded. StartupID: "
+                 << m_startupID << ", Phase: " << App::phaseEnum2str(m_phase)
+                 << ", AutoRestart: " << m_autoRestart << ", Delay: " << m_delay;
 }
 
 void App::onFinished(int exitCode, QProcess::ExitStatus exitStatus)
@@ -264,15 +262,15 @@ void App::onFinished(int exitCode, QProcess::ExitStatus exitStatus)
     switch (exitStatus)
     {
     case QProcess::ExitStatus::NormalExit:
-        KLOG_DEBUG() << "The app " << this->m_appInfo->fileName() << " normal exits.";
+        KLOG_INFO() << "The app " << m_appInfo->fileName() << " normal exits.";
         break;
     case QProcess::ExitStatus::CrashExit:
-        KLOG_DEBUG() << "The app " << this->m_appInfo->fileName() << " abnormal normal exits, exit code " << exitCode;
+        KLOG_INFO() << "The app " << m_appInfo->fileName() << " abnormal normal exits, exit code " << exitCode;
         break;
     default:
         break;
     }
 
-    Q_EMIT this->AppExited();
+    Q_EMIT AppExited();
 }
 }  // namespace Kiran
