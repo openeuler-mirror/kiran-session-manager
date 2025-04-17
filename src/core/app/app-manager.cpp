@@ -43,8 +43,6 @@ void AppManager::globalInit(const QString &sessionName)
 
 App *AppManager::getAppByStartupID(const QString &startupID)
 {
-    KLOG_DEBUG() << "Startup id: " << startupID;
-
     for (auto iter : m_apps)
     {
         if (iter->getStartupID() == startupID)
@@ -82,12 +80,30 @@ QList<App *> AppManager::startApps(int32_t phase)
         }
         else
         {
-            CONTINUE_IF_FALSE(app->start());
-            KLOG_DEBUG() << "The app " << app->getAppID() << " is started.";
+            if (!app->start())
+            {
+                KLOG_WARNING() << "The app " << app->getAppID() << "failed to start.";
+            }
+            else
+            {
+                KLOG_DEBUG() << "The app " << app->getAppID() << " is started.";
+            }
         }
         apps.push_back(app);
     }
     return apps;
+}
+
+QStringList AppManager::getDesktopIDs(QList<App *> apps)
+{
+    QStringList desktopIDs;
+
+    for (auto app : apps)
+    {
+        desktopIDs.push_back(app->getAppID());
+    }
+
+    return desktopIDs;
 }
 
 void AppManager::init()

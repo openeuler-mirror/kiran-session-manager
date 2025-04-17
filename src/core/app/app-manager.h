@@ -44,6 +44,8 @@ public:
     // 启动特定阶段的app，并返回启动成功或者延时启动的app列表
     QList<App*> startApps(int32_t phase);
 
+    static QStringList getDesktopIDs(QList<App*> apps);
+
 Q_SIGNALS:
     void AppExited(App* app);
 
