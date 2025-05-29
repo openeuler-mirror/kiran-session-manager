@@ -89,7 +89,7 @@ bool App::start()
     m_process->setProcessEnvironment(env);
 
     auto program = arguments.takeFirst();
-    m_process->start(program, arguments);
+    m_process->start(program, arguments, QProcess::NotOpen);
     KLOG_INFO() << "Start app" << m_appID;
 
     return true;
