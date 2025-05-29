@@ -91,7 +91,7 @@ bool App::start()
     this->m_process->setProcessEnvironment(env);
 
     auto program = arguments.takeFirst();
-    this->m_process->start(program, arguments);
+    this->m_process->start(program, arguments, QProcess::NotOpen);
 
     return true;
 }
