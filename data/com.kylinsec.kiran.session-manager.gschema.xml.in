@@ -20,5 +20,11 @@
             <default>false</default>
             <description>Set whether to always show the exit window.</description>
         </key>
+
+        <key name="exit-window-countdown-timeout" type="u">
+            <default>10</default>
+            <summary>Exit window countdown timeout in seconds</summary>
+            <description>The number of seconds for countdown before automatically triggering exit action</description>
+        </key>
     </schema>
 </schemalist>

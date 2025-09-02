@@ -15,6 +15,8 @@
 #include <QWidget>
 
 class SessionManagerProxy;
+class QTimer;
+class QGSettings;
 
 namespace Ui
 {
@@ -35,7 +37,7 @@ class ExitQueryWindow : public QWidget
 
 public:
     ExitQueryWindow(int32_t powerAction, QWidget *parent = nullptr);
-    virtual ~ExitQueryWindow(){};
+    virtual ~ExitQueryWindow() {};
 
     // 获取应用/InhibitorRow数量
     int32_t getAppCount();
@@ -43,11 +45,11 @@ public:
 private:
     void initUI();
     void initInhibitors();
-
+    void startCountdown();
+    void updateCountdown();
     void quit(const QString &result);
 
 private:
-    // virtual void resizeEvent(QResizeEvent *event) override;
     virtual void paintEvent(QPaintEvent *event) override;
 
 private Q_SLOTS:
@@ -58,6 +60,10 @@ private:
     SessionManagerProxy *m_sessionManagerProxy;
     int32_t m_powerAction;
     QPixmap m_backgroundPixmap;
+    QString m_actionText;
+    QTimer *m_countdownTimer;
+    int m_countdownSeconds;
+    QGSettings *m_gsettings;
 };
 
 }  // namespace Kiran

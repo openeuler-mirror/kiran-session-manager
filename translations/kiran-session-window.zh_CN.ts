@@ -46,37 +46,42 @@
 <context>
     <name>Kiran::ExitQueryWindow</name>
     <message>
-        <location filename="../src/ui/exit-query-window.cpp" line="117"/>
+        <location filename="../src/ui/exit-query-window.cpp" line="123"/>
         <source>Shutting down the system</source>
         <translation>正在关闭系统</translation>
     </message>
     <message>
-        <location filename="../src/ui/exit-query-window.cpp" line="123"/>
+        <location filename="../src/ui/exit-query-window.cpp" line="129"/>
         <source>Restarting the system</source>
         <translation>正在重启系统</translation>
     </message>
     <message>
-        <location filename="../src/ui/exit-query-window.cpp" line="110"/>
+        <location filename="../src/ui/exit-query-window.cpp" line="116"/>
         <source>Logout</source>
         <translation>注销</translation>
     </message>
     <message>
-        <location filename="../src/ui/exit-query-window.cpp" line="111"/>
+        <location filename="../src/ui/exit-query-window.cpp" line="117"/>
         <source>The current user is being logged out</source>
         <translation>正在注销当前用户</translation>
     </message>
     <message>
-        <location filename="../src/ui/exit-query-window.cpp" line="116"/>
+        <location filename="../src/ui/exit-query-window.cpp" line="122"/>
         <source>Shutdown</source>
         <translation>关机</translation>
     </message>
     <message>
-        <location filename="../src/ui/exit-query-window.cpp" line="122"/>
+        <location filename="../src/ui/exit-query-window.cpp" line="128"/>
         <source>Reboot</source>
         <translation>重启</translation>
     </message>
     <message>
-        <location filename="../src/ui/exit-query-window.cpp" line="101"/>
+        <location filename="../src/ui/exit-query-window.cpp" line="134"/>
+        <source>Unknown</source>
+        <translation>未知</translation>
+    </message>
+    <message>
+        <location filename="../src/ui/exit-query-window.cpp" line="107"/>
         <source>If you want to go back and save your work, click &apos;cancel&apos; and finish what you want to do</source>
         <translation>如果想要返回并保存你的工作，可单击&apos;取消&apos;，然后完成你要执行的操作</translation>
     </message>

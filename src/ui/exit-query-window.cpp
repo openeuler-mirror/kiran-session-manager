@@ -14,9 +14,11 @@
 
 #include "exit-query-window.h"
 #include <kiran-push-button.h>
+#include <ksm-i.h>
 #include <KDesktopFile>
 #include <QApplication>
 #include <QDesktopWidget>
+#include <QGSettings>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonValue>
@@ -43,13 +45,17 @@ ExitQueryWindow::ExitQueryWindow(int32_t powerAction,
                                                     m_ui(new Ui::ExitQueryWindow),
                                                     m_powerAction(powerAction)
 {
-    m_ui->setupUi(this);
+    m_countdownTimer = new QTimer(this);
+    m_gsettings = new QGSettings(KSM_SCHEMA_ID);
+    // 从gsettings获取倒计时时间
+    m_countdownSeconds = m_gsettings->get(KSM_SCHEMA_KEY_EXIT_WINDOW_COUNTDOWN_TIMEOUT).toUInt();
 
     m_sessionManagerProxy = new SessionManagerProxy(KSM_DBUS_NAME,
                                                     KSM_DBUS_OBJECT_PATH,
                                                     QDBusConnection::sessionBus(),
                                                     this);
 
+    m_ui->setupUi(this);
     initUI();
 }
 
@@ -107,28 +113,31 @@ void ExitQueryWindow::initInhibitors()
     {
     case PowerAction::POWER_ACTION_LOGOUT:
     {
-        m_ui->m_ok->setText(tr("Logout"));
+        m_actionText = tr("Logout");
         m_ui->m_title->setText(tr("The current user is being logged out"));
         break;
     }
     case PowerAction::POWER_ACTION_SHUTDOWN:
     {
-        m_ui->m_ok->setText(tr("Shutdown"));
+        m_actionText = tr("Shutdown");
         m_ui->m_title->setText(tr("Shutting down the system"));
         break;
     }
     case PowerAction::POWER_ACTION_REBOOT:
     {
-        m_ui->m_ok->setText(tr("Reboot"));
+        m_actionText = tr("Reboot");
         m_ui->m_title->setText(tr("Restarting the system"));
         break;
     }
     default:
     {
+        m_actionText = tr("Unknown");
         KLOG_WARNING() << "The power action is unsupported. action: " << m_powerAction;
         break;
     }
     }
+    m_ui->m_ok->setText(m_actionText);
+
     if (jsonRoot.size() == 0)
     {
         m_ui->m_inhibitorsScrollArea->hide();
@@ -149,6 +158,39 @@ void ExitQueryWindow::initInhibitors()
 
         m_ui->m_inhibitorsLayout->addStretch();
     }
+
+    // 如果有配置倒计时时间，则启动倒计时
+    if (m_countdownSeconds > 0)
+    {
+        startCountdown();
+    }
+}
+
+void ExitQueryWindow::startCountdown()
+{
+    // 设置倒计时定时器，每秒触发一次
+    connect(m_countdownTimer, &QTimer::timeout, this, &ExitQueryWindow::updateCountdown);
+    m_countdownTimer->start(1000);
+
+    // 立即更新一次显示
+    updateCountdown();
+}
+
+void ExitQueryWindow::updateCountdown()
+{
+    if (m_countdownSeconds > 0)
+    {
+        // 更新按钮文本，显示倒计时
+        QString buttonText = QString("%1 (%2s)").arg(m_actionText).arg(m_countdownSeconds);
+        m_ui->m_ok->setText(buttonText);
+        --m_countdownSeconds;
+    }
+    else
+    {
+        // 倒计时结束，自动触发退出
+        m_countdownTimer->stop();
+        this->quit("ok");
+    }
 }
 
 void ExitQueryWindow::quit(const QString &result)
@@ -159,12 +201,6 @@ void ExitQueryWindow::quit(const QString &result)
     std::cout << jsonDoc.toJson().data();
     QApplication::quit();
 }
-
-// void ExitQueryWindow::resizeEvent(QResizeEvent *event)
-// {
-//     KLOG_WARNING() << "cur height: " << event->size().height() << " old height: " << event->oldSize().height();
-//     QWidget::resizeEvent(event);
-// }
 
 void ExitQueryWindow::paintEvent(QPaintEvent *event)
 {
