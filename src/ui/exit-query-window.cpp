@@ -157,7 +157,8 @@ void ExitQueryWindow::quit(const QString &result)
     QJsonObject jsonObj;
     jsonObj.insert("response_id", result);
     QJsonDocument jsonDoc(jsonObj);
-    std::cout << jsonDoc.toJson().data();
+    // 紧凑型输出，便于后续SessionManager解析过滤非Json格式输出
+    std::cout << jsonDoc.toJson(QJsonDocument::Compact).data();
     QApplication::quit();
 }
 
