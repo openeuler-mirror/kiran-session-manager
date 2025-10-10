@@ -482,8 +482,30 @@ void SessionManager::onExitWindowResponse()
 
     KLOG_DEBUG() << "Standard output: " << standardOutput;
 
-    auto jsonDoc = QJsonDocument::fromJson(standardOutput, &jsonError);
+    // 过滤掉空行和非JSON内容(#96728)
+    auto lines = standardOutput.split('\n');
+    QByteArray jsonData;
+    for (const auto &line : lines)
+    {
+        auto trimmed = line.trimmed();
+        if (trimmed.startsWith('{') || trimmed.startsWith('['))
+        {
+            KLOG_INFO() << "Found session window json data: " << trimmed;
+            jsonData = trimmed;
+            break;
+        }
+    }
 
+    if (jsonData.isEmpty())
+    {
+        KLOG_WARNING() << "No valid JSON found in output"
+                       << "full output: " << standardOutput;
+        cancelEndSession();
+        return;
+    }
+
+    // 解析Json格式输出
+    auto jsonDoc = QJsonDocument::fromJson(jsonData, &jsonError);
     if (jsonDoc.isNull())
     {
         KLOG_WARNING() << "Parser standard output failed: " << jsonError.errorString();
