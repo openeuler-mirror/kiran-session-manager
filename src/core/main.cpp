@@ -13,8 +13,8 @@
  */
 
 #include <unistd.h>
-#include <QApplication>
 #include <QCommandLineParser>
+#include <QCoreApplication>
 #include <QFileInfo>
 #include <QProcessEnvironment>
 #include <QRegularExpression>
@@ -29,6 +29,7 @@
 #include "session-manager.h"
 #include "utils.h"
 #include "xsmp-server.h"
+#include "display-server-monitor.h"
 
 using namespace Kiran;
 
@@ -112,9 +113,9 @@ int main(int argc, char *argv[])
     // wayland方式下可能需要自己启动dbus-daemon
     startDBusSession(argc, argv);
 
-    QApplication app(argc, argv);
-    QApplication::setApplicationName(programName);
-    QApplication::setApplicationVersion(PROJECT_VERSION);
+    QCoreApplication app(argc, argv);
+    QCoreApplication::setApplicationName(programName);
+    QCoreApplication::setApplicationVersion(PROJECT_VERSION);
 
     QTranslator translator;
 
@@ -144,6 +145,7 @@ int main(int argc, char *argv[])
     initEnv();
 
     auto sessionType = parser.value(QStringLiteral("session-type"));
+    DisplayServerMonitor displayServerMonitor(DisplayServerMonitor::X11);
 
     if (parser.isSet("autostart"))
     {
