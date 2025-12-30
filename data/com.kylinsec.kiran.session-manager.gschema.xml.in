@@ -17,7 +17,7 @@
         </key>
 
         <key name="always-show-exit-window" type="b">
-            <default>false</default>
+            <default>true</default>
             <description>Set whether to always show the exit window.</description>
         </key>
 

@@ -29,7 +29,7 @@ class AppManager : public QObject
 
 public:
     AppManager(const QString& sessionName);
-    virtual ~AppManager(){};
+    virtual ~AppManager() {};
 
     static AppManager* getInstance() { return m_instance; };
 
@@ -43,6 +43,8 @@ public:
 
     // 启动特定阶段的app，并返回启动成功或者延时启动的app列表
     QList<App*> startApps(int32_t phase);
+    // 停止所有app
+    void stopApps();
 
     static QStringList getDesktopIDs(QList<App*> apps);
 

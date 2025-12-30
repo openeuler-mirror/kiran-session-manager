@@ -20,35 +20,6 @@
 
 namespace Kiran
 {
-enum KSMPhase
-{
-    // 未开始
-    KSM_PHASE_IDLE = 0,
-    // 启动显示服务器(xserver/wayland-server)
-    KSM_PHASE_DISPLAY_SERVER,
-    // (IdleMonitor)
-    KSM_PHASE_POST_DISPLAY_SERVER,
-    // 启动控制中心会话后端
-    KSM_PHASE_INITIALIZATION,
-    // 启动窗口管理器
-    KSM_PHASE_WINDOW_MANAGER,
-    // 启动底部面板
-    KSM_PHASE_PANEL,
-    // 启动文件管理器
-    KSM_PHASE_DESKTOP,
-    // 启动其他应用程序
-    KSM_PHASE_APPLICATION,
-    // 会话运行阶段
-    KSM_PHASE_RUNNING,
-    // 会话结束阶段
-    KSM_PHASE_QUERY_END_SESSION,
-    // 会话结束第一阶段
-    KSM_PHASE_END_SESSION_PHASE1,
-    // 会话结束第二阶段
-    KSM_PHASE_END_SESSION_PHASE2,
-    // 会话结束第二阶段
-    KSM_PHASE_EXIT
-};
 
 class App : public QObject
 {

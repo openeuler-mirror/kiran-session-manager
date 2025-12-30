@@ -21,6 +21,7 @@
 #include <QUrl>
 #include "lib/base/base.h"
 
+#include <signal.h>
 #include <QUrl>
 #include "src/core/app/app-manager.h"
 #include "src/core/app/app.h"
@@ -107,7 +108,7 @@ bool App::stop()
 {
     if (m_process->state() == QProcess::ProcessState::NotRunning)
     {
-        KLOG_WARNING() << "The app" << m_appID << "is not running.";
+        KLOG_INFO() << "The app" << m_appID << "is not running.";
         return false;
     }
 
@@ -115,6 +116,11 @@ bool App::stop()
     m_process->terminate();
 
     return true;
+}
+
+bool App::isRunning()
+{
+    return m_process->state() != QProcess::ProcessState::NotRunning;
 }
 
 bool App::canLaunched()
@@ -262,10 +268,17 @@ void App::onFinished(int exitCode, QProcess::ExitStatus exitStatus)
     switch (exitStatus)
     {
     case QProcess::ExitStatus::NormalExit:
-        KLOG_INFO() << "The app " << m_appInfo->fileName() << " normal exits.";
+        KLOG_INFO() << "The app" << m_appInfo->fileName() << "normal exits.";
         break;
     case QProcess::ExitStatus::CrashExit:
-        KLOG_INFO() << "The app " << m_appInfo->fileName() << " abnormal normal exits, exit code " << exitCode;
+        if (exitCode == SIGTERM)
+        {
+            KLOG_INFO() << "The app" << m_appInfo->fileName() << "is terminated.";
+        }
+        else
+        {
+            KLOG_INFO() << "The app" << m_appInfo->fileName() << "abnormal normal exits, exit code " << exitCode;
+        }
         break;
     default:
         break;
