@@ -731,10 +731,17 @@ void SessionManager::queryEndSessionComplete()
 
     if (m_process->state() != QProcess::Running)
     {
-        m_process->setProgram("/usr/bin/kiran-session-window");
-        m_process->setArguments(QStringList(QString("--power-action=%1").arg(m_powerAction)));
-        m_process->start();
-        connect(m_process, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(onExitWindowResponse()));
+        if (m_settings->get(KSM_SCHEMA_KEY_ALWAYS_SHOW_EXIT_WINDOW).toBool())
+        {
+            m_process->setProgram("/usr/bin/kiran-session-window");
+            m_process->setArguments(QStringList(QString("--power-action=%1").arg(m_powerAction)));
+            m_process->start();
+            connect(m_process, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(onExitWindowResponse()));
+        }
+        else
+        {
+            startNextPhase();
+        }
     }
 }
 
@@ -833,9 +840,14 @@ void SessionManager::processPhaseExit()
         }
     }
 
+    m_appManager->stopApps();
+
     // FIXBUG: #53714
     maybeRestartUserBus();
-    startNextPhase();
+
+    QTimer::singleShot(100, this, [this]() -> void
+                       { this->startNextPhase(); });
+    // startNextPhase();
 }
 
 void SessionManager::maybeRestartUserBus()

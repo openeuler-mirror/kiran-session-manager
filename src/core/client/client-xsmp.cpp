@@ -22,9 +22,9 @@
 namespace Kiran
 {
 ClientXsmp::ClientXsmp(const QString &startupID,
-                       SmsConn sms_connection,
+                       SmsConn smsConnection,
                        QObject *parent) : Client(startupID, parent),
-                                          m_smsConnection(sms_connection),
+                                          m_smsConnection(smsConnection),
                                           m_currentSaveYourself(-1),
                                           m_nextSaveYourself(-1),
                                           m_nextSaveYourselfAllowInteract(false)
@@ -36,6 +36,11 @@ ClientXsmp::~ClientXsmp()
     for (auto props : m_props)
     {
         SmFreeProperty(static_cast<SmProp *>(props));
+    }
+
+    if (m_smsConnection)
+    {
+        SmsCleanUp(m_smsConnection);
     }
 }
 

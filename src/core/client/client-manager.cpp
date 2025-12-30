@@ -302,6 +302,7 @@ bool ClientManager::deleteClient(const QString &startupID)
 
     m_clients.remove(startupID);
     Q_EMIT clientDeleted(client);
+    delete client;
     return true;
 }
 
@@ -428,7 +429,7 @@ void ClientManager::onIceConnStatusChanged(int32_t status, IceConn iceConn)
         deleteClient(client->getID());
         break;
     case IceProcessMessagesConnectionClosed:
-        KLOG_DEBUG() << "The client" << client->getID() << "(ice connection:" << iceConn << ")receive IceProcessMessagesConnectionClosed message.";
+        KLOG_INFO() << "The client" << client->getID() << "(ice connection:" << iceConn << ")receive IceProcessMessagesConnectionClosed message.";
         break;
     default:
         break;

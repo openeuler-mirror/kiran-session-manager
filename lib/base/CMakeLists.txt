@@ -1,5 +1,3 @@
-cmake_minimum_required(VERSION 3.0)
-
 set(TARGET_NAME lib-base)
 
 file(GLOB_RECURSE BASE_H_FILES ./*.h)

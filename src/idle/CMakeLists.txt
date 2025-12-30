@@ -1,5 +1,3 @@
-cmake_minimum_required(VERSION 3.0)
-
 file(GLOB_RECURSE IDLE_H_FILES ./*.h)
 file(GLOB_RECURSE IDLE_CPP_FILES ./*.cpp)
 
