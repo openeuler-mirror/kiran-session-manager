@@ -94,6 +94,17 @@ QList<App *> AppManager::startApps(int32_t phase)
     return apps;
 }
 
+void AppManager::stopApps()
+{
+    for (auto app : m_apps)
+    {
+        if (app->isRunning())
+        {
+            app->stop();
+        }
+    }
+}
+
 QStringList AppManager::getDesktopIDs(QList<App *> apps)
 {
     QStringList desktopIDs;

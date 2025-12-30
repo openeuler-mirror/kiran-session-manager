@@ -1,5 +1,10 @@
-file(GLOB_RECURSE SRC_H_FILES ./*.h)
-file(GLOB_RECURSE SRC_CPP_FILES ./*.cpp)
+set(TARGET_NAME ksm-test-boot)
+
+file(GLOB_RECURSE TEST_H_FILES ./*.h ${PROJECT_SOURCE_DIR}/src/core/*.h)
+file(GLOB_RECURSE TEST_CPP_FILES ./*.cpp ${PROJECT_SOURCE_DIR}/src/core/*.cpp)
+# 过滤main.cpp
+list(REMOVE_ITEM TEST_CPP_FILES ${PROJECT_SOURCE_DIR}/src/core/main.cpp)
+
 
 qt5_add_dbus_adaptor(
   SESSION_MANAGER_SRCS ${CMAKE_SOURCE_DIR}/data/org.gnome.SessionManager.xml
@@ -28,23 +33,14 @@ qt5_add_dbus_interface(
   ${CMAKE_SOURCE_DIR}/data/com.kylinsec.Kiran.SessionManager.IdleMonitor.xml
   idle_monitor_proxy)
 
-set(TARGET_NAME kiran-session-manager)
-
-set(TS_FILES "${PROJECT_SOURCE_DIR}/translations/${TARGET_NAME}.zh_CN.ts")
-execute_process(COMMAND lupdate-qt5 -no-obsolete ${PROJECT_SOURCE_DIR}/lib
-                        ${SRC_H_FILES} ${SRC_CPP_FILES} -ts ${TS_FILES})
-
-qt5_add_translation(QM_FILES ${TS_FILES})
-
 add_executable(
   ${TARGET_NAME}
-  ${SRC_H_FILES}
-  ${SRC_CPP_FILES}
+  ${TEST_H_FILES}
+  ${TEST_CPP_FILES}
   ${SESSION_MANAGER_SRCS}
   ${CLIENT_PRIVATE_SRCS}
   ${PRESENCE_SRCS}
-  ${IDLE_MONITOR_SRCS}
-  ${QM_FILES})
+  ${IDLE_MONITOR_SRCS})
 
 target_include_directories(
   ${TARGET_NAME}
@@ -70,10 +66,10 @@ target_link_libraries(
           ${GSETTINGS_QT_LIBRARIES}
           Qt5::Core
           Qt5::DBus
+          Qt5::Test
           KF5::ConfigCore
           KF5::KIOCore
           lib-base
           lib-dbus)
 
-install(FILES ${QM_FILES} DESTINATION ${KSM_INSTALL_TRANSLATIONDIR})
-install(TARGETS ${TARGET_NAME} DESTINATION ${CMAKE_INSTALL_FULL_BINDIR})
+add_test(NAME test-boot COMMAND ${TARGET_NAME})

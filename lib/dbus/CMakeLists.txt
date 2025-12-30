@@ -1,5 +1,3 @@
-cmake_minimum_required(VERSION 3.0)
-
 set(TARGET_NAME lib-dbus)
 
 file(GLOB_RECURSE DBUS_H_FILES ./*.h)

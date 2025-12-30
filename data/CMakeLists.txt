@@ -1,5 +1,3 @@
-cmake_minimum_required(VERSION 3.2)
-
 # xxx.in -> xxx
 file(GLOB XXX_IN_FILES ./*.in)
 
