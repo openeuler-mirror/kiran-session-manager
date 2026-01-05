@@ -33,6 +33,7 @@ namespace Kiran
 #define KSM_AUTOSTART_APP_PHASE_KEY "X-KIRAN-Autostart-Phase"
 #define KSM_AUTOSTART_APP_AUTORESTART_KEY "X-KIRAN-AutoRestart"
 #define KSM_AUTOSTART_APP_DELAY_KEY "X-KIRAN-Autostart-Delay"
+#define KSM_AUTOSTART_APP_SKIP_REGISTER_KEY "X-KIRAN-Autostart-SkipRegistrationWait"
 
 // 暂时兼容MATE应用
 #define GSM_AUTOSTART_APP_ENABLED_KEY "X-MATE-Autostart-enabled"
@@ -46,7 +47,8 @@ App::App(const QString &filePath, QObject *parent = nullptr) : QObject(parent),
                                                                m_phase(KSMPhase::KSM_PHASE_APPLICATION),
                                                                m_autoRestart(false),
                                                                m_delay(0),
-                                                               m_process(new QProcess(this))
+                                                               m_process(new QProcess(this)),
+                                                               m_skipRegistrationWait(false)
 {
     m_appInfo = QSharedPointer<KDesktopFile>(new KDesktopFile(filePath));
     m_process->setProcessChannelMode(QProcess::ForwardedErrorChannel);
@@ -258,9 +260,13 @@ void App::loadAppInfo()
         }
     }
 
+    // Skip registration wait
+    m_skipRegistrationWait = m_appInfo->desktopGroup().readEntry(KSM_AUTOSTART_APP_SKIP_REGISTER_KEY, false);
+
     KLOG_DEBUG() << "The info of app " << m_appID << "is loaded. StartupID: "
                  << m_startupID << ", Phase: " << App::phaseEnum2str(m_phase)
-                 << ", AutoRestart: " << m_autoRestart << ", Delay: " << m_delay;
+                 << ", AutoRestart: " << m_autoRestart << ", Delay: " << m_delay 
+                 << ", SkipRegistrationWait: " << m_skipRegistrationWait;
 }
 
 void App::onFinished(int exitCode, QProcess::ExitStatus exitStatus)

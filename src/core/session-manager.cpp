@@ -669,7 +669,16 @@ void SessionManager::processPhaseStartup()
     // 在KSM_PHASE_APPLICATION阶段前启动的应用在运行后需要（通过dbus或者xsmp规范）告知会话管理自己已经启动成功，这样会话管理才会进入下一个阶段。
     if (m_currentPhase < KSMPhase::KSM_PHASE_APPLICATION)
     {
-        m_waitingApps = std::move(apps);
+        m_waitingApps.clear();
+        for (auto app : apps)
+        {
+            if (app->getSkipRegistrationWait())
+            {
+                KLOG_INFO() << "The app " << app->getAppID() << " is skipping registration wait.";
+                continue;
+            }
+            m_waitingApps.push_back(app);
+        }
     }
 
     // 一些应用需要延时执行或者需要等待其启动完毕的信号
