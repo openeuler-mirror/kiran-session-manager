@@ -35,7 +35,7 @@ public:
     bool isRunning();
     bool canLaunched();
 
-    //
+    // 阶段字符串和阶段枚举转换
     static int32_t phaseStr2enum(const QString &phase_str);
     static QString phaseEnum2str(int32_t phase);
 
@@ -44,6 +44,9 @@ public:
     QString getStartupID() { return this->m_startupID; };
     bool getAutoRestart() { return this->m_autoRestart; };
     int32_t getDelay() { return this->m_delay; };
+
+    // 拓展属性，用于指定应用程序启动时是否跳过注册等待阶段(运行在KSM_PHASE_APPLICATION阶段之前的自启应用)
+    bool getSkipRegistrationWait() { return this->m_skipRegistrationWait; };
 
 Q_SIGNALS:
     void AppExited();
@@ -62,6 +65,8 @@ private:
     bool m_autoRestart;
     // 延时运行时间
     int32_t m_delay;
+    // 是否跳过注册等待阶段
+    bool m_skipRegistrationWait;
 
     QSharedPointer<KDesktopFile> m_appInfo;
     QProcess *m_process;
