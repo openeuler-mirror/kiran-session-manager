@@ -243,9 +243,9 @@ void ClientManager::init()
     this->m_serviceWatcher->setConnection(QDBusConnection::sessionBus());
     this->m_serviceWatcher->setWatchMode(QDBusServiceWatcher::WatchForUnregistration);
 
-    connect(this->m_serviceWatcher, SIGNAL(serviceUnregistered(const QString &)), this, SLOT(onNameLost(const QString &)));
-    connect(this->m_xsmpServer, SIGNAL(newClientConnected(unsigned long *, void *)), this, SLOT(onNewXsmpClientConnected(unsigned long *, void *)));
-    connect(this->m_xsmpServer, SIGNAL(iceConnStatusChanged(int32_t, IceConn)), this, SLOT(onIceConnStatusChanged(int32_t, IceConn)));
+    connect(m_serviceWatcher, SIGNAL(serviceUnregistered(const QString &)), this, SLOT(onNameLost(const QString &)));
+    connect(m_xsmpServer, SIGNAL(newClientConnected(unsigned long *, void *)), this, SLOT(onNewXsmpClientConnected(unsigned long *, void *)));
+    connect(m_xsmpServer, SIGNAL(iceConnStatusChanged(int32_t, IceConn, bool *)), this, SLOT(onIceConnStatusChanged(int32_t, IceConn, bool *)));
 }
 
 ClientXsmp *ClientManager::addClientXsmp(const QString &startupID, SmsConn smsConn)
@@ -416,7 +416,7 @@ void ClientManager::onNewXsmpClientConnected(unsigned long *mask_ret, void *call
     callbacks_ret->get_properties.manager_data = this;
 }
 
-void ClientManager::onIceConnStatusChanged(int32_t status, IceConn iceConn)
+void ClientManager::onIceConnStatusChanged(int32_t status, IceConn iceConn, bool *statusProcessed)
 {
     auto client = this->getClientByIceConn(iceConn);
     RETURN_IF_FALSE(client);
@@ -424,11 +424,13 @@ void ClientManager::onIceConnStatusChanged(int32_t status, IceConn iceConn)
     switch (IceProcessMessagesStatus(status))
     {
     case IceProcessMessagesIOError:
-        KLOG_WARNING() << "The client " << client->getID() << " Receive IceProcessMessagesIOError message. program name: " << client->getProgramName();
-        this->deleteClient(client->getID());
+        KLOG_WARNING() << "The client" << client->getID() << "(ice connection:" << iceConn << ")receive IceProcessMessagesIOError message.";
+        deleteClient(client->getID());
+        *statusProcessed = true;
         break;
     case IceProcessMessagesConnectionClosed:
-        KLOG_DEBUG() << "The client " << client->getID() << " Receive IceProcessMessagesConnectionClosed message. program name: " << client->getProgramName();
+        KLOG_INFO() << "The client" << client->getID() << "(ice connection:" << iceConn << ")receive IceProcessMessagesConnectionClosed message.";
+        *statusProcessed = true;
         break;
     default:
         break;
