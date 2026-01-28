@@ -28,17 +28,30 @@ public:
         WAYLAND,
         LAST
     };
-    DisplayServerMonitor(DisplayServerType type, QObject* parent = nullptr);
+    // 会话管理需要检测显示服务存活状态：在某些场景（如 XDMCP），XServer 退出后，
+    // 依赖显示服务的组件会消失，但会话管理及其拉起的部分进程不依赖显示服务，
+    // 可能不会被及时释放，需要监控显示服务以触发会话退出清理。
+    static DisplayServerMonitor* getInstance(DisplayServerType type = X11,
+                                             QObject* parent = nullptr);
     ~DisplayServerMonitor();
+    DisplayServerMonitor(const DisplayServerMonitor&) = delete;
+    DisplayServerMonitor& operator=(const DisplayServerMonitor&) = delete;
+
+Q_SIGNALS:
+    void displayServerDied();
 
 private:
+    DisplayServerMonitor(DisplayServerType type, QObject* parent = nullptr);
     void initiate();
     bool initiateX11Connection();
     void checkDisplayServer();
     bool checkX11DisplayServer();
+    void notifyDisplayServerDied();
 
 private:
     DisplayServerType m_type;
     xcb_connection_t* m_xcbConnection = nullptr;
+    bool m_diedNotified = false;
+    static DisplayServerMonitor* s_instance;
 };
 }  // namespace Kiran
