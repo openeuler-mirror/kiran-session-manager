@@ -114,19 +114,19 @@ static void freeConnectionWatch(ConnectionWatch *watch)
     delete watch;
 }
 
-static void disconnectIceConnection(IceConn ice_conn)
+static void disconnectIceConnection(IceConn iceConn)
 {
-    IceSetShutdownNegotiation(ice_conn, FALSE);
-    IceCloseConnection(ice_conn);
+    IceSetShutdownNegotiation(iceConn, FALSE);
+    IceCloseConnection(iceConn);
 }
 
-static bool onIceProtocolTimeout(IceConn ice_conn)
+static bool onIceProtocolTimeout(IceConn iceConn)
 {
     KLOG_DEBUG("Ice protocol timeout.");
 
-    auto watch = static_cast<ConnectionWatch *>(ice_conn->context);
+    auto watch = static_cast<ConnectionWatch *>(iceConn->context);
     freeConnectionWatch(watch);
-    disconnectIceConnection(ice_conn);
+    disconnectIceConnection(iceConn);
     return false;
 }
 
@@ -351,27 +351,27 @@ gboolean XsmpServer::onAcceptIceConnection(GIOChannel *source,
     IceAcceptStatus status;
     IceListenObj listener = (IceListenObj)data;
 
-    auto ice_conn = IceAcceptConnection(listener, &status);
+    auto iceConn = IceAcceptConnection(listener, &status);
     if (status != IceAcceptSuccess)
     {
         KLOG_DEBUG("Accept ice connection with error status. status: %d", status);
         return TRUE;
     }
 
-    auto fd = IceConnectionNumber(ice_conn);
+    auto fd = IceConnectionNumber(iceConn);
     fcntl(fd, F_SETFD, fcntl(fd, F_GETFD, 0) | FD_CLOEXEC);
 
     auto channel = g_io_channel_unix_new(fd);
     auto watch = new ConnectionWatch();
-    ice_conn->context = watch;
+    iceConn->context = watch;
 
-    watch->connection = QObject::connect(&watch->protocolTimeout, &QTimer::timeout, std::bind(&onIceProtocolTimeout, ice_conn));
+    watch->connection = QObject::connect(&watch->protocolTimeout, &QTimer::timeout, std::bind(&onIceProtocolTimeout, iceConn));
     watch->protocolTimeout.start(5000);
 
     watch->watchID = g_io_add_watch(channel,
                                     GIOCondition(G_IO_IN | G_IO_ERR),
                                     &XsmpServer::onAuthIochannelWatch,
-                                    ice_conn);
+                                    iceConn);
     g_io_channel_unref(channel);
 
     return TRUE;
@@ -387,22 +387,33 @@ gboolean XsmpServer::onAuthIochannelWatch(GIOChannel *source,
     auto status = IceProcessMessages(iceConn, NULL, NULL);
     RETURN_VAL_IF_TRUE(status == IceProcessMessagesSuccess, TRUE);
 
-    KLOG_DEBUG() << "Receive io event: " << condition << " status: " << status;
+    bool statusProcessed = false;
+    Q_EMIT XsmpServer::getInstance()->iceConnStatusChanged(status, iceConn, &statusProcessed);
 
-    switch (status)
+    /* 如果信号没有被处理，说明该IceConn还未收到客户端的注册回调（register_client.callback），此时ClientXsmp还未创建，
+       这时IceConn只能在当前函数进行清理。如果ClientXsmp已经创建，则将清理工作交给ClientXsmp进行，除了需要清理Ice连接外，
+       还需要清理SmsConn，由于SmsConn依赖IceConn，所以SmsConn需要在IceConn之前被清理。*/
+    if (!statusProcessed)
     {
-    case IceProcessMessagesIOError:
-        freeConnectionWatch(watch);
-        disconnectIceConnection(iceConn);
-        break;
-    case IceProcessMessagesConnectionClosed:
-        freeConnectionWatch(watch);
-        break;
-    default:
-        break;
+        switch (status)
+        {
+        case IceProcessMessagesIOError:
+        {
+            KLOG_WARNING() << "The ice connection" << iceConn << "receive IceProcessMessagesIOError message.";
+            freeConnectionWatch(watch);
+            disconnectIceConnection(iceConn);
+            break;
+        }
+        case IceProcessMessagesConnectionClosed:
+        {
+            KLOG_INFO() << "The ice connection" << iceConn << "receive IceProcessMessagesConnectionClosed message.";
+            freeConnectionWatch(watch);
+            break;
+        }
+        default:
+            break;
+        }
     }
-
-    Q_EMIT XsmpServer::getInstance()->iceConnStatusChanged(status, iceConn);
 
     return FALSE;
 }

@@ -74,6 +74,8 @@ void TestBenchmark::initTestCase()
     auto dbusAddress = m_dbusSessionProcess->readAllStandardOutput().trimmed();
     qputenv("DBUS_SESSION_BUS_ADDRESS", dbusAddress);
     qputenv("XDG_CURRENT_DESKTOP", "KIRAN");
+    // 设置测试用例超时时间为1小时，避免循环次数太多中途退出
+    qputenv("QTEST_FUNCTION_TIMEOUT", "3600000");
 
     if (klog_qt5_init(QString(), "kylinsec-session", PROJECT_NAME, QCoreApplication::applicationName()))
     {
