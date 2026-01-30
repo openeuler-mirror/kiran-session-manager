@@ -61,7 +61,7 @@ class ClientManager : public QObject
     Q_OBJECT
 public:
     ClientManager(XsmpServer *xsmp_server);
-    virtual ~ClientManager(){};
+    virtual ~ClientManager() {};
 
     static ClientManager *getInstance() { return m_instance; };
 
@@ -114,7 +114,7 @@ private:
 
 private slots:
     void onNewXsmpClientConnected(unsigned long *maskRet, void *callbacks);
-    void onIceConnStatusChanged(int32_t status, IceConn iceConn);
+    void onIceConnStatusChanged(int32_t status, IceConn iceConn, bool *statusProcessed);
     void onDBusClientEndSessionResponse(bool isOK, QString startupID);
 
 private:

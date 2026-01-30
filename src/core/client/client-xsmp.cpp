@@ -38,9 +38,17 @@ ClientXsmp::~ClientXsmp()
         SmFreeProperty(static_cast<SmProp *>(props));
     }
 
+    auto iceConn = SmsGetIceConnection(m_smsConnection);
+
     if (m_smsConnection)
     {
         SmsCleanUp(m_smsConnection);
+    }
+
+    if (iceConn)
+    {
+        IceSetShutdownNegotiation(iceConn, false);
+        IceCloseConnection(iceConn);
     }
 }
 
