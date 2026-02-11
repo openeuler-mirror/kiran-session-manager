@@ -1,14 +1,14 @@
 /**
- * Copyright (c) 2020 ~ 2021 KylinSec Co., Ltd. 
+ * Copyright (c) 2020 ~ 2021 KylinSec Co., Ltd.
  * kiran-session-manager is licensed under Mulan PSL v2.
- * You can use this software according to the terms and conditions of the Mulan PSL v2. 
+ * You can use this software according to the terms and conditions of the Mulan PSL v2.
  * You may obtain a copy of Mulan PSL v2 at:
- *          http://license.coscl.org.cn/MulanPSL2 
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, 
- * EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, 
- * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.  
- * See the Mulan PSL v2 for more details.  
- * 
+ *          http://license.coscl.org.cn/MulanPSL2
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
+ * EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
+ * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
+ * See the Mulan PSL v2 for more details.
+ *
  * Author:     tangjie02 <tangjie02@kylinos.com.cn>
  */
 
@@ -156,7 +156,7 @@ private:
     /* ----------------- 以下为回调处理函数 ------------------- */
     // 应用已启动完成回调
     void onAppStartupFinished(App *app);
-    void onWaitingSessionTimeout(std::function<void(void)> phase_complete_callback);
+    void onWaitingSessionTimeout(std::function<void(void)> phaseCompleteCallback);
 
 private:
     static SessionManager *m_instance;
@@ -180,7 +180,7 @@ private:
     QList<Client *> m_waitingClients;
     QTimer *m_waitingClientsTimeoutID;
     // 请求进入第二阶段的客户端列表
-    QList<Client *> phase2_request_clients_;
+    QList<Client *> m_phase2RequestClients;
 
     Power *m_power;
     // 抑制对话框
