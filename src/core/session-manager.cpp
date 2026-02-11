@@ -279,9 +279,12 @@ void SessionManager::onPhaseStartupTimeout()
     this->startNextPhase();
 }
 
-void SessionManager::onWaitingSessionTimeout(std::function<void(void)> phase_complete_callback)
+void SessionManager::onWaitingSessionTimeout(std::function<void(void)> phaseCompleteCallback)
 {
     KLOG_WARNING() << "Wait session timeout.";
+
+    this->m_waitingClientsTimeoutID->disconnect();
+    this->m_waitingClientsTimeoutID->stop();
 
     for (auto client : this->m_waitingClients)
     {
@@ -295,9 +298,7 @@ void SessionManager::onWaitingSessionTimeout(std::function<void(void)> phase_com
                                                client->getID());
     }
 
-    phase_complete_callback();
-    this->m_waitingClientsTimeoutID->disconnect();
-    this->m_waitingClientsTimeoutID->stop();
+    phaseCompleteCallback();
 }
 
 void SessionManager::onAppExited(App *app)
