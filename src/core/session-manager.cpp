@@ -35,6 +35,8 @@ namespace Kiran
 {
 // 在一个阶段等待所有应用的最长时间(秒)
 #define KSM_PHASE_STARTUP_TIMEOUT 15
+// 阶段结束等待时间，因为没有注销动画，这里不能设置太长，会导致用户感觉系统卡死
+#define KSM_PHASE_END_TIMEOUT 5
 
 SessionManager::SessionManager(AppManager *app_manager,
                                ClientManager *client_manager,
@@ -344,9 +346,12 @@ void SessionManager::onPhaseStartupTimeout()
     startNextPhase();
 }
 
-void SessionManager::processWaitingSessionTimeout(std::function<void(void)> phase_complete_callback)
+void SessionManager::processWaitingSessionTimeout(std::function<void(void)> phaseCompleteCallback)
 {
     KLOG_WARNING() << "Wait session timeout.";
+
+    m_waitingClientsTimeoutID->disconnect();
+    m_waitingClientsTimeoutID->stop();
 
     for (auto client : m_waitingClients)
     {
@@ -360,9 +365,7 @@ void SessionManager::processWaitingSessionTimeout(std::function<void(void)> phas
                                          client->getID());
     }
 
-    phase_complete_callback();
-    m_waitingClientsTimeoutID->disconnect();
-    m_waitingClientsTimeoutID->stop();
+    phaseCompleteCallback();
 }
 
 void SessionManager::onAppExited(App *app)
@@ -476,7 +479,7 @@ void SessionManager::onEndSessionPhase2Request(Client *client)
     KLOG_DEBUG() << "Receive client" << client->getID() << "phase2 request.";
 
     // 需要第一阶段结束的所有客户端响应后才能进入第二阶段，因此这里先缓存第二阶段请求的客户端
-    phase2_request_clients_.push_back(client);
+    m_phase2RequestClients.push_back(client);
 }
 
 void SessionManager::onEndSessionResponse(Client *client)
@@ -775,7 +778,7 @@ void SessionManager::cancelEndSession()
     // 回到运行阶段
     m_currentPhase = KSMPhase::KSM_PHASE_RUNNING;
     // 不能在process_phase中清理第二阶段缓存客户端，因为在调用process_phase_end_session_phase2函数时需要使用
-    phase2_request_clients_.clear();
+    m_phase2RequestClients.clear();
     processPhase();
 }
 
@@ -798,7 +801,7 @@ void SessionManager::processPhaseEndSessionPhase1()
         connect(m_waitingClientsTimeoutID,
                 &QTimer::timeout, [this]() -> void
                 { this->processWaitingSessionTimeout(std::bind(&SessionManager::startNextPhase, this)); });
-        m_waitingClientsTimeoutID->start(KSM_PHASE_STARTUP_TIMEOUT * 1000);
+        m_waitingClientsTimeoutID->start(KSM_PHASE_END_TIMEOUT * 1000);
     }
     else
     {
@@ -809,9 +812,9 @@ void SessionManager::processPhaseEndSessionPhase1()
 void SessionManager::processPhaseEndSessionPhase2()
 {
     // 如果有客户端需要进行第二阶段的数据保存操作，则告知这些客户端现在可以开始进行了
-    if (phase2_request_clients_.size() > 0)
+    if (m_phase2RequestClients.size() > 0)
     {
-        for (auto client : phase2_request_clients_)
+        for (auto client : m_phase2RequestClients)
         {
             if (!client->endSessionPhase2())
             {
@@ -822,7 +825,7 @@ void SessionManager::processPhaseEndSessionPhase2()
                 m_waitingClients.push_back(client);
             }
         }
-        phase2_request_clients_.clear();
+        m_phase2RequestClients.clear();
     }
 
     if (m_waitingClients.size() > 0)
@@ -831,7 +834,7 @@ void SessionManager::processPhaseEndSessionPhase2()
                 &QTimer::timeout, [this]() -> void
                 { this->processWaitingSessionTimeout(std::bind(&SessionManager::startNextPhase, this)); });
 
-        m_waitingClientsTimeoutID->start(KSM_PHASE_STARTUP_TIMEOUT * 1000);
+        m_waitingClientsTimeoutID->start(KSM_PHASE_END_TIMEOUT * 1000);
     }
     else
     {
@@ -880,7 +883,7 @@ void SessionManager::maybeRestartUserBus()
 
 void SessionManager::startNextPhase()
 {
-    bool start_next_phase = true;
+    bool startNextPhase = true;
 
     switch (m_currentPhase)
     {
@@ -905,13 +908,13 @@ void SessionManager::startNextPhase()
         break;
     case KSMPhase::KSM_PHASE_EXIT:
         quitSession();
-        start_next_phase = false;
+        startNextPhase = false;
         break;
     default:
         break;
     }
 
-    if (start_next_phase)
+    if (startNextPhase)
     {
         KLOG_INFO() << "End phase" << App::phaseEnum2str(m_currentPhase);
         m_currentPhase = (KSMPhase)(m_currentPhase + 1);
