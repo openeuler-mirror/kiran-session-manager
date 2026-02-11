@@ -155,7 +155,7 @@ private:
 
     /* ----------------- 以下为回调处理函数 ------------------- */
     void removeWaitingApps(App *app);
-    void processWaitingSessionTimeout(std::function<void(void)> phase_complete_callback);
+    void processWaitingSessionTimeout(std::function<void(void)> phaseCompleteCallback);
 
 private:
     static SessionManager *m_instance;
@@ -179,7 +179,7 @@ private:
     QList<Client *> m_waitingClients;
     QTimer *m_waitingClientsTimeoutID;
     // 请求进入第二阶段的客户端列表
-    QList<Client *> phase2_request_clients_;
+    QList<Client *> m_phase2RequestClients;
 
     Power *m_power;
     // 抑制对话框
