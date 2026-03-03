@@ -25,7 +25,14 @@ DisplayServerMonitor::DisplayServerMonitor(DisplayServerType type,
     initiate();
 }
 
-DisplayServerMonitor::~DisplayServerMonitor() = default;
+DisplayServerMonitor::~DisplayServerMonitor()
+{
+    if (m_xcbConnection)
+    {
+        xcb_disconnect(m_xcbConnection);
+        m_xcbConnection = nullptr;
+    }
+}
 
 void DisplayServerMonitor::initiate()
 {
