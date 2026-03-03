@@ -139,6 +139,13 @@ XsmpServer::XsmpServer() : QObject(nullptr),
 
 XsmpServer::~XsmpServer()
 {
+    if (m_listenSockets)
+    {
+        IceFreeListenObjs(m_numListenSockets, m_listenSockets);
+        m_listenSockets = NULL;
+        m_numListenSockets = 0;
+        m_numLocalListenSockets = 0;
+    }
 }
 
 XsmpServer *XsmpServer::m_instance = nullptr;
