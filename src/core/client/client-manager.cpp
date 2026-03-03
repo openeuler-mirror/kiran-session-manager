@@ -328,12 +328,19 @@ bool ClientManager::addClient(Client *client)
 
 ClientXsmp *ClientManager::getClientBySmsConn(SmsConn smsConn)
 {
-    auto id = SmsClientID(smsConn);
-    auto client = getClient(POINTER_TO_STRING(id));
+    char *id = SmsClientID(smsConn);
+    if (!id)
+    {
+        return nullptr;
+    }
+    const QString idStr = POINTER_TO_STRING(id);
+    free(id);
+
+    auto client = getClient(idStr);
 
     if (!client)
     {
-        KLOG_WARNING() << "The client isn't found. startup_id: " << POINTER_TO_STRING(id);
+        KLOG_WARNING() << "The client isn't found. startup_id: " << idStr;
         return nullptr;
     }
 
