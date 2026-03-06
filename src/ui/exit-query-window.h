@@ -12,6 +12,7 @@
  * Author:     tangjie02 <tangjie02@kylinos.com.cn>
  */
 
+#include <QResizeEvent>
 #include <QWidget>
 
 class SessionManagerProxy;
@@ -23,12 +24,16 @@ class ExitQueryWindow;
 
 namespace Kiran
 {
+class BackgroundWindow;
 enum ExitQueryResponse
 {
     EXIT_QUERY_RESPONSE_OK,
     EXIT_QUERY_RESPONSE_CANCEL,
 };
 
+/**
+ * @brief 退出确认内容窗口，仅包含对话框内容；背景与所在屏幕由 ScreenManager 管理。
+ */
 class ExitQueryWindow : public QWidget
 {
     Q_OBJECT
@@ -36,6 +41,11 @@ class ExitQueryWindow : public QWidget
 public:
     ExitQueryWindow(int32_t powerAction, QWidget *parent = nullptr);
     virtual ~ExitQueryWindow(){};
+
+    /** 将本窗口挂到指定背景窗口上并铺满，用于随光标切换屏幕时动态更新 */
+    void attachToBackground(BackgroundWindow *bw);
+    /** 当父背景窗口尺寸变化时，将本窗口几何更新为铺满父窗口 */
+    void fitToParentBackground();
 
     // 获取应用/InhibitorRow数量
     int32_t getAppCount();
@@ -47,17 +57,11 @@ private:
     void quit(const QString &result);
 
 private:
-    // virtual void resizeEvent(QResizeEvent *event) override;
-    virtual void paintEvent(QPaintEvent *event) override;
-
-private Q_SLOTS:
-    void onVirtualGeometryChanged(const QRect &rect);
-
-private:
     Ui::ExitQueryWindow *m_ui;
     SessionManagerProxy *m_sessionManagerProxy;
     int32_t m_powerAction;
     QPixmap m_backgroundPixmap;
+    QString m_actionText;
 };
 
 }  // namespace Kiran
