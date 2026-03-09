@@ -29,7 +29,6 @@
 #include "session-manager.h"
 #include "utils.h"
 #include "xsmp-server.h"
-#include "display-server-monitor.h"
 
 using namespace Kiran;
 
@@ -145,8 +144,6 @@ int main(int argc, char *argv[])
     initEnv();
 
     auto sessionType = parser.value(QStringLiteral("session-type"));
-    DisplayServerMonitor displayServerMonitor(DisplayServerMonitor::X11);
-
     if (parser.isSet("autostart"))
     {
         auto autostartDirs = parser.value(QStringLiteral("autostart"));
