@@ -17,8 +17,8 @@
 #include <QFileInfo>
 #include <QTranslator>
 #include "config.h"
-#include "exit-query-window.h"
 #include "lib/base/base.h"
+#include "screen-manager.h"
 
 using namespace Kiran;
 
@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
                                         QString("%1").arg(POWER_ACTION_NONE)));
     parser.process(app);
 
-    auto exitQueryWindow = new ExitQueryWindow(parser.value("power-action").toInt());
-    exitQueryWindow->show();
+    ScreenManager screenManager(parser.value("power-action").toInt(), nullptr);
+    screenManager.show();
     return app.exec();
 }
