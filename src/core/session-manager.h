@@ -114,6 +114,7 @@ public Q_SLOTS:
 
     void onInhibitorAdded(QSharedPointer<Inhibitor> inhibitor);
     void onInhibitorDeleted(QSharedPointer<Inhibitor> inhibitor);
+    void onDisplayServerDied();
 
     // 退出会话确认对话框响应
     void onExitWindowResponse();

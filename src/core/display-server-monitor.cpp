@@ -14,10 +14,28 @@
 #include "display-server-monitor.h"
 #include <qt5-log-i.h>
 #include <QSocketNotifier>
+#include <QTimer>
 #include <xcb/xcb.h>
 
 namespace Kiran
 {
+DisplayServerMonitor* DisplayServerMonitor::s_instance = nullptr;
+
+DisplayServerMonitor* DisplayServerMonitor::getInstance(DisplayServerType type,
+                                                       QObject* parent)
+{
+    if (!s_instance)
+    {
+        s_instance = new DisplayServerMonitor(type, parent);
+    }
+    else if (s_instance->m_type != type)
+    {
+        KLOG_WARNING() << "DisplayServerMonitor already initialized with a different type";
+    }
+
+    return s_instance;
+}
+
 DisplayServerMonitor::DisplayServerMonitor(DisplayServerType type,
                                            QObject* parent)
     : QObject(parent), m_type(type)
@@ -51,7 +69,6 @@ void DisplayServerMonitor::initiate()
     if (!res)
     {
         KLOG_ERROR() << "Failed to initiate display server monitor";
-        exit(1);
     }
 }
 
@@ -91,7 +108,8 @@ void DisplayServerMonitor::checkDisplayServer()
     if (!bRes)
     {
         KLOG_WARNING() << "Display server has died";
-        exit(1);
+        notifyDisplayServerDied();
+        return;
     }
 }
 
@@ -118,5 +136,17 @@ bool DisplayServerMonitor::checkX11DisplayServer()
     }
 
     return true;
+}
+
+void DisplayServerMonitor::notifyDisplayServerDied()
+{
+    if (m_diedNotified)
+    {
+        return;
+    }
+
+    m_diedNotified = true;
+    QTimer::singleShot(0, this, [this]() -> void
+                       { Q_EMIT displayServerDied(); });
 }
 }  // namespace Kiran

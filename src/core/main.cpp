@@ -29,7 +29,6 @@
 #include "src/core/session-manager.h"
 #include "src/core/utils.h"
 #include "src/core/xsmp-server.h"
-#include "display-server-monitor.h"
 #include <unistd.h>
 
 using namespace Kiran;
@@ -139,8 +138,6 @@ int main(int argc, char *argv[])
 
     auto sessionType = parser.value(QStringLiteral("session-type"));
     KLOG_DEBUG() << "sessionType: " << sessionType;
-
-    DisplayServerMonitor displayServerMonitor(DisplayServerMonitor::X11);
 
     if (parser.isSet("autostart"))
     {

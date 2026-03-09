@@ -13,6 +13,7 @@
  */
 
 #include "exit-query-window.h"
+#include "background-window.h"
 #include <style-property.h>
 #include <KDesktopFile>
 #include <QApplication>
@@ -20,7 +21,6 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonValue>
-#include <QPainter>
 #include <QResizeEvent>
 #include <QScreen>
 #include <QTimer>
@@ -30,27 +30,22 @@
 #include "session_manager_interface.h"
 #include "ui_exit-query-window.h"
 
-QT_BEGIN_NAMESPACE
-Q_WIDGETS_EXPORT void qt_blurImage(QImage &blurImage, qreal radius, bool quality, int transposed = 0);
-QT_END_NAMESPACE
-
 namespace Kiran
 {
-#define BLUR_RADIUS 10
 
 ExitQueryWindow::ExitQueryWindow(int32_t powerAction,
-                                 QWidget *parent) : QWidget(parent, Qt::FramelessWindowHint | Qt::BypassWindowManagerHint | Qt::WindowStaysOnTopHint | Qt::Widget),
+                                 QWidget *parent) : QWidget(parent),
                                                     m_ui(new Ui::ExitQueryWindow),
                                                     m_powerAction(powerAction)
 {
-    this->m_ui->setupUi(this);
+    setAttribute(Qt::WA_TranslucentBackground);
+    m_sessionManagerProxy = new SessionManagerProxy(KSM_DBUS_NAME,
+                                                    KSM_DBUS_OBJECT_PATH,
+                                                    QDBusConnection::sessionBus(),
+                                                    this);
 
-    this->m_sessionManagerProxy = new SessionManagerProxy(KSM_DBUS_NAME,
-                                                          KSM_DBUS_OBJECT_PATH,
-                                                          QDBusConnection::sessionBus(),
-                                                          this);
-
-    this->initUI();
+    m_ui->setupUi(this);
+    initUI();
 }
 
 void ExitQueryWindow::initUI()
@@ -63,10 +58,7 @@ void ExitQueryWindow::initUI()
     this->m_ui->m_inhibitorsScrollArea->viewport()->setStyleSheet("background-color:transparent;");
     StylePropertyHelper::setButtonType(this->m_ui->m_ok, Kiran::ButtonType::BUTTON_Default);
 
-    this->initInhibitors();
-    this->onVirtualGeometryChanged(desktopRect);
-
-    connect(primaryScreen, SIGNAL(virtualGeometryChanged(const QRect &)), this, SLOT(onVirtualGeometryChanged(const QRect &)));
+    initInhibitors();
 
     connect(this->m_ui->m_ok, &QPushButton::clicked, [this](bool)
             { this->quit("ok"); });
@@ -133,11 +125,9 @@ void ExitQueryWindow::initInhibitors()
     if (jsonRoot.size() == 0)
     {
         this->m_ui->m_inhibitorsScrollArea->hide();
-        this->m_ui->m_content->setFixedSize(400, 180);
     }
     else
     {
-        this->m_ui->m_content->setFixedSize(600, 400);
         for (auto iter : jsonRoot)
         {
             auto jsonInhibitor = iter.toObject();
@@ -152,6 +142,23 @@ void ExitQueryWindow::initInhibitors()
     }
 }
 
+void ExitQueryWindow::attachToBackground(BackgroundWindow *bw)
+{
+    if (!bw)
+        return;
+    if (parentWidget() != bw)
+        setParent(bw);
+    fitToParentBackground();
+    setVisible(true);
+}
+
+void ExitQueryWindow::fitToParentBackground()
+{
+    auto *bw = qobject_cast<BackgroundWindow *>(parentWidget());
+    if (bw)
+        resize(bw->width(), bw->height());
+}
+
 void ExitQueryWindow::quit(const QString &result)
 {
     QJsonObject jsonObj;
@@ -160,50 +167,6 @@ void ExitQueryWindow::quit(const QString &result)
     // 紧凑型输出，便于后续SessionManager解析过滤非Json格式输出
     std::cout << jsonDoc.toJson(QJsonDocument::Compact).data();
     QApplication::quit();
-}
-
-// void ExitQueryWindow::resizeEvent(QResizeEvent *event)
-// {
-//     KLOG_WARNING() << "cur height: " << event->size().height() << " old height: " << event->oldSize().height();
-//     QWidget::resizeEvent(event);
-// }
-
-void ExitQueryWindow::paintEvent(QPaintEvent *event)
-{
-    QPainter painter(this);
-    auto screen = QApplication::primaryScreen();
-    auto desktopRect = screen->virtualGeometry();
-
-    // 只加载一次
-    if (this->m_backgroundPixmap.isNull())
-    {
-        auto image = screen->grabWindow(QApplication::desktop()->winId(),
-                                        desktopRect.x(),
-                                        desktopRect.y(),
-                                        desktopRect.width(),
-                                        desktopRect.height())
-                         .toImage();
-        qt_blurImage(image, BLUR_RADIUS, true);
-        this->m_backgroundPixmap = QPixmap::fromImage(image);
-    }
-    painter.drawPixmap(desktopRect.x(), desktopRect.y(), this->m_backgroundPixmap);
-
-    QWidget::paintEvent(event);
-}
-
-void ExitQueryWindow::onVirtualGeometryChanged(const QRect &rect)
-{
-    this->move(rect.topLeft());
-    this->resize(QSize(rect.width(), rect.height()));
-
-    auto primaryScreen = QApplication::primaryScreen();
-    auto primaryRect = primaryScreen->geometry();
-
-    auto x = primaryRect.x() + (primaryRect.width() - this->m_ui->m_content->width()) / 2;
-    auto y = primaryRect.y() + (primaryRect.height() - this->m_ui->m_content->height()) / 2;
-
-    this->m_ui->m_leftSpacer->changeSize(x, 1);
-    this->m_ui->m_topSpacer->changeSize(1, y);
 }
 
 }  // namespace Kiran
