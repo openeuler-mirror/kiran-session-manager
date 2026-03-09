@@ -13,7 +13,7 @@
  */
 
 #include <QCommandLineParser>
-#include <QApplication>
+#include <QCoreApplication>
 #include <QFileInfo>
 #include <QProcessEnvironment>
 #include <QRegularExpression>
@@ -104,9 +104,9 @@ int main(int argc, char *argv[])
     // wayland方式下可能需要自己启动dbus-daemon
     startDBusSession(argc, argv);
 
-    QApplication app(argc, argv);
-    QApplication::setApplicationName(programName);
-    QApplication::setApplicationVersion(PROJECT_VERSION);
+    QCoreApplication app(argc, argv);
+    QCoreApplication::setApplicationName(programName);
+    QCoreApplication::setApplicationVersion(PROJECT_VERSION);
 
     QTranslator translator;
 

@@ -30,6 +30,7 @@
 #include "src/core/session_manager_adaptor.h"
 #include "src/core/signal-handler.h"
 #include "src/core/utils.h"
+#include "display-server-monitor.h"
 
 namespace Kiran
 {
@@ -473,6 +474,12 @@ void SessionManager::onInhibitorDeleted(QSharedPointer<Inhibitor> inhibitor)
     Q_EMIT this->InhibitorRemoved(inhibitor->cookie);
 }
 
+void SessionManager::onDisplayServerDied()
+{
+    KLOG_WARNING() << "Display server died, quitting session.";
+    quitSession();
+}
+
 void SessionManager::onExitWindowResponse()
 {
     QJsonParseError jsonError;
@@ -557,6 +564,12 @@ void SessionManager::init()
 
     connect(this->m_inhibitorManager, SIGNAL(inhibitorAdded(QSharedPointer<Inhibitor>)), this, SLOT(onInhibitorAdded(QSharedPointer<Inhibitor>)));
     connect(this->m_inhibitorManager, SIGNAL(inhibitorDeleted(QSharedPointer<Inhibitor>)), this, SLOT(onInhibitorDeleted(QSharedPointer<Inhibitor>)));
+
+    auto displayServerMonitor = DisplayServerMonitor::getInstance(DisplayServerMonitor::X11);
+    connect(displayServerMonitor,
+            &DisplayServerMonitor::displayServerDied,
+            this,
+            &SessionManager::onDisplayServerDied);
 
     auto sessionConnection = QDBusConnection::sessionBus();
     if (!sessionConnection.registerService(KSM_DBUS_NAME))
