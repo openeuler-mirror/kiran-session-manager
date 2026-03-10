@@ -256,9 +256,19 @@ ClientXsmp *ClientManager::addClientXsmp(const QString &startupID, SmsConn smsCo
         newStartupID = Utils::getDefault()->generateStartupID();
     }
 
-    auto client = new ClientXsmp(newStartupID, smsConn, this);
+    auto iceConn = SmsGetIceConnection(smsConn);
+    KLOG_INFO() << "The client of ice connection" << iceConn << "is" << newStartupID;
 
-    if (!this->addClient(client))
+    /* 这里需要先检查是否存在，如果先new ClientXsmp对象且addClient失败，则会调用析构ClientXsmp并触发IceCloseConnection函数
+       而IceConnection在IceProcessMessages中还需要使用，当访问一个已经释放的IceConnection时，会导致coredump。*/
+    if (getClient(newStartupID) != nullptr)
+    {
+        KLOG_WARNING() << "XSMP client" << newStartupID << "already exists.";
+        return nullptr;
+    }
+
+    auto client = new ClientXsmp(newStartupID, smsConn, this);
+    if (!addClient(client))
     {
         delete client;
         return nullptr;
