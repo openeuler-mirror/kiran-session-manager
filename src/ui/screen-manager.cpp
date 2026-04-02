@@ -18,6 +18,7 @@
 #include <QCursor>
 #include <QGuiApplication>
 #include <QScreen>
+#include <QtGlobal>
 
 namespace Kiran
 {
@@ -83,7 +84,21 @@ void ScreenManager::ensureBackgroundForScreen(QScreen *screen)
 
 void ScreenManager::placeExitQueryWindowOnCursorScreen()
 {
-    QScreen *target = QGuiApplication::screenAt(QCursor::pos());
+    const QPoint cursorPos = QCursor::pos();
+    QScreen *target = nullptr;
+#if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
+    target = QGuiApplication::screenAt(cursorPos);
+#else
+    const QList<QScreen *> screens = QGuiApplication::screens();
+    for (QScreen *screen : screens)
+    {
+        if (screen && screen->geometry().contains(cursorPos))
+        {
+            target = screen;
+            break;
+        }
+    }
+#endif
 
     if (!target)
         target = QApplication::primaryScreen();
