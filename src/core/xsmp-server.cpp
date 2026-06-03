@@ -100,20 +100,6 @@ static Status onNewClientConnection(SmsConn smsConn,
     return True;
 }
 
-static void freeConnectionWatch(ConnectionWatch *watch)
-{
-    if (watch->watchID)
-    {
-        g_source_remove(watch->watchID);
-        watch->watchID = 0;
-    }
-
-    watch->protocolTimeout.stop();
-    QObject::disconnect(watch->connection);
-
-    delete watch;
-}
-
 static void disconnectIceConnection(IceConn iceConn)
 {
     IceSetShutdownNegotiation(iceConn, FALSE);
@@ -124,8 +110,7 @@ static bool onIceProtocolTimeout(IceConn iceConn)
 {
     KLOG_DEBUG("Ice protocol timeout.");
 
-    auto watch = static_cast<ConnectionWatch *>(iceConn->context);
-    freeConnectionWatch(watch);
+    XsmpServer::cleanupConnectionWatch(iceConn);
     disconnectIceConnection(iceConn);
     return false;
 }
@@ -146,6 +131,28 @@ XsmpServer::~XsmpServer()
         m_numListenSockets = 0;
         m_numLocalListenSockets = 0;
     }
+}
+
+void XsmpServer::cleanupConnectionWatch(IceConn iceConn)
+{
+    if (!iceConn)
+        return;
+
+    auto watch = static_cast<ConnectionWatch *>(iceConn->context);
+    if (!watch)
+        return;
+
+    if (watch->watchID)
+    {
+        g_source_remove(watch->watchID);
+        watch->watchID = 0;
+    }
+
+    watch->protocolTimeout.stop();
+    QObject::disconnect(watch->connection);
+
+    delete watch;
+    iceConn->context = nullptr;
 }
 
 XsmpServer *XsmpServer::m_instance = nullptr;
@@ -389,7 +396,6 @@ gboolean XsmpServer::onAuthIochannelWatch(GIOChannel *source,
                                           gpointer userData)
 {
     auto iceConn = (IceConn)(userData);
-    auto watch = (ConnectionWatch *)(iceConn->context);
 
     auto status = IceProcessMessages(iceConn, NULL, NULL);
     RETURN_VAL_IF_TRUE(status == IceProcessMessagesSuccess, TRUE);
@@ -405,18 +411,14 @@ gboolean XsmpServer::onAuthIochannelWatch(GIOChannel *source,
         switch (status)
         {
         case IceProcessMessagesIOError:
-        {
             KLOG_WARNING() << "The ice connection" << iceConn << "receive IceProcessMessagesIOError message.";
-            freeConnectionWatch(watch);
+            cleanupConnectionWatch(iceConn);
             disconnectIceConnection(iceConn);
             break;
-        }
         case IceProcessMessagesConnectionClosed:
-        {
             KLOG_INFO() << "The ice connection" << iceConn << "receive IceProcessMessagesConnectionClosed message.";
-            freeConnectionWatch(watch);
+            cleanupConnectionWatch(iceConn);
             break;
-        }
         default:
             break;
         }

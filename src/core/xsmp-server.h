@@ -57,6 +57,8 @@ public:
 
     static void globalDeinit() { delete m_instance; };
 
+    static void cleanupConnectionWatch(IceConn iceConn);
+
 signals:
     // 存在新的客户端连接
     void newClientConnected(unsigned long *, void *);
