@@ -57,11 +57,13 @@ public:
 
     static void globalDeinit() { delete m_instance; };
 
+    static void cleanupConnectionWatch(IceConn iceConn);
+
 signals:
     // 存在新的客户端连接
     void newClientConnected(unsigned long *, void *);
     // 收到Ice连接错误或关闭的消息
-    void iceConnStatusChanged(int32_t, IceConn);
+    void iceConnStatusChanged(int32_t, IceConn, bool *);
 
 private:
     void init();

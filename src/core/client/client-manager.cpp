@@ -1,14 +1,14 @@
 /**
- * Copyright (c) 2020 ~ 2021 KylinSec Co., Ltd. 
+ * Copyright (c) 2020 ~ 2021 KylinSec Co., Ltd.
  * kiran-session-manager is licensed under Mulan PSL v2.
- * You can use this software according to the terms and conditions of the Mulan PSL v2. 
+ * You can use this software according to the terms and conditions of the Mulan PSL v2.
  * You may obtain a copy of Mulan PSL v2 at:
- *          http://license.coscl.org.cn/MulanPSL2 
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, 
- * EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, 
- * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.  
- * See the Mulan PSL v2 for more details.  
- * 
+ *          http://license.coscl.org.cn/MulanPSL2
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
+ * EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
+ * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
+ * See the Mulan PSL v2 for more details.
+ *
  * Author:     tangjie02 <tangjie02@kylinos.com.cn>
  */
 
@@ -196,7 +196,10 @@ static void onDeleteProperties(SmsConn smsConn,
     for (int32_t i = 0; i < numProps; ++i)
     {
         client->deleteProperty(propNames[i]);
+        //libSM 在 SM_DeleteProperties 分支中为 propNames[i] 逐个 malloc 分配内存，但没有释放
+        free(propNames[i]);
     }
+
     // 文档中没有提到需要释放该变量
     free(propNames);
 
@@ -243,9 +246,9 @@ void ClientManager::init()
     this->m_serviceWatcher->setConnection(QDBusConnection::sessionBus());
     this->m_serviceWatcher->setWatchMode(QDBusServiceWatcher::WatchForUnregistration);
 
-    connect(this->m_serviceWatcher, SIGNAL(serviceUnregistered(const QString &)), this, SLOT(onNameLost(const QString &)));
-    connect(this->m_xsmpServer, SIGNAL(newClientConnected(unsigned long *, void *)), this, SLOT(onNewXsmpClientConnected(unsigned long *, void *)));
-    connect(this->m_xsmpServer, SIGNAL(iceConnStatusChanged(int32_t, IceConn)), this, SLOT(onIceConnStatusChanged(int32_t, IceConn)));
+    connect(m_serviceWatcher, SIGNAL(serviceUnregistered(const QString &)), this, SLOT(onNameLost(const QString &)));
+    connect(m_xsmpServer, SIGNAL(newClientConnected(unsigned long *, void *)), this, SLOT(onNewXsmpClientConnected(unsigned long *, void *)));
+    connect(m_xsmpServer, SIGNAL(iceConnStatusChanged(int32_t, IceConn, bool *)), this, SLOT(onIceConnStatusChanged(int32_t, IceConn, bool *)));
 }
 
 ClientXsmp *ClientManager::addClientXsmp(const QString &startupID, SmsConn smsConn)
@@ -256,9 +259,19 @@ ClientXsmp *ClientManager::addClientXsmp(const QString &startupID, SmsConn smsCo
         newStartupID = Utils::getDefault()->generateStartupID();
     }
 
-    auto client = new ClientXsmp(newStartupID, smsConn, this);
+    auto iceConn = SmsGetIceConnection(smsConn);
+    KLOG_INFO() << "The client of ice connection" << iceConn << "is" << newStartupID;
 
-    if (!this->addClient(client))
+    /* 这里需要先检查是否存在，如果先new ClientXsmp对象且addClient失败，则会调用析构ClientXsmp并触发IceCloseConnection函数
+       而IceConnection在IceProcessMessages中还需要使用，当访问一个已经释放的IceConnection时，会导致coredump。*/
+    if (getClient(newStartupID) != nullptr)
+    {
+        KLOG_WARNING() << "XSMP client" << newStartupID << "already exists.";
+        return nullptr;
+    }
+
+    auto client = new ClientXsmp(newStartupID, smsConn, this);
+    if (!addClient(client))
     {
         delete client;
         return nullptr;
@@ -297,6 +310,7 @@ bool ClientManager::deleteClient(const QString &startupID)
 
     this->m_clients.remove(startupID);
     Q_EMIT this->clientDeleted(client);
+    delete client;
     return true;
 }
 
@@ -416,7 +430,7 @@ void ClientManager::onNewXsmpClientConnected(unsigned long *mask_ret, void *call
     callbacks_ret->get_properties.manager_data = this;
 }
 
-void ClientManager::onIceConnStatusChanged(int32_t status, IceConn iceConn)
+void ClientManager::onIceConnStatusChanged(int32_t status, IceConn iceConn, bool *statusProcessed)
 {
     auto client = this->getClientByIceConn(iceConn);
     RETURN_IF_FALSE(client);
@@ -424,11 +438,13 @@ void ClientManager::onIceConnStatusChanged(int32_t status, IceConn iceConn)
     switch (IceProcessMessagesStatus(status))
     {
     case IceProcessMessagesIOError:
-        KLOG_WARNING() << "The client " << client->getID() << " Receive IceProcessMessagesIOError message. program name: " << client->getProgramName();
-        this->deleteClient(client->getID());
+        KLOG_WARNING() << "The client" << client->getID() << "(ice connection:" << iceConn << ")receive IceProcessMessagesIOError message.";
+        deleteClient(client->getID());
+        *statusProcessed = true;
         break;
     case IceProcessMessagesConnectionClosed:
-        KLOG_DEBUG() << "The client " << client->getID() << " Receive IceProcessMessagesConnectionClosed message. program name: " << client->getProgramName();
+        KLOG_INFO() << "The client" << client->getID() << "(ice connection:" << iceConn << ")receive IceProcessMessagesConnectionClosed message.";
+        *statusProcessed = true;
         break;
     default:
         break;

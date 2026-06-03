@@ -13,6 +13,7 @@
  */
 
 #include "src/core/client/client-xsmp.h"
+#include "src/core/xsmp-server.h"
 #include "lib/base/base.h"
 
 #include <X11/SM/SMlib.h>
@@ -35,7 +36,22 @@ ClientXsmp::~ClientXsmp()
 {
     for (auto props : this->m_props)
     {
-        SmFreeProperty((SmProp *)props);
+        SmFreeProperty(static_cast<SmProp *>(props));
+    }
+
+    auto iceConn = SmsGetIceConnection(m_smsConnection);
+
+    if (m_smsConnection)
+    {
+        SmsCleanUp(m_smsConnection);
+    }
+
+    XsmpServer::cleanupConnectionWatch(iceConn);
+
+    if (iceConn)
+    {
+        IceSetShutdownNegotiation(iceConn, false);
+        IceCloseConnection(iceConn);
     }
 }
 
