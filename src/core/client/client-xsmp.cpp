@@ -13,6 +13,7 @@
  */
 
 #include "src/core/client/client-xsmp.h"
+#include "src/core/xsmp-server.h"
 #include "lib/base/base.h"
 
 #include <X11/SM/SMlib.h>
@@ -44,6 +45,8 @@ ClientXsmp::~ClientXsmp()
     {
         SmsCleanUp(m_smsConnection);
     }
+
+    XsmpServer::cleanupConnectionWatch(iceConn);
 
     if (iceConn)
     {
