@@ -196,7 +196,10 @@ static void onDeleteProperties(SmsConn smsConn,
     for (int32_t i = 0; i < numProps; ++i)
     {
         client->deleteProperty(propNames[i]);
+        //libSM 在 SM_DeleteProperties 分支中为 propNames[i] 逐个 malloc 分配内存，但没有释放
+        free(propNames[i]);
     }
+
     // 文档中没有提到需要释放该变量
     free(propNames);
 
