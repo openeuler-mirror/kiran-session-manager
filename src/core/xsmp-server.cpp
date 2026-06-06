@@ -54,6 +54,19 @@ struct ConnectionWatch
     QMetaObject::Connection connection;
 };
 
+// 防止 IceProcessMessages 回调链（onCloseConnection → deleteClient → ~ClientXsmp）
+// 已清理 ConnectionWatch 并关闭 iceConn 后，外层 fallthrough 再次访问已释放的 iceConn->context。
+// 流程：
+//   onAuthIochannelWatch
+//     → IceProcessMessages
+//         → onCloseConnection → deleteClient → ~ClientXsmp
+//             → cleanupConnectionWatch 释放 ConnectionWatch，关闭 iceConn
+//     ← 返回非 Success（ConnectionClosed/IOError）
+//     → iceConnStatusChanged 信号 → getClientByIceConn 找不到 client → statusProcessed = false
+//     → fallthrough cleanupConnectionWatch(iceConn)   // Use-After-Free
+// 解决：cleanupConnectionWatch 被析构链触发时记录 iceConn，外层检查并跳过。
+static thread_local IceConn s_cleanedIceConn = nullptr;
+
 static void onSmsErrorHandler(SmsConn smsConn,
                               Bool swap,
                               int offendingMinorOpcode,
@@ -141,6 +154,8 @@ void XsmpServer::cleanupConnectionWatch(IceConn iceConn)
     auto watch = static_cast<ConnectionWatch *>(iceConn->context);
     if (!watch)
         return;
+
+    s_cleanedIceConn = iceConn;
 
     if (watch->watchID)
     {
@@ -397,8 +412,15 @@ gboolean XsmpServer::onAuthIochannelWatch(GIOChannel *source,
 {
     auto iceConn = (IceConn)(userData);
 
+    s_cleanedIceConn = nullptr;
+
     auto status = IceProcessMessages(iceConn, NULL, NULL);
     RETURN_VAL_IF_TRUE(status == IceProcessMessagesSuccess, TRUE);
+
+    if (s_cleanedIceConn == iceConn)
+    {
+        return FALSE;
+    }
 
     bool statusProcessed = false;
     Q_EMIT XsmpServer::getInstance()->iceConnStatusChanged(status, iceConn, &statusProcessed);
