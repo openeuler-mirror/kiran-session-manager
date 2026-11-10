@@ -46,6 +46,12 @@ QString KSMError::getErrorDesc(KSMErrorCode error_code)
     case KSMErrorCode::ERROR_MANAGER_POWER_ACTION_UNSUPPORTED:
         error_desc = QObject::tr("The action is not supported.");
         break;
+    case KSMErrorCode::ERROR_MANAGER_INHIBITOR_UNAUTHORIZED:
+        error_desc = QObject::tr("The inhibitor was created by another process.");
+        break;
+    case KSMErrorCode::ERROR_MANAGER_INHIBITOR_NO_SENDER:
+        error_desc = QObject::tr("The inhibit request has no sender.");
+        break;
     case KSMErrorCode::ERROR_MANAGER_PHASE_INVALID:
         error_desc = QObject::tr("Internal error.");
         break;

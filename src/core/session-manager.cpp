@@ -14,6 +14,11 @@
 
 #include "session-manager.h"
 #include <signal.h>
+#include <QDBusConnection>
+#include <QDBusConnectionInterface>
+#include <QDBusMessage>
+#include <QDBusReply>
+#include <QDBusServiceWatcher>
 #include <QGSettings>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -49,6 +54,7 @@ SessionManager::SessionManager(AppManager *app_manager,
                                                                       m_powerAction(PowerAction::POWER_ACTION_NONE)
 {
     m_dbusAdaptor = new SessionManagerAdaptor(this);
+    m_serviceWatcher = nullptr;
     m_settings = new QGSettings(KSM_SCHEMA_ID, "", this);
     m_power = new Power(this);
     m_process = new QProcess(this);
@@ -188,12 +194,42 @@ void SessionManager::Hibernate()
     m_power->doPowerAction(PowerAction::POWER_ACTION_HIBERNATE);
 }
 
+uint32_t SessionManager::getPidByBusName(const QString &busName)
+{
+    if (busName.isEmpty())
+    {
+        return 0;
+    }
+
+    QDBusReply<uint> reply = QDBusConnection::sessionBus().interface()->servicePid(busName);
+    if (!reply.isValid())
+    {
+        KLOG_WARNING() << "Failed to get the pid of" << busName << ":" << reply.error().message();
+        return 0;
+    }
+
+    return reply.value();
+}
+
 uint SessionManager::SessionManager::Inhibit(const QString &appID,
                                              uint toplevelXID,
                                              const QString &reason,
                                              uint flags)
 {
-    auto inhibitor = m_inhibitorManager->addInhibitor(appID, toplevelXID, reason, flags);
+    const QString sender = message().service();
+    if (sender.isEmpty())
+    {
+        KLOG_WARNING() << "Reject the inhibit request without a D-Bus sender, appID:" << appID;
+        DBUS_ERROR_REPLY(QDBusError::AccessDenied, KSMErrorCode::ERROR_MANAGER_INHIBITOR_NO_SENDER);
+        return 0;
+    }
+
+    const uint32_t pid = getPidByBusName(sender);
+
+    // 先监听连接再创建抑制器，避免连接在两步之间消失时留下无法撤销的抑制器
+    m_serviceWatcher->addWatchedService(sender);
+
+    auto inhibitor = m_inhibitorManager->addInhibitor(appID, toplevelXID, reason, flags, QString(), pid, sender);
 
     if (!inhibitor)
     {
@@ -317,6 +353,13 @@ void SessionManager::Uninhibit(uint inhibitCookie)
     {
         DBUS_ERROR_REPLY_AND_RET(QDBusError::Failed, KSMErrorCode::ERROR_MANAGER_INHIBITOR_NOTFOUND);
     }
+
+    // 只允许创建抑制器的进程撤销，避免其他进程拿到 cookie 后越权删除
+    if (inhibitor->pid != 0 && getPidByBusName(message().service()) != inhibitor->pid)
+    {
+        DBUS_ERROR_REPLY_AND_RET(QDBusError::AccessDenied, KSMErrorCode::ERROR_MANAGER_INHIBITOR_UNAUTHORIZED);
+    }
+
     InhibitorManager::getInstance()->deleteInhibitor(inhibitCookie);
 }
 
@@ -363,7 +406,8 @@ void SessionManager::processWaitingSessionTimeout(std::function<void(void)> phas
                                          0,
                                          tr("This program is not responding"),
                                          KSMInhibitorFlag::KSM_INHIBITOR_FLAG_QUIT,
-                                         client->getID());
+                                         client->getID(),
+                                         QCoreApplication::applicationPid());
     }
 
     phaseCompleteCallback();
@@ -454,7 +498,8 @@ void SessionManager::onInteractRequest(Client *client)
                                      0,
                                      tr("This program is blocking exit"),
                                      KSMInhibitorFlag::KSM_INHIBITOR_FLAG_QUIT,
-                                     client->getID());
+                                     client->getID(),
+                                     QCoreApplication::applicationPid());
 
     /* 当通过SmsSaveYourself向xsmp客户端发起QueryEndSession时，客户端可能要求与用户交互(InteractRequest)，也可能直接回复SaveYourselfDone，
        无论是那种情况，都表示客户端已经收到了会话管理发送的消息，因此应该将该客户端从等待队列中删除。这里为了方便直接调用on_end_session_response_cb
@@ -525,6 +570,13 @@ void SessionManager::onInhibitorAdded(QSharedPointer<Inhibitor> inhibitor)
 void SessionManager::onInhibitorDeleted(QSharedPointer<Inhibitor> inhibitor)
 {
     Q_EMIT InhibitorRemoved(inhibitor->cookie);
+}
+
+void SessionManager::onInhibitorOwnerLost(const QString &busName)
+{
+    // 创建抑制器的连接退出：移除监听并撤销该连接创建的全部抑制器
+    m_serviceWatcher->removeWatchedService(busName);
+    InhibitorManager::getInstance()->deleteInhibitorsByBusName(busName);
 }
 
 void SessionManager::onDisplayServerDied()
@@ -634,6 +686,13 @@ void SessionManager::init()
     {
         KLOG_WARNING() << "Can't register object:" << sessionConnection.lastError();
     }
+
+    // 抑制器的生命周期跟随创建它的 D-Bus 连接，只为持有抑制器的连接注册监听
+    m_serviceWatcher = new QDBusServiceWatcher(this);
+    m_serviceWatcher->setConnection(sessionConnection);
+    m_serviceWatcher->setWatchMode(QDBusServiceWatcher::WatchForUnregistration);
+    connect(m_serviceWatcher, &QDBusServiceWatcher::serviceUnregistered,
+            this, &SessionManager::onInhibitorOwnerLost);
 }
 
 void SessionManager::processPhase()
