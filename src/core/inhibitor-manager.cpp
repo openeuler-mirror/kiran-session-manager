@@ -49,7 +49,9 @@ QSharedPointer<Inhibitor> InhibitorManager::addInhibitor(const QString &appID,
                                                          uint32_t toplevelXID,
                                                          const QString &reason,
                                                          uint32_t flags,
-                                                         const QString &startupID)
+                                                         const QString &startupID,
+                                                         uint32_t pid,
+                                                         const QString &busName)
 {
     // 生成一个不冲突的cookie，最多尝试10次。
     const static int32_t COOKIE_MAX_RETRY_COUNT = 10;
@@ -72,7 +74,9 @@ QSharedPointer<Inhibitor> InhibitorManager::addInhibitor(const QString &appID,
                                                              .toplevelXID = toplevelXID,
                                                              .reason = reason,
                                                              .flags = flags,
-                                                             .startupID = startupID});
+                                                             .startupID = startupID,
+                                                             .busName = busName,
+                                                             .pid = pid});
 
     RETURN_VAL_IF_FALSE(this->addInhibitor(inhibitor), nullptr);
     return inhibitor;
@@ -107,6 +111,28 @@ void InhibitorManager::deleteInhibitorByStartupID(const QString &startupID)
     for (auto deletedCookie : deletedCookies)
     {
         this->deleteInhibitor(deletedCookie);
+    }
+}
+
+void InhibitorManager::deleteInhibitorsByBusName(const QString &busName)
+{
+    if (busName.isEmpty())
+    {
+        return;
+    }
+
+    std::vector<uint32_t> deletedCookies;
+    for (const auto &iter : this->m_inhibitors)
+    {
+        if (iter->busName == busName)
+        {
+            deletedCookies.push_back(iter->cookie);
+        }
+    }
+
+    for (auto deleted_cookie : deletedCookies)
+    {
+        this->deleteInhibitor(deleted_cookie);
     }
 }
 
