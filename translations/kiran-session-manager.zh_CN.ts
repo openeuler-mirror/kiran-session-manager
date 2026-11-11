@@ -4,12 +4,12 @@
 <context>
     <name>Kiran::SessionManager</name>
     <message>
-        <location filename="../src/core/session-manager.cpp" line="361"/>
+        <location filename="../src/core/session-manager.cpp" line="410"/>
         <source>This program is not responding</source>
         <translation>程序未响应</translation>
     </message>
     <message>
-        <location filename="../src/core/session-manager.cpp" line="468"/>
+        <location filename="../src/core/session-manager.cpp" line="515"/>
         <source>This program is blocking exit</source>
         <translation>程序正在阻止退出</translation>
     </message>
@@ -38,6 +38,16 @@
     </message>
     <message>
         <location filename="../lib/base/error.cpp" line="49"/>
+        <source>The inhibitor was created by another process.</source>
+        <translation>该抑制器由其他进程创建。</translation>
+    </message>
+    <message>
+        <location filename="../lib/base/error.cpp" line="52"/>
+        <source>The inhibit request has no sender.</source>
+        <translation>抑制请求没有调用方。</translation>
+    </message>
+    <message>
+        <location filename="../lib/base/error.cpp" line="55"/>
         <source>Internal error.</source>
         <translation>内部错误。</translation>
     </message>
@@ -52,12 +62,12 @@
         <translation>操作不支持。</translation>
     </message>
     <message>
-        <location filename="../lib/base/error.cpp" line="52"/>
+        <location filename="../lib/base/error.cpp" line="58"/>
         <source>Unknown error.</source>
         <translation>未知错误。</translation>
     </message>
     <message>
-        <location filename="../lib/base/error.cpp" line="57"/>
+        <location filename="../lib/base/error.cpp" line="63"/>
         <source> (error code: 0x%x)</source>
         <translation> (错误码: 0x%x)</translation>
     </message>

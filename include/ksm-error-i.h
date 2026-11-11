@@ -42,6 +42,10 @@ extern "C"
         // PRESENCE
         ERROR_PRESENCE_STATUS_INVALID,
 
+        // INHIBITOR
+        ERROR_MANAGER_INHIBITOR_UNAUTHORIZED,
+        ERROR_MANAGER_INHIBITOR_NO_SENDER,
+
     };
 #ifdef __cplusplus
 }
