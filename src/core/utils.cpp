@@ -19,6 +19,7 @@
 #include <QDBusConnection>
 #include <QDBusMessage>
 #include <QDBusMetaType>
+#include <QFile>
 #include <QStandardPaths>
 #include "lib/base/base.h"
 
@@ -163,7 +164,16 @@ void Utils::setEnvs(const QMap<QString, QString> &envs)
 
 uint32_t Utils::generateCookie()
 {
-    return rand();
+    uint32_t cookie = 0;
+    QFile urandom(QStringLiteral("/dev/urandom"));
+    if (urandom.open(QIODevice::ReadOnly) && urandom.read(reinterpret_cast<char *>(&cookie), sizeof(cookie)) == sizeof(cookie))
+    {
+        // 限制在 int32 正数范围，保证通过 JSON 返回时取值为正
+        return cookie % 0x7FFFFFFF + 1;
+    }
+
+    KLOG_WARNING() << "Failed to read /dev/urandom, fallback to rand() for inhibitor cookie.";
+    return static_cast<uint32_t>(rand());
 }
 
 }  // namespace Kiran

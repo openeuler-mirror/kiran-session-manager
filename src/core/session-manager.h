@@ -24,6 +24,7 @@ class SessionManagerAdaptor;
 class QGSettings;
 class QTimer;
 class QProcess;
+class QDBusServiceWatcher;
 
 namespace Kiran
 {
@@ -116,6 +117,9 @@ public Q_SLOTS:
     void onInhibitorDeleted(QSharedPointer<Inhibitor> inhibitor);
     void onDisplayServerDied();
 
+    // 抑制器绑定创建它的 D-Bus 连接，连接消失时撤销
+    void onInhibitorOwnerLost(const QString &busName);
+
     // 退出会话确认对话框响应
     void onExitWindowResponse();
     // 系统信号处理
@@ -123,6 +127,9 @@ public Q_SLOTS:
 
 private:
     void init();
+
+    // 获取 D-Bus 连接对应的进程号，获取失败时返回 0
+    uint32_t getPidByBusName(const QString &busName);
 
     void processPhase();
     // 开始阶段
@@ -162,6 +169,7 @@ private:
     static SessionManager *m_instance;
 
     SessionManagerAdaptor *m_dbusAdaptor;
+    QDBusServiceWatcher *m_serviceWatcher;
 
     AppManager *m_appManager;
     ClientManager *m_clientManager;
