@@ -132,7 +132,7 @@ void ExitQueryWindow::initInhibitors()
         {
             auto jsonInhibitor = iter.toObject();
             if (jsonInhibitor.contains(KSM_INHIBITOR_JK_FLAGS) &&
-                jsonInhibitor.take(KSM_INHIBITOR_JK_FLAGS).toInt() == KSMInhibitorFlag::KSM_INHIBITOR_FLAG_QUIT)
+                (jsonInhibitor.take(KSM_INHIBITOR_JK_FLAGS).toInt() & KSMInhibitorFlag::KSM_INHIBITOR_FLAG_QUIT))
             {
                 this->m_ui->m_inhibitorsLayout->addWidget(new InhibitorRow(jsonInhibitor));
             }

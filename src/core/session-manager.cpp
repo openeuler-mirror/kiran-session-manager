@@ -219,6 +219,12 @@ uint SessionManager::SessionManager::Inhibit(const QString &appID,
 {
     KLOG_DEBUG() << "App id: " << appID << ", toplevel xid: " << toplevelXID << ", reason: " << reason << ", flags: " << flags;
 
+    if (flags == 0)
+    {
+        DBUS_ERROR_REPLY(QDBusError::InvalidArgs, KSMErrorCode::ERROR_MANAGER_INHIBITOR_INVALID_ARGS);
+        return 0;
+    }
+
     const QString sender = message().service();
     if (sender.isEmpty())
     {
