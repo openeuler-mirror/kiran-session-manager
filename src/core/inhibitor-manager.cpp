@@ -49,7 +49,9 @@ QSharedPointer<Inhibitor> InhibitorManager::addInhibitor(const QString &appID,
                                                          uint32_t toplevelXID,
                                                          const QString &reason,
                                                          uint32_t flags,
-                                                         const QString &startupID)
+                                                         const QString &startupID,
+                                                         uint32_t pid,
+                                                         const QString &busName)
 {
     // 生成一个不冲突的cookie，最多尝试10次。
     const static int32_t COOKIE_MAX_RETRY_COUNT = 10;
@@ -67,7 +69,7 @@ QSharedPointer<Inhibitor> InhibitorManager::addInhibitor(const QString &appID,
 
     RETURN_VAL_IF_TRUE(i == COOKIE_MAX_RETRY_COUNT, nullptr);
 
-    auto inhibitor = QSharedPointer<Inhibitor>(new Inhibitor(cookie, appID, toplevelXID, reason, flags, startupID));
+    auto inhibitor = QSharedPointer<Inhibitor>(new Inhibitor(cookie, appID, toplevelXID, reason, flags, startupID, pid, busName));
 
     RETURN_VAL_IF_FALSE(addInhibitor(inhibitor), nullptr);
     return inhibitor;
@@ -83,6 +85,28 @@ void InhibitorManager::deleteInhibitor(uint32_t cookie)
         m_inhibitors.erase(iter);
         updatePresence();
         Q_EMIT inhibitorDeleted(inhibitor);
+    }
+}
+
+void InhibitorManager::deleteInhibitorsByBusName(const QString &busName)
+{
+    if (busName.isEmpty())
+    {
+        return;
+    }
+
+    std::vector<uint32_t> deletedCookies;
+    for (const auto &iter : m_inhibitors)
+    {
+        if (iter->busName == busName)
+        {
+            deletedCookies.push_back(iter->cookie);
+        }
+    }
+
+    for (auto deletedCookie : deletedCookies)
+    {
+        deleteInhibitor(deletedCookie);
     }
 }
 
@@ -138,13 +162,15 @@ bool InhibitorManager::addInhibitor(QSharedPointer<Inhibitor> inhibitor)
     RETURN_VAL_IF_FALSE(inhibitor, false);
 
     KLOG_INFO() << "Add a new inhibitor:"
-                << QString("cookie=%1, appid=%2, flags=%3, reason=%4, startupID=%5, toplevelXID=%6")
+                << QString("cookie=%1, appid=%2, flags=%3, reason=%4, startupID=%5, toplevelXID=%6, busName=%7, pid=%8")
                        .arg(inhibitor->cookie)
                        .arg(inhibitor->appID)
                        .arg(inhibitor->flags)
                        .arg(inhibitor->reason)
                        .arg(inhibitor->startupID)
-                       .arg(inhibitor->toplevelXID);
+                       .arg(inhibitor->toplevelXID)
+                       .arg(inhibitor->busName)
+                       .arg(inhibitor->pid);
 
     if (m_inhibitors.find(inhibitor->cookie) != m_inhibitors.end())
     {

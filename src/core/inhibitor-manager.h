@@ -24,13 +24,15 @@ namespace Kiran
 struct Inhibitor
 {
 public:
-    Inhibitor() : cookie(0), toplevelXID(0), flags(0){};
+    Inhibitor() : cookie(0), toplevelXID(0), flags(0), pid(0){};
     Inhibitor(uint32_t cookie,
               QString appID,
               uint32_t toplevelXID,
               QString reason,
               uint32_t flags,
-              QString startupID)
+              QString startupID,
+              uint32_t pid = 0,
+              QString busName = QString())
     {
         this->cookie = cookie;
         this->appID = appID;
@@ -38,6 +40,8 @@ public:
         this->reason = reason;
         this->flags = flags;
         this->startupID = startupID;
+        this->pid = pid;
+        this->busName = busName;
     };
 
     uint32_t cookie;
@@ -46,6 +50,10 @@ public:
     QString reason;
     uint32_t flags;
     QString startupID;
+    // 创建该抑制器的 D-Bus 连接名，非 D-Bus 调用方创建时为空
+    QString busName;
+    // 创建该抑制器的进程号，非 D-Bus 调用方创建时为 0
+    uint32_t pid;
 };
 
 using KSMInhibitorVec = QList<QSharedPointer<Inhibitor>>;
@@ -74,11 +82,15 @@ public:
                                            uint32_t toplevelXID,
                                            const QString &reason,
                                            uint32_t flags,
-                                           const QString &startupID = QString());
+                                           const QString &startupID = QString(),
+                                           uint32_t pid = 0,
+                                           const QString &busName = QString());
 
     // 删除抑制器
     void deleteInhibitor(uint32_t cookie);
     void deleteInhibitorByStartupID(const QString &startupID);
+    // 删除指定 D-Bus 连接创建的抑制器
+    void deleteInhibitorsByBusName(const QString &busName);
     void deleteInhibitorsWithStartupID();
     // 存在指定类型的抑制器
     bool hasInhibitor(uint32_t flags);
